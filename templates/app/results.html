@@ -267,15 +267,8 @@
     <p class="text-xs text-gray-500 mt-3">Preview may be blocked by some sites that disallow iframes.</p>
   </div>
 </section>
-<!-- Tabs -->
+<!-- SEO -->
 <section class="mb-10">
-  <div class="flex flex-wrap gap-2 mb-6 border-b border-[#333] pb-4">
-    {% for tab, label in [('seo','SEO'),('performance','Performance'),('accessibility','Accessibility')] %}
-    <button class="tab-btn {% if loop.first %}active{% endif %} fm text-xs font-bold px-4 py-2 border-2 border-transparent {% if not loop.first %}text-gray-400 hover:text-white{% endif %} transition-all" onclick="switchTab('{{ tab }}')">{{ label }}</button>
-    {% endfor %}
-  </div>
-
-  <!-- SEO Tab -->
   <div id="tab-seo" class="tab-c active">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-2 space-y-4">
@@ -330,9 +323,11 @@
       </div>
     </div>
   </div>
+</section>
 
-  <!-- Performance Tab -->
-  <div id="tab-performance" class="tab-c">
+<!-- Performance -->
+<section class="mb-10">
+  <div id="tab-performance" class="tab-c active">
     <h3 class="text-xl font-black text-white mb-1">Performance Audit</h3>
     <p class="text-sm text-gray-400 mb-6">{{ audit.performance.summary }}</p>
 
@@ -374,9 +369,11 @@
       </div>
     </div>
   </div>
+</section>
 
-  <!-- Accessibility Tab -->
-  <div id="tab-accessibility" class="tab-c">
+<!-- Accessibility -->
+<section class="mb-10">
+  <div id="tab-accessibility" class="tab-c active">
     <h3 class="text-xl font-black text-white mb-1">Accessibility Audit</h3>
     <p class="text-sm text-gray-400 mb-6">{{ audit.accessibility.summary }} &middot; {{ audit.accessibility.compliance_percentage }}% compliant</p>
 
@@ -490,7 +487,6 @@
 
 <script>
   lucide.createIcons();
-  function switchTab(t){document.querySelectorAll('.tab-c').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>{e.classList.remove('active');e.classList.add('text-gray-400')});document.getElementById('tab-'+t).classList.add('active');event.target.classList.add('active');event.target.classList.remove('text-gray-400');}
   function filterIssues(s){document.querySelectorAll('[class*="issue-sev-"]').forEach(r=>{if(s==='all'){r.style.display='';}else{r.style.display=r.classList.contains('issue-sev-'+s)?'':'none';}});}
 </script>
 </body>
