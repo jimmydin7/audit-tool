@@ -5,6 +5,8 @@ import json
 import os
 from urllib.parse import urlparse
 from scraper.scraper import analyze
+import threading
+import uuid
 
 
 load_dotenv()
@@ -280,17 +282,57 @@ def audit_results():
     user = session.get("user")
     if not user:
         return redirect('/login')
+
     raw_url = request.values.get('url', '')
     url = normalize_url(raw_url)
     if not url:
-        return redirect(url_for('index', error="Please enter a valid URL (example: https://example.com)."))
-    try:
-        audit = analyze(url)
-    except Exception as exc:
-        print(f"Audit failed for {url}: {exc}")
-        return redirect(url_for('index', error="Audit failed. Please try again."))
+        return redirect(url_for(
+            'index',
+            error="Please enter a valid URL (example: https://example.com)."
+        ))
+
+    job_id = str(uuid.uuid4())
+
+    AUDIT_JOBS[job_id] = {
+        "status": "running",
+        "result": None,
+        "error": None
+    }
+
+    thread = threading.Thread(target=run_audit, args=(job_id, url))
+    thread.daemon = True
+    thread.start()
+
+    return redirect(url_for("audit_status", job_id=job_id))
+
+@app.route('/app/results/<job_id>')
+def audit_status(job_id):
+    job = AUDIT_JOBS.get(job_id)
+
+    if not job:
+        return render_template(
+            "app/error.html",
+            error="Audit not found. Please try again."
+        )
+
+    if job["status"] == "running":
+        return render_template("app/processing.html")
+
+    if job["status"] == "error":
+        return render_template(
+            "app/error.html",
+            error=job["error"]
+        )
+
+    audit = job["result"]
     audit_json = json.dumps(audit, indent=2)
-    return render_template('app/results.html', audit=audit, audit_json=audit_json)
+
+    return render_template(
+        "app/results.html",
+        audit=audit,
+        audit_json=audit_json
+    )
+
 
 
 @app.errorhandler(404)
