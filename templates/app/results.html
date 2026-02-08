@@ -40,6 +40,7 @@
     .fade-up-3 { animation-delay:.15s; }
     .fade-up-4 { animation-delay:.2s; }
     .no-blue-outline *:focus { outline: none; box-shadow: none; }
+    .score-box { outline: none; box-shadow: none; }
   </style>
 </head>
 <body class="min-h-screen relative">
@@ -50,8 +51,21 @@
 {% set dur = (audit.scan_duration_ms / 1000) | round(1) %}
 {% set s = audit.scores %}
 {% set pw = audit.performance.page_weight %}
-{% set safe_total = audit.issues.total if audit.issues.total else 1 %}
 {% set safe_total_kb = pw.total_kb if pw.total_kb else 1 %}
+{% set ns = namespace(total=0, critical=0, high=0, medium=0, low=0, cats={}) %}
+{% for item in audit.issues['items'] if item is mapping %}
+  {% set ns.total = ns.total + 1 %}
+  {% if item.severity == 'critical' %}{% set ns.critical = ns.critical + 1 %}{% endif %}
+  {% if item.severity == 'high' %}{% set ns.high = ns.high + 1 %}{% endif %}
+  {% if item.severity == 'medium' %}{% set ns.medium = ns.medium + 1 %}{% endif %}
+  {% if item.severity == 'low' %}{% set ns.low = ns.low + 1 %}{% endif %}
+  {% if item.category %}
+    {% set ns.cats = ns.cats.update({item.category: (ns.cats.get(item.category, 0) + 1)}) or ns.cats %}
+  {% else %}
+    {% set ns.cats = ns.cats.update({'other': (ns.cats.get('other', 0) + 1)}) or ns.cats %}
+  {% endif %}
+{% endfor %}
+{% set safe_total = ns.total if ns.total else 1 %}
 
 <!-- Nav -->
 <nav class="border-b border-[#333] bg-[#2a2a2a] px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-50">
@@ -85,10 +99,29 @@
 
 <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-10 no-blue-outline">
 
+{% if audit.metadata.upgrade_required %}
+<section class="mb-8">
+  <div class="bg-[#fca5a5] text-black border-2 border-[#444] p-4 md:p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+    <p class="fm text-[10px] uppercase tracking-widest mb-1">Upgrade Required</p>
+    <p class="font-bold text-lg">This website is too large for the free scan.</p>
+    <p class="text-sm">Upgrade to scan full pages and unlock complete results.</p>
+  </div>
+</section>
+
+<section class="mb-10">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8 text-center">
+    <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] fm text-[10px] font-bold mb-3">PRO</span>
+    <h3 class="text-2xl md:text-3xl font-black text-white mb-2">Unlimited Full-Page Scans</h3>
+    <p class="text-gray-400 mb-6">Get complete audits, full copy changes, and detailed fixes for large pages.</p>
+    <a href="/#pricing" class="bg-[#fca5a5] text-black px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all inline-block">See Pricing</a>
+  </div>
+</section>
+
+{% else %}
 <!-- Scores -->
 <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
   <!-- Overall ring -->
-  <div class="bg-[#2a2a2a] p-8 flex flex-col items-center justify-center fade-up">
+  <div class="score-box bg-[#2a2a2a] p-8 flex flex-col items-center justify-center fade-up outline-none">
     <p class="fm text-[10px] text-gray-500 uppercase mb-5">Overall Score</p>
     {% set os = s.overall.score %}
     {% set circ = 326.73 %}
@@ -102,7 +135,7 @@
   </div>
 
   <!-- Category score grid -->
-  <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 grid grid-cols-2 gap-4 fade-up fade-up-2">
+  <div class="score-box bg-[#2a2a2a] border-2 border-[#444] p-8 grid grid-cols-2 gap-4 fade-up fade-up-2">
     {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility')] %}
     {% set cs = s[cat].score %}
     {% if cs >= 80 %}{% set cc = '#22c55e' %}{% elif cs >= 60 %}{% set cc = '#f59e0b' %}{% else %}{% set cc = '#ef4444' %}{% endif %}
@@ -154,7 +187,7 @@
 <!-- Quick Stats -->
 <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
   {% set stats = [
-    ('Issues Found', audit.issues.total, audit.issues.critical ~ ' critical'),
+    ('Issues Found', ns.total, ns.critical ~ ' critical'),
     ('Page Speed', dur ~ 's', 'LCP: ' ~ (audit.performance.metrics.largest_contentful_paint.value_ms / 1000) | round(1) ~ 's'),
     ('Page Size', (pw.total_kb / 1024) | round(1) ~ ' MB', pw.images_kb ~ ' KB images'),
     ('CTA Count', audit.conversion.cta_analysis.total_ctas, audit.conversion.cta_analysis.overall_effectiveness),
@@ -174,18 +207,17 @@
   <!-- Pie chart -->
   <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
     <h3 class="fm text-[10px] uppercase text-gray-500 mb-5">Issues by Category</h3>
-    {% set cats = {} %}
-    {% for item in audit.issues['items'] %}{% set cats = cats.update({item.category: (cats.get(item.category,0)+1)}) or cats %}{% endfor %}
+    {% set cats = ns.cats %}
     {% set total = safe_total %}
-    {% set colors = {'seo':'#fca5a5','conversion':'#f59e0b','performance':'#3b82f6','accessibility':'#22c55e'} %}
+    {% set colors = {'seo':'#fca5a5','conversion':'#f59e0b','performance':'#3b82f6','accessibility':'#22c55e','other':'#9ca3af'} %}
     <div class="flex items-center justify-center">
       <div class="relative w-40 h-40">
         <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
-          {% set ns = namespace(offset=0) %}
+          {% set ns_cat = namespace(offset=0) %}
           {% for cat, count in cats.items() %}
           {% set pct = count / total * 251.33 %}
-          <circle cx="50" cy="50" r="40" fill="none" stroke-width="20" stroke="{{ colors.get(cat, '#666') }}" stroke-dasharray="{{ pct }} {{ 251.33 - pct }}" stroke-dashoffset="{{ -ns.offset }}"/>
-          {% set ns.offset = ns.offset + pct %}
+          <circle cx="50" cy="50" r="40" fill="none" stroke-width="20" stroke="{{ colors.get(cat, '#666') }}" stroke-dasharray="{{ pct }} {{ 251.33 - pct }}" stroke-dashoffset="{{ -ns_cat.offset }}"/>
+          {% set ns_cat.offset = ns_cat.offset + pct %}
           {% endfor %}
         </svg>
       </div>
@@ -201,10 +233,10 @@
   <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
     <h3 class="fm text-[10px] uppercase text-gray-500 mb-5">Issues by Severity</h3>
     {% set sev_counts = {
-      'critical': audit.issues.critical,
-      'high': audit.issues.high,
-      'medium': audit.issues.medium,
-      'low': audit.issues.low
+      'critical': ns.critical,
+      'high': ns.high,
+      'medium': ns.medium,
+      'low': ns.low
     } %}
     {% set sev_colors = {'critical':'#ef4444','high':'#f97316','medium':'#f59e0b','low':'#3b82f6'} %}
     <div class="flex items-center justify-center">
@@ -238,7 +270,7 @@
 <!-- Tabs -->
 <section class="mb-10">
   <div class="flex flex-wrap gap-2 mb-6 border-b border-[#333] pb-4">
-    {% for tab, label in [('seo','SEO'),('conversion','Conversion & CTA'),('performance','Performance'),('accessibility','Accessibility')] %}
+    {% for tab, label in [('seo','SEO'),('performance','Performance'),('accessibility','Accessibility')] %}
     <button class="tab-btn {% if loop.first %}active{% endif %} fm text-xs font-bold px-4 py-2 border-2 border-transparent {% if not loop.first %}text-gray-400 hover:text-white{% endif %} transition-all" onclick="switchTab('{{ tab }}')">{{ label }}</button>
     {% endfor %}
   </div>
@@ -299,52 +331,6 @@
     </div>
   </div>
 
-  <!-- Conversion Tab -->
-  <div id="tab-conversion" class="tab-c">
-    <h3 class="text-xl font-black text-white mb-1">Conversion & CTA Analysis</h3>
-    <p class="text-sm text-gray-400 mb-6">{{ audit.conversion.summary }} &middot; {{ audit.conversion.cta_analysis.total_ctas }} CTAs found &middot; Effectiveness: {{ audit.conversion.cta_analysis.overall_effectiveness }}</p>
-
-    <div class="space-y-4">
-    {% for cta in audit.conversion.cta_analysis.recommendations %}
-    {% if cta is mapping and cta.get('original') and cta.get('suggested') %}
-      <div class="bg-[#2a2a2a] border-2 border-[#444]">
-        <div class="px-5 py-3 border-b border-[#444] flex items-center justify-between">
-          <span class="fm text-xs text-gray-400">{{ cta.location | default('CTA Recommendation') }}</span>
-          <span class="fm text-[10px] px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">NEEDS WORK</span>
-        </div>
-        <div class="p-5">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div class="bg-[#1F1F1F] border border-[#444] p-4 rounded">
-              <p class="fm text-[10px] uppercase text-gray-500 mb-2">Current</p>
-              <p class="text-lg font-bold text-white">"{{ cta.original.text | default('') }}"</p>
-              {% if cta.original.style_notes %}<p class="text-xs text-gray-500 mt-1">{{ cta.original.style_notes }}</p>{% endif %}
-            </div>
-            <div class="bg-[#1F1F1F] border border-[#fca5a5]/30 p-4 rounded">
-              <p class="fm text-[10px] uppercase text-[#fca5a5] mb-2">Suggested</p>
-              <p class="text-lg font-bold text-[#fca5a5]">"{{ cta.suggested.text | default('') }}"</p>
-              {% if cta.suggested.reasoning %}<p class="text-xs text-gray-400 mt-1">{{ cta.suggested.reasoning }}</p>{% endif %}
-              {% if cta.suggested.expected_improvement %}<p class="fm text-[10px] text-green-400 mt-2">Expected: {{ cta.suggested.expected_improvement }}</p>{% endif %}
-            </div>
-          </div>
-          <div>
-            <p class="fm text-[10px] uppercase text-gray-500 mb-2">Issues</p>
-            <div class="flex flex-wrap gap-2">
-              {% for issue in cta.issues or [] %}
-              <span class="text-xs bg-[#333] border border-[#444] text-gray-400 px-2 py-1">{{ issue }}</span>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-      </div>
-    {% endif %}
-    {% endfor %}
-    </div>
-
-    <div class="mt-2">
-      <h4 class="text-lg font-black text-white mb-3">CTA Improvements</h4>
-    </div>
-  </div>
-
   <!-- Performance Tab -->
   <div id="tab-performance" class="tab-c">
     <h3 class="text-xl font-black text-white mb-1">Performance Audit</h3>
@@ -392,7 +378,7 @@
   <!-- Accessibility Tab -->
   <div id="tab-accessibility" class="tab-c">
     <h3 class="text-xl font-black text-white mb-1">Accessibility Audit</h3>
-    <p class="text-sm text-gray-400 mb-6">{{ audit.accessibility.summary }} &middot; WCAG {{ audit.accessibility.wcag_level }} &middot; {{ audit.accessibility.compliance_percentage }}% compliant</p>
+    <p class="text-sm text-gray-400 mb-6">{{ audit.accessibility.summary }} &middot; {{ audit.accessibility.compliance_percentage }}% compliant</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
       {% for area, label in [('keyboard_navigation','Keyboard Nav'),('screen_reader','Screen Reader'),('color_contrast','Color Contrast')] %}
@@ -438,13 +424,13 @@
 <!-- All Issues Table -->
 <section class="mb-10">
   <div class="flex items-center justify-between mb-4">
-    <h3 class="text-xl font-black text-white">All Issues ({{ audit.issues.total }})</h3>
+  <h3 class="text-xl font-black text-white">All Issues ({{ ns.total }})</h3>
     <div class="flex gap-2">
       <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] text-gray-400 hover:text-white transition-colors" onclick="filterIssues('all')">All</button>
-      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-critical" onclick="filterIssues('critical')">Critical ({{ audit.issues.critical }})</button>
-      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-high" onclick="filterIssues('high')">High ({{ audit.issues.high }})</button>
-      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-medium" onclick="filterIssues('medium')">Medium ({{ audit.issues.medium }})</button>
-      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-low" onclick="filterIssues('low')">Low ({{ audit.issues.low }})</button>
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-critical" onclick="filterIssues('critical')">Critical ({{ ns.critical }})</button>
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-high" onclick="filterIssues('high')">High ({{ ns.high }})</button>
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-medium" onclick="filterIssues('medium')">Medium ({{ ns.medium }})</button>
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-low" onclick="filterIssues('low')">Low ({{ ns.low }})</button>
     </div>
   </div>
 
@@ -487,7 +473,7 @@
 
 <!-- Bottom CTA -->
 <section class="bg-[#2a2a2a] border-2 border-[#444] p-8 md:p-12 text-center mb-10">
-  <h3 class="text-2xl md:text-3xl font-black text-white mb-2">{{ audit.issues.total }} issues found on {{ domain }}</h3>
+  <h3 class="text-2xl md:text-3xl font-black text-white mb-2">{{ ns.total }} issues found on {{ domain }}</h3>
   <p class="text-gray-400 mb-6 max-w-lg mx-auto">{{ s.overall.summary }}</p>
   <div class="flex flex-col sm:flex-row gap-4 justify-center">
     <a href="/#scan" class="bg-[#fca5a5] text-black px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Run Another Audit</a>
@@ -495,6 +481,7 @@
   </div>
 </section>
 </main>
+{% endif %}
 
 <footer class="border-t border-[#333] px-4 md:px-8 py-6 text-center">
   <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span>

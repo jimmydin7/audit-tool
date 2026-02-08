@@ -20,9 +20,9 @@ EXAMPLE_AUDIT = {
         "accessibility": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
     },
     "issues": {
-        "total": 0,
+        "total": 1,
         "critical": 0,
-        "high": 0,
+        "high": 1,
         "medium": 0,
         "low": 0,
         "items": [
@@ -320,8 +320,10 @@ RULES:
 - If a list can have items, include at least 3 items.
 - Ensure conversion.copy_changes has 10+ entries.
 - Ensure issues.items has 8+ entries spanning all categories and severities.
+- Ensure issues.total and severity counts match issues.items.
 - Never mention AI or "AI-powered" in any copy suggestions; be informative and conversion-focused.
 - Make copy_changes cover most of the page: hero, subheadline, primary CTA, features, paragraphs, social proof, pricing, FAQ, footer, and more.
+- Don't fill ANYTHING randomly
 
 EXAMPLE JSON (schema reference):
 {EXAMPLE_JSON}
@@ -348,5 +350,34 @@ HTML SOURCE:
 
 def analyze(url):
     html_code = scrape(url)
-    audit = analyze_with_ai(html_code, url)
+    max_input_chars = 60000
+    if len(html_code) > max_input_chars:
+        audit = _merge_schema(DEFAULT_AUDIT, {})
+        audit["url"] = url
+        audit["scanned_at"] = datetime.utcnow().isoformat()
+        audit["scores"]["overall"]["summary"] = "Website too large for the free scan. Upgrade to scan full pages."
+        audit["metadata"]["upgrade_required"] = True
+        audit["conversion"]["summary"] = "Upgrade required for full conversion analysis."
+        audit["performance"]["summary"] = "Upgrade required for full performance analysis."
+        audit["accessibility"]["summary"] = "Upgrade required for full accessibility analysis."
+        audit["issues"]["items"] = [
+            {
+                "category": "conversion",
+                "severity": "medium",
+                "name": "Full scan requires upgrade",
+                "description": "This page exceeds the free scan size limit.",
+                "impact": "Some issues and copy improvements may be missing.",
+                "solution": "Upgrade to scan full pages and get complete results.",
+                "code_example": "",
+                "affected_elements": [],
+            }
+        ]
+        audit["issues"]["total"] = 1
+        audit["issues"]["critical"] = 0
+        audit["issues"]["high"] = 0
+        audit["issues"]["medium"] = 1
+        audit["issues"]["low"] = 0
+        return audit
+
+    audit = analyze_with_ai(html_code[:max_input_chars], url)
     return audit
