@@ -324,6 +324,8 @@ RULES:
 - Never mention AI or "AI-powered" in any copy suggestions; be informative and conversion-focused.
 - Make copy_changes cover most of the page: hero, subheadline, primary CTA, features, paragraphs, social proof, pricing, FAQ, footer, and more.
 - Don't fill ANYTHING randomly
+- Be brutally honest, don't feel bad giving low scores
+- Lots of purple and blue indicate a website is vibecode (lower the score much, no one trusts vibecoded websites)
 
 EXAMPLE JSON (schema reference):
 {EXAMPLE_JSON}
