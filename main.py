@@ -29,6 +29,14 @@ def store_post_login_redirect(target_path):
     if not target_path:
         return
     session["post_login_redirect"] = target_path
+def run_audit(job_id, url):
+    try:
+        result = analyze(url)
+        AUDIT_JOBS[job_id]["status"] = "done"
+        AUDIT_JOBS[job_id]["result"] = result
+    except Exception as e:
+        AUDIT_JOBS[job_id]["status"] = "error"
+        AUDIT_JOBS[job_id]["error"] = str(e)
 
 
 def get_oauth_url(provider, redirect_url):
