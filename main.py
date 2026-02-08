@@ -128,9 +128,10 @@ def update_user_metadata(access_token, refresh_token, first_name, last_name):
 
 
 def get_public_base_url():
-    if public_base_url:
-        return public_base_url.rstrip("/")
-    return request.host_url.rstrip("/")
+    base = public_base_url or request.host_url.rstrip("/")
+    if not base.startswith("http://") and not base.startswith("https://"):
+        base = "https://" + base
+    return base.rstrip("/")
 
 
 @app.route('/')
