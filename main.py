@@ -29,6 +29,8 @@ def store_post_login_redirect(target_path):
     if not target_path:
         return
     session["post_login_redirect"] = target_path
+
+    
 def run_audit(job_id, url):
     try:
         result = analyze(url)
