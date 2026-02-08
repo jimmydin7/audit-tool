@@ -1,0 +1,383 @@
+:root {
+  --bg: #1F1F1F;
+  --grid: #333333;
+  --ink: #e5e5e5;
+  --highlighter: #fca5a5;
+  --tape: rgba(255, 255, 255, 0.9);
+  --accent-blue: #2563eb;
+}
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  overflow-x: hidden;
+  cursor: auto;
+}
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+.font-hand {
+  font-family: 'Reenie Beanie', cursive;
+}
+.font-marker {
+  font-family: 'Permanent Marker', cursive;
+}
+.font-poppins {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.05em;
+  font-weight: 450;
+}
+.font-heading {
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+.font-serif-curvy {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+}
+.paper-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.05;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+#cursor {
+  display: none;
+  width: 16px;
+  height: 16px;
+  background: black;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: normal;
+  transition: width 0.1s, height 0.1s, background-color 0.1s, opacity 0.1s;
+  opacity: 0;
+}
+#cursor.active {
+  width: 60px;
+  height: 60px;
+  background: rgba(252, 165, 165, 0.6);
+  mix-blend-mode: multiply;
+  border: 1px solid black;
+  opacity: 1;
+}
+@media (pointer: fine) {
+  body {
+    cursor: auto;
+  }
+  #cursor {
+    display: block;
+  }
+}
+.brutalist-border {
+  border: 2px solid #444;
+}
+.brutalist-shadow {
+  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+  border: 2px solid #444;
+}
+.brutalist-shadow-sm {
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+  border: 1px solid #444;
+}
+.hover-shadow:hover {
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+  transform: translate(2px, 2px);
+}
+.tape {
+  position: absolute;
+  width: 120px;
+  height: 35px;
+  background: var(--tape);
+  opacity: 0.8;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L100%25,0 L98%25,100%25 L2%25,100%25 Z' fill='black'/%3E");
+}
+.nf-highlight-marker {
+  background: rgba(252, 165, 165, 0.8);
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.sticker {
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.sticker:hover {
+  transform: scale(1.1) rotate(5deg) !important;
+  z-index: 50;
+}
+.nf-draggable-card {
+  touch-action: none;
+}
+@media (max-width: 767px) {
+  .nf-draggable-card {
+    display: none;
+  }
+}
+.nf-step-card {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.nf-step-card.nf-step-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.nf-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease-out;
+}
+.nf-accordion-open .nf-accordion-content {
+  max-height: 500px;
+}
+.nf-accordion-icon {
+  transition: transform 0.3s;
+}
+.nf-accordion-open .nf-accordion-icon {
+  transform: rotate(180deg);
+}
+.hover\:pause-animation:hover .nf-ticker {
+  animation-play-state: paused;
+}
+.underlined-highlight {
+  position: relative;
+  display: inline;
+  white-space: nowrap;
+  z-index: 1;
+  opacity: 0.3;
+}
+
+.underlined-highlight::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 8px;
+  bottom: 2px;
+  left: 0;
+
+  background-color: #fca5a5;
+  z-index: -1;
+  -webkit-transform: rotate(-1deg);
+  -ms-transform: rotate(-1deg);
+  transform: rotate(-1deg);
+  -webkit-transform-origin: left center;
+  -ms-transform-origin: left center;
+  transform-origin: left center;
+  
+  border-radius: 2px;
+}
+.nf-ticker {
+  display: inline-block;
+  animation: nf-ticker-move 20s linear infinite;
+}
+@keyframes nf-ticker-move {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.underline-highlight {
+  position: relative;
+  display: inline-block;
+}
+
+.underline-highlight::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0.3em; 
+  background-color: var(--highlighter);
+  transform: rotate(-1deg); 
+  transform-origin: left;
+  z-index: -1;
+}
+
+#underlined-normal {
+  border-bottom: 6px solid #fca5a5;
+}
+
+/* Scroll-triggered animations */
+.nf-fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.nf-fade-up.nf-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nf-fade-in {
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+.nf-fade-in.nf-visible {
+  opacity: 1;
+}
+
+.nf-slide-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.nf-slide-left.nf-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.nf-slide-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.nf-slide-right.nf-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.nf-scale-in {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.nf-scale-in.nf-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Staggered children animation */
+.nf-stagger-children > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.nf-stagger-children.nf-visible > *:nth-child(1) { transition-delay: 0.05s; }
+.nf-stagger-children.nf-visible > *:nth-child(2) { transition-delay: 0.1s; }
+.nf-stagger-children.nf-visible > *:nth-child(3) { transition-delay: 0.15s; }
+.nf-stagger-children.nf-visible > *:nth-child(4) { transition-delay: 0.2s; }
+.nf-stagger-children.nf-visible > *:nth-child(5) { transition-delay: 0.25s; }
+.nf-stagger-children.nf-visible > *:nth-child(6) { transition-delay: 0.3s; }
+.nf-stagger-children.nf-visible > *:nth-child(7) { transition-delay: 0.35s; }
+
+.nf-stagger-children.nf-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Floating animation */
+.nf-float {
+  animation: nf-float 3s ease-in-out infinite;
+}
+
+@keyframes nf-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Pulse animation */
+.nf-pulse {
+  animation: nf-pulse 2s ease-in-out infinite;
+}
+
+@keyframes nf-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Shimmer effect for buttons */
+.nf-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.nf-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: nf-shimmer 2.5s infinite;
+}
+
+@keyframes nf-shimmer {
+  0% { left: -100%; }
+  50%, 100% { left: 100%; }
+}
+
+/* Icon bounce on hover */
+.nf-icon-bounce:hover i,
+.nf-icon-bounce:hover svg {
+  animation: nf-bounce 0.5s ease;
+}
+
+@keyframes nf-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Counter animation */
+.nf-counter {
+  display: inline-block;
+}
+
+/* Card tilt on hover */
+.nf-tilt {
+  transition: transform 0.3s ease;
+}
+
+.nf-tilt:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-5px);
+}
+
+/* Underline animation on hover */
+.nf-underline-hover {
+  position: relative;
+}
+
+.nf-underline-hover::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: #fca5a5;
+  transition: width 0.3s ease;
+}
+
+.nf-underline-hover:hover::after {
+  width: 100%;
+}

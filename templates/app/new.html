@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>New Audit | fixmyland.ing</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+  <style>
+    body {
+      background: #1F1F1F;
+      color: #e5e5e5;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="relative min-h-screen">
+  <div class="paper-grid"></div>
+  <div class="noise-overlay"></div>
+  <main class="max-w-3xl mx-auto px-6 py-12">
+    <div class="flex items-center justify-between mb-8">
+      <a href="/app/dashboard" class="text-xl font-black tracking-tighter text-white"><span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span></a>
+      <a href="/logout" class="text-sm font-bold text-gray-300 hover:text-white">Log out</a>
+    </div>
+
+    <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <p class="font-mono text-[10px] uppercase text-gray-500 mb-2">New Audit</p>
+      <h1 class="text-2xl md:text-3xl font-black text-white mb-2">Run a landing page audit</h1>
+      <p class="text-sm text-gray-400 mb-6">Paste any URL and start a full scan.</p>
+
+      {% if error %}
+      <div class="mb-5 p-3 text-red-300 bg-red-500/10 border border-red-500/40 text-sm">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="GET" action="/app/new" id="audit-form">
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-2 flex items-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div class="flex-shrink-0 w-10 h-10 bg-[#333] border border-[#555] rounded flex items-center justify-center overflow-hidden">
+            <i data-lucide="globe" id="url-icon-placeholder" class="w-5 h-5 text-gray-500"></i>
+            <img id="url-favicon" src="" alt="" class="w-6 h-6 hidden rounded-sm">
+          </div>
+          <input
+            id="url-input"
+            type="text"
+            name="url"
+            placeholder="website.com"
+            class="flex-1 bg-transparent text-white text-base font-medium placeholder-gray-500 outline-none border-none py-2"
+            oninput="updateFavicon(this.value)"
+          >
+        </div>
+        {% if error %}
+        <p class="text-red-300 text-xs mt-2 font-mono">{{ error }}</p>
+        {% endif %}
+        <button type="submit" class="w-full mt-3 bg-[#fca5a5] text-black border-2 border-[#444] px-8 py-3 font-bold text-base shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex items-center justify-center gap-2">
+          Start audit
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+    </div>
+  </main>
+  <script>
+    let faviconTimeout;
+    function updateFavicon(value) {
+      clearTimeout(faviconTimeout);
+      const favicon = document.getElementById('url-favicon');
+      const placeholder = document.getElementById('url-icon-placeholder');
+      const domain = value.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+
+      if (!domain || !domain.includes('.')) {
+        favicon.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        return;
+      }
+
+      faviconTimeout = setTimeout(() => {
+        const img = new Image();
+        img.onload = () => {
+          favicon.src = img.src;
+          favicon.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+        };
+        img.onerror = () => {
+          favicon.classList.add('hidden');
+          placeholder.classList.remove('hidden');
+        };
+        img.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+      }, 300);
+    }
+
+    const form = document.getElementById('audit-form');
+    form.addEventListener('submit', function () {
+      const input = document.getElementById('url-input');
+      const value = input.value.trim();
+      if (!value) return;
+      if (!/^https?:\/\//i.test(value)) {
+        input.value = 'https://' + value;
+      }
+    });
+  </script>
+</body>
+</html>

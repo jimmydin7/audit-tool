@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fixmyland.ing - Signing in...</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+<body class="relative flex items-center justify-center min-h-screen bg-[#1F1F1F] text-white">
+  <div class="paper-grid"></div>
+  <div class="noise-overlay"></div>
+  <div class="text-center">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#86efac] mx-auto mb-4"></div>
+    <p class="text-gray-400">Signing you in...</p>
+  </div>
+
+  <script>
+    const hash = window.location.hash.substring(1);
+    const search = window.location.search.substring(1);
+    const params = new URLSearchParams(hash || search);
+    
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const error = params.get('error');
+    const errorDesc = params.get('error_description');
+    
+    if (error) {
+      window.location.href = `/auth/callback?error=${encodeURIComponent(error)}&error_description=${encodeURIComponent(errorDesc || '')}`;
+    } else if (accessToken) {
+      window.location.href = `/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken || '')}`;
+    } else {
+      setTimeout(() => {
+        if (!window.location.hash) {
+          window.location.href = '/login';
+        }
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

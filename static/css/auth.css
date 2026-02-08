@@ -1,0 +1,30 @@
+.split-container {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+    .right-panel {
+      flex: 1;
+      padding: 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .form-container {
+      max-width: 400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+      .split-container {
+        flex-direction: column;
+      }
+      .left-panel {
+        padding: 4rem 2rem;
+      }
+      .right-panel {
+        padding: 2rem;
+      }
+    }

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black scroll-smooth">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PageAudit | AI-Powered Landing Page Auditor</title>
+
+  <meta name="description"
+    content="Analyze your landing pages for conversion issues, SEO problems, accessibility gaps, and performance bottlenecks. Get actionable insights powered by AI.">
+  <meta name="robots" content="index,follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PageAudit | AI-Powered Landing Page Auditor">
+  <meta property="og:description"
+    content="Analyze your landing pages for conversion issues, SEO problems, accessibility gaps, and performance bottlenecks.">
+
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Reenie+Beanie&family=Permanent+Marker&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="static/css/index.css">
+</head>
+
+<body class="relative">
+
+  <div class="paper-grid"></div>
+  <div class="noise-overlay"></div>
+
+  <nav class="fixed top-4 md:top-6 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] max-w-6xl z-50">
+    <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 md:px-6 py-3 flex justify-between items-center">
+      
+      <a href="/" class="flex-shrink-0">
+        <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span>
+
+      </a>
+
+      <div class="hidden md:flex items-center gap-1">
+        <a href="#features" class="px-3 py-2 font-mono text-xs font-bold uppercase text-gray-300 hover:bg-[#fca5a5] hover:text-black border-2 border-transparent hover:border-[#444] transition-all">
+          Features
+        </a>
+        <a href="#how-it-works" class="px-3 py-2 font-mono text-xs font-bold uppercase text-gray-300 hover:bg-[#fca5a5] hover:text-black border-2 border-transparent hover:border-[#444] transition-all">
+          How It Works
+        </a>
+        <a href="#pricing" class="px-3 py-2 font-mono text-xs font-bold uppercase text-gray-300 hover:bg-[#fca5a5] hover:text-black border-2 border-transparent hover:border-[#444] transition-all">
+          Pricing
+        </a>
+        <a href="#faq" class="px-3 py-2 font-mono text-xs font-bold uppercase text-gray-300 hover:bg-[#fca5a5] hover:text-black border-2 border-transparent hover:border-[#444] transition-all">
+          FAQ
+        </a>
+      </div>
+
+      <div class="flex-shrink-0">
+        {% if user %}
+        <a href="/app/dashboard">
+          <button class="bg-[#fca5a5] text-black px-4 py-2 md:px-5 font-mono text-xs md:text-sm font-bold uppercase border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+            Dashboard
+          </button>
+        </a>
+        {% else %}
+        <a href="#scan">
+          <button class="bg-[#fca5a5] text-black px-4 py-2 md:px-5 font-mono text-xs md:text-sm font-bold uppercase border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+            Start Audit
+          </button>
+        </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </nav>
+
+<section id="scan" class="min-h-screen pt-32 md:pt-24 px-4 md:px-12 relative overflow-hidden flex flex-col items-center justify-center">
+
+  <div class="z-10 max-w-3xl text-center">
+    <div class="inline-block border border-[#444] bg-[#2a2a2a] px-3 py-1 mb-6 rotate-[-2deg]">
+      <span class="font-mono text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Stop guessing what's wrong with your landing page</span>
+    </div>
+
+    <h1 class="text-[12vw] md:text-[5.5rem] leading-[0.95] md:leading-[0.9] font-black tracking-tight mb-6 md:mb-8 text-white">
+      Turn visitors <br>into <span class="font-serif-curvy text-[#fca5a5] tracking-normal">customers</span>
+    </h1>
+
+    <p class="text-base md:text-xl font-medium max-w-xl mx-auto leading-relaxed bg-[#2a2a2a]/90 backdrop-blur-sm p-4 border border-[#444] text-gray-300 font-poppins">
+      Find <span class="nf-highlight-marker">conversion killers</span>,
+      <span class="nf-highlight-marker">SEO gaps</span>,
+      <span class="nf-highlight-marker">performance issues</span>, and
+      <span class="nf-highlight-marker">accessibility problems</span>
+      with AI-powered analysis. Get a detailed & sharable report in seconds.
+    </p>
+
+    <div class="mt-8 md:mt-12 w-full max-w-md mx-auto">
+      <form method="GET" action="/app/new" id="audit-form">
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-2 flex items-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <div class="flex-shrink-0 w-10 h-10 bg-[#333] border border-[#555] rounded flex items-center justify-center overflow-hidden">
+          <i data-lucide="globe" id="url-icon-placeholder" class="w-5 h-5 text-gray-500"></i>
+          <img id="url-favicon" src="" alt="" class="w-6 h-6 hidden rounded-sm">
+        </div>
+        <input
+          id="url-input"
+          type="text"
+          name="url"
+          placeholder="website.com"
+          class="flex-1 bg-transparent text-white text-base font-medium placeholder-gray-500 outline-none border-none py-2"
+          oninput="updateFavicon(this.value)"
+        >
+        </div>
+        {% if request.args.get('error') %}
+        <p class="text-red-300 text-xs mt-2 font-mono">{{ request.args.get('error') }}</p>
+        {% endif %}
+        <button type="submit" class="w-full mt-3 bg-[#fca5a5] text-black border-2 border-[#444] px-8 py-3 font-bold text-base shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex items-center justify-center gap-2">
+          Audit my website
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+      <p class="text-center text-gray-500 text-xs mt-3 font-medium">Free to use. No card required.</p>
+    </div>
+
+    <script>
+      let faviconTimeout;
+      function updateFavicon(value) {
+        clearTimeout(faviconTimeout);
+        const favicon = document.getElementById('url-favicon');
+        const placeholder = document.getElementById('url-icon-placeholder');
+        const domain = value.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+
+        if (!domain || !domain.includes('.')) {
+          favicon.classList.add('hidden');
+          placeholder.classList.remove('hidden');
+          return;
+        }
+
+        faviconTimeout = setTimeout(() => {
+          const img = new Image();
+          img.onload = () => {
+            favicon.src = img.src;
+            favicon.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+          };
+          img.onerror = () => {
+            favicon.classList.add('hidden');
+            placeholder.classList.remove('hidden');   
+          };
+          img.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+        }, 300);
+      }
+
+      const form = document.getElementById('audit-form');
+      form.addEventListener('submit', function () {
+        const input = document.getElementById('url-input');
+        const value = input.value.trim();
+        if (!value) return;
+        if (!/^https?:\/\//i.test(value)) {
+          input.value = 'https://' + value;
+        }
+      });
+    </script>
+  </div>
+
+</section>
+
+  <div
+    class="border-y-2 border-[#444] bg-[#fca5a5] text-black py-3 md:py-4 overflow-hidden rotate-[2deg] scale-105 z-20 relative my-8 md:my-12">
+    <div class="nf-ticker-wrap flex gap-8 hover:pause-animation">
+      <div class="nf-ticker font-mono font-bold text-base md:text-xl uppercase tracking-widest whitespace-nowrap">
+        ||| CONVERSION OPTIMIZATION ||| SEO ANALYSIS ||| ACCESSIBILITY AUDIT ||| PERFORMANCE SCORES ||| DESIGN REVIEW ||| MOBILE RESPONSIVENESS ||| A/B TEST INSIGHTS
+      </div>
+      <div class="nf-ticker font-mono font-bold text-base md:text-xl uppercase tracking-widest whitespace-nowrap"
+        aria-hidden="true">
+        ||| CONVERSION OPTIMIZATION ||| SEO ANALYSIS ||| ACCESSIBILITY AUDIT ||| PERFORMANCE SCORES ||| DESIGN REVIEW ||| MOBILE RESPONSIVENESS ||| A/B TEST INSIGHTS
+      </div>
+    </div>
+  </div>
+
+ <section id="how-it-works" class="py-12 md:py-24 px-4 md:px-12 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row gap-12 md:gap-16 items-start">
+
+        <div class="w-full md:w-1/3 relative md:sticky md:top-32">
+         <h2 class="text-4xl md:text-5xl font-black text-white">How it works</h2>
+         <br>
+         <p class="text-base md:text-lg text-gray-400 mb-6 md:mb-8 font-poppins">
+           Drop in any URL. We'll tell you exactly what's working, what's not, and how to fix it.
+         </p>
+
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-4 brutalist-shadow-sm rotate-1 w-full max-w-sm mx-auto md:mx-0">
+            <div class="font-mono text-xs uppercase border-b border-[#444] pb-2 mb-3 text-gray-400">
+              Audit Score
+            </div>
+
+            <div class="space-y-3 mb-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-300">SEO</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-24 h-2 bg-[#333] rounded-full overflow-hidden">
+                    <div class="h-full bg-[#fca5a5] rounded-full" style="width:87%"></div>
+                  </div>
+                  <span class="text-sm font-bold text-[#fca5a5]">87</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-300">Performance</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-24 h-2 bg-[#333] rounded-full overflow-hidden">
+                    <div class="h-full bg-[#fca5a5] rounded-full" style="width:92%"></div>
+                  </div>
+                  <span class="text-sm font-bold text-[#fca5a5]">92</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-300">Accessibility</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-24 h-2 bg-[#333] rounded-full overflow-hidden">
+                    <div class="h-full bg-[#fca5a5] rounded-full" style="width:74%"></div>
+                  </div>
+                  <span class="text-sm font-bold text-[#fca5a5]">74</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center font-bold bg-[#fca5a5] text-black border-2 border-[#444] py-1">
+              Overall: 84 / 100
+            </div>
+          </div>
+
+        </div>
+        
+
+        <div class="w-full md:w-2/3 space-y-16 md:space-y-24 pt-0 md:pt-12">
+
+          <div class="nf-step-card group relative">
+            <div
+              class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8 brutalist-shadow transition-transform group-hover:-translate-y-1">
+              <div class="flex justify-between items-start mb-4 md:mb-6">
+                <h3 class="text-2xl md:text-3xl font-black uppercase text-white">Enter Your URL</h3>
+                <i data-lucide="link" class="w-6 h-6 md:w-8 md:h-8 text-gray-400"></i>
+              </div>
+              <p class="mb-6 text-sm md:text-base font-poppins text-gray-300">Just paste a link. Any landing page, any website. That's literally all you have to do.</p>
+              <span class="bg-[#fca5a5] text-black px-2 py-1 border border-[#444] text-xs font-bold text-center">Any URL</span>
+              <span class="bg-red-300 text-black px-2 py-1 border border-[#444] text-xs font-bold text-center">No Setup Required</span>
+            </div>
+          </div>
+
+          <div class="nf-step-card group relative">
+            <div
+              class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8 brutalist-shadow transition-transform group-hover:-translate-y-1">
+              <div class="flex justify-between items-start mb-4 md:mb-6">
+                <h3 class="text-2xl md:text-3xl font-black uppercase text-white">AI Analysis</h3>
+                <i data-lucide="brain-cog" class="w-6 h-6 md:w-8 md:h-8 text-gray-400"></i>
+              </div>
+              <p class="text-sm md:text-base font-poppins text-gray-300 leading-relaxed">
+                We look at everything. Your headlines, your CTAs, your images, your meta tags, your page speed. All of it gets checked against 50+ conversion best practices.
+              </p>
+              <ul class="mt-4 space-y-2 text-sm font-medium text-gray-400">
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> Conversion element analysis</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> SEO & meta tag review</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> Performance & Core Web Vitals</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="nf-step-card group relative">
+            <div
+              class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8 brutalist-shadow transition-transform group-hover:-translate-y-1">
+              <div class="flex justify-between items-start mb-4 md:mb-6">
+                <h3 class="text-2xl md:text-3xl font-black uppercase text-white">Detailed Report</h3>
+                <i data-lucide="file-bar-chart" class="w-6 h-6 md:w-8 md:h-8 text-gray-400"></i>
+              </div>
+              <p class="text-sm md:text-base font-poppins text-gray-300 leading-relaxed">
+                You get a full report with scores for conversion, SEO, performance, and accessibility. Every issue is ranked by priority so you know what to fix first.
+              </p>
+              <ul class="mt-4 space-y-2 text-sm font-medium text-gray-400">
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> Priority-ranked issues</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> Category breakdown</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> Exportable PDF reports</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="nf-step-card group relative">
+            <div
+              class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8 brutalist-shadow transition-transform group-hover:-translate-y-1">
+              <div class="flex justify-between items-start mb-4 md:mb-6">
+                <h3 class="text-2xl md:text-3xl font-black uppercase text-white">Actionable Fixes</h3>
+                <i data-lucide="wrench" class="w-6 h-6 md:w-8 md:h-8 text-gray-400"></i>
+              </div>
+              <p class="text-sm md:text-base font-poppins text-gray-300 leading-relaxed">
+                We don't just tell you what's wrong. Every issue comes with the exact fix. Code snippets, copy rewrites, design tweaks. Stuff you can actually use right now.
+              </p>
+              <ul class="mt-4 space-y-2 text-sm font-medium text-gray-400">
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> Code-level fixes</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> Copy improvement suggestions</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-400"></i> Before/after comparisons</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="nf-step-card group relative">
+            <div
+              class="relative bg-gradient-to-br from-[#fca5a5] to-[#f87171] border-4 border-[#444] p-6 md:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all group-hover:-translate-y-2 group-hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              
+              <div class="absolute -top-3 -right-3 bg-black text-white px-3 py-1 font-mono text-xs font-bold rotate-3">
+                TRY IT
+              </div>
+
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <span class="inline-block bg-black text-white px-2 py-0.5 font-mono text-[10px] font-bold mb-2">FREE AUDIT</span>
+                  <h3 class="text-2xl md:text-3xl font-black uppercase text-black">Run Your First Audit</h3>
+                </div>
+                <div class="w-12 h-12 md:w-14 md:h-14 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                  <i data-lucide="search" class="w-6 h-6 md:w-7 md:h-7"></i>
+                </div>
+              </div>
+
+              <p class="text-sm md:text-base font-poppins text-gray-800 leading-relaxed mb-6">
+                Throw in any URL and see what happens. Full report, all the scores, real fixes. Completely free, no strings attached.
+              </p>
+
+              <a href="#scan" class="block">
+                <button class="w-full bg-black text-white border-2 border-black px-8 py-4 font-mono text-lg font-bold uppercase
+                  hover:bg-white hover:text-black transition-colors duration-200 flex items-center justify-center gap-3">
+                  <span>Start Free Audit</span>
+                  <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+              </a>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+
+  <section id="features" class="relative py-16 md:py-24 px-4 md:px-12 overflow-hidden">
+    <div class="max-w-6xl mx-auto">
+
+      <div class="text-center mb-12">
+        <span class="inline-block bg-[#fca5a5] text-black px-4 py-1 font-mono text-xs font-bold mb-4">WHY PAGEAUDIT?</span>
+        <h2 class="text-3xl md:text-5xl font-black mb-4 text-white">Everything You Need to Optimize</h2>
+        <p class="text-gray-400 font-medium text-lg max-w-2xl mx-auto">
+          A complete toolkit for landing page analysis. Find every issue that's costing you conversions.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="target" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">Conversion Analysis</h3>
+          <p class="text-gray-400 text-sm font-medium">
+            Evaluate CTAs, headlines, form placement, trust signals, and every element that impacts your conversion rate.
+          </p>
+        </div>
+
+        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="search" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">SEO Score</h3>
+          <p class="text-gray-400 text-sm font-medium">
+            Check meta tags, heading structure, keyword usage, schema markup, and on-page SEO fundamentals.
+          </p>
+        </div>
+
+        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="gauge" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">Performance Metrics</h3>
+          <p class="text-gray-400 text-sm font-medium">
+            Measure load times, Core Web Vitals, image optimization, and resource efficiency.
+          </p>
+        </div>
+
+        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="accessibility" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">Accessibility Check</h3>
+          <p class="text-gray-400 text-sm font-medium">
+            WCAG compliance testing, color contrast, alt text, keyboard navigation, and screen reader compatibility.
+          </p>
+        </div>
+
+        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="smartphone" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">Mobile Testing</h3>
+          <p class="text-gray-400 text-sm font-medium">
+            Responsive design checks, touch targets, viewport settings, and mobile-specific UX evaluation.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0px;">
+
+  <section class="py-16 md:py-24 px-4 md:px-12 bg-[#181818]">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-black mb-4 text-white">Built for Everyone</h2>
+      <p class="text-gray-400 font-medium mb-10 text-lg">No matter your role, PageAudit gives you the insights you need.</p>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="rocket" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">For Founders</h3>
+          <ul class="text-gray-400 text-sm font-medium space-y-2">
+            <li>&bull; Launch page optimization</li>
+            <li>&bull; Investor pitch pages</li>
+            <li>&bull; Product landing pages</li>
+          </ul>
+        </div>
+
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="megaphone" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">For Marketers</h3>
+          <ul class="text-gray-400 text-sm font-medium space-y-2">
+            <li>&bull; Campaign landing pages</li>
+            <li>&bull; A/B test validation</li>
+            <li>&bull; Conversion tracking</li>
+          </ul>
+        </div>
+
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="code" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">For Developers</h3>
+          <ul class="text-gray-400 text-sm font-medium space-y-2">
+            <li>&bull; Performance audits</li>
+            <li>&bull; Accessibility compliance</li>
+            <li>&bull; Technical SEO fixes</li>
+          </ul>
+        </div>
+
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="briefcase" class="w-6 h-6 text-black"></i>
+          </div>
+          <h3 class="text-xl font-black mb-2 text-white">For Agencies</h3>
+          <ul class="text-gray-400 text-sm font-medium space-y-2">
+            <li>&bull; Client page audits</li>
+            <li>&bull; White-label reports</li>
+            <li>&bull; Competitor analysis</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0px;">
+
+  <section id="pricing" class="py-16 md:py-24 px-4 md:px-12 border-y border-[#333]">
+    <div class="max-w-5xl mx-auto">
+
+      <h2 class="text-3xl md:text-4xl font-black mb-6 text-white">Pricing</h2>
+
+      <div class="flex items-center gap-3 mb-10">
+        <span class="font-mono text-sm font-bold text-gray-300">Monthly</span>
+        <button id="billingToggle"
+          class="w-16 h-8 border-2 border-[#444] bg-[#333] brutalist-shadow-sm relative rounded-sm transition-all"
+          onclick="toggleBilling()">
+          <span id="billingKnob"
+            class="absolute top-0.5 left-0.5 w-7 h-7 bg-[#fca5a5] border-2 border-[#444] rounded-sm transition-all"></span>
+        </button>
+        <span class="font-mono text-sm font-bold text-gray-300">Annual</span>
+        <span class="bg-[#fca5a5] text-black px-2 py-0.5 border border-[#444] font-mono text-xs font-bold">
+          Get 2 months for free with Annual
+        </span>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 items-start">
+
+        <div class="flex flex-col justify-center">
+          <h3 class="text-3xl md:text-4xl font-black mb-4 text-white">One Simple Plan.<br>Simple Pricing.<br>All Features.</h3>
+          <p class="text-gray-400 font-medium mb-8 text-lg">
+            No confusing tiers. No hidden limits. Just everything you need to audit and optimize your landing pages.
+          </p>
+
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
+            <p class="text-gray-300 font-medium italic mb-4">
+              "PageAudit found 12 conversion issues on our landing page that we completely missed. Our signup rate jumped 34% after fixing them."
+            </p>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center font-bold text-black text-sm">
+                AK
+              </div>
+              <div>
+                <p class="font-bold text-sm text-white">Alex K.</p>
+                <p class="text-gray-500 text-xs">Growth Lead, SaaS Startup</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+               hover:translate-x-0.5 hover:translate-y-0.5 transition-all
+               flex flex-col relative">
+
+
+          <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-xs font-bold mb-4">PRO</span>
+          <p class="text-gray-400 font-medium mb-6">
+            Perfect for founders, marketers, and freelancers.
+          </p>
+
+          <div class="text-4xl font-black mb-6 text-white">
+            <span id="originalPrice" class="hidden text-gray-500 line-through mr-2">$60</span><span id="priceAmount">$5</span>
+            <span class="text-base font-medium text-gray-400" id="priceInterval"> / month</span>
+          </div>
+
+          <ul class="space-y-3 text-sm font-medium mb-8">
+            <li class="text-red-400">&#10003; 50 page audits per week</li>
+            <li class="text-red-400">&#10003; Conversion analysis</li>
+            <li class="text-red-400">&#10003; SEO scoring & recommendations</li>
+            <li class="text-red-400">&#10003; Performance & Core Web Vitals</li>
+            <li class="text-red-400">&#10003; Accessibility compliance</li>
+            <li class="text-red-400">&#10003; Design review</li>
+            <li class="text-red-400">&#10003; Exportable PDF reports</li>
+            <li class="text-red-400">&#10003; Priority 24/7 support</li>
+            <li class="text-red-400">&#10003; Automatic audits delivered to your inbox</li>
+            <li class="text-red-400">&#10003; Integrations to your workflow</li>
+          </ul>
+
+          <a href="#scan" class="nf-shimmer mt-auto block text-center bg-[#fca5a5] text-black border-2 border-[#444] py-3 font-bold
+                 brutalist-shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+           Upgrade Now →
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <script>
+    let isAnnual = false;
+
+    function toggleBilling() {
+      const knob = document.getElementById("billingKnob");
+      const price = document.getElementById("priceAmount");
+      const interval = document.getElementById("priceInterval");
+      const originalPrice = document.getElementById("originalPrice");
+
+      isAnnual = !isAnnual;
+
+      if (isAnnual) {
+        knob.style.transform = "translateX(28px)";
+        originalPrice.classList.remove("hidden");
+        price.textContent = "$50";
+        interval.textContent = " / year";
+      } else {
+        knob.style.transform = "translateX(0)";
+        originalPrice.classList.add("hidden");
+        price.textContent = "$5";
+        interval.textContent = " / month";
+      }
+    }
+  </script>
+
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0px;">
+
+  <section id="faq" class="py-16 md:py-24 px-4 md:px-12 bg-[#181818] border-y border-[#333]">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-black text-white">Questions & Answers</h2>
+      <br>
+      <div class="space-y-4">
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>What does PageAudit analyze?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              PageAudit analyzes your landing page across five key areas: conversion optimization (CTAs, headlines, trust signals), SEO (meta tags, headings, keywords), performance (load speed, Core Web Vitals), accessibility (WCAG compliance, contrast, alt text), and design (visual hierarchy, typography, layout).
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>How long does an audit take?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              Most audits complete in under 30 seconds. Complex pages with lots of resources may take up to a minute. You'll get a real-time progress indicator while the analysis runs.
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>Can I audit any website?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              Yes, you can audit any publicly accessible URL. This includes your own landing pages, competitor pages, or any page on the web. Password-protected pages are not currently supported.
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>Is the free audit really free?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              Yes. You can run a full audit on any page completely free, no credit card required. You get the complete report with all scores and actionable recommendations.
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>What makes PageAudit different from Lighthouse?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              Lighthouse focuses on technical performance and accessibility. PageAudit goes further with AI-powered conversion analysis, copy evaluation, design best practices, and specific actionable fixes tailored to landing pages. Think of it as Lighthouse + conversion optimization + design review.
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>Can I export the audit report?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              Yes. You can download your audit report as a PDF, perfect for sharing with your team or clients. The report includes all scores, issues, and recommendations in a clean, professional format.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0px;">
+
+  <footer class="pt-24 md:pt-32 pb-24 md:pb-12 px-4 md:px-6 overflow-hidden">
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <div
+        class="inline-block bg-[#fca5a5] text-black px-4 py-1 border border-[#444] font-mono text-xs font-bold mb-6 rotate-[-2deg]">
+        Free to use
+      </div>
+      <h2 class="text-5xl md:text-[8rem] leading-[0.9] md:leading-[0.8] font-black tracking-tighter uppercase mb-8 text-white">
+        Audit Your <br>Page Now
+      </h2>
+
+      <a href="#scan">
+        <button
+          class="text-xl md:text-4xl font-black bg-[#fca5a5] text-black px-8 md:px-12 py-4 md:py-6 hover:bg-white hover:text-black border-2 border-[#444] transition-all hover:scale-105 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          Start Free Audit
+        </button>
+      </a>
+
+      <div class="mt-16 md:mt-24 font-mono text-[10px] md:text-xs text-gray-500 uppercase">
+        fixmyland.ing
+      </div>
+
+      <div class="mt-8 md:mt-12 text-[10px] text-gray-600 font-mono">
+        2026 PAGEAUDIT // BUILT FOR BETTER LANDING PAGES
+      </div>
+    </div>
+  </footer>
+
+  <script src="static/js/index.js"></script>
+  <script>
+    (function () {
+      if (!window.location.hash) return;
+      var params = new URLSearchParams(window.location.hash.substring(1));
+      var accessToken = params.get('access_token');
+      var refreshToken = params.get('refresh_token');
+      var error = params.get('error');
+      var errorDesc = params.get('error_description');
+      if (error || accessToken) {
+        var next = '/auth/callback';
+        var qs = new URLSearchParams();
+        if (error) {
+          qs.set('error', error);
+          if (errorDesc) qs.set('error_description', errorDesc);
+        } else {
+          qs.set('access_token', accessToken);
+          if (refreshToken) qs.set('refresh_token', refreshToken);
+        }
+        window.location.href = next + '?' + qs.toString();
+      }
+    })();
+  </script>
+</body>
+
+</html>

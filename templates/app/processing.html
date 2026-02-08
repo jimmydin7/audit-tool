@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Processing Audit | fixmyland.ing</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+  <style>
+    body {
+      background: #1F1F1F;
+      color: #e5e5e5;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 4px solid #333;
+      border-top-color: #fca5a5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="relative min-h-screen flex items-center justify-center px-6">
+  <div class="paper-grid"></div>
+  <div class="noise-overlay"></div>
+  <main class="max-w-xl w-full text-center bg-[#2a2a2a] border-2 border-[#444] p-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+    <div class="mx-auto mb-6 spinner"></div>
+    <p class="font-mono text-[10px] uppercase text-gray-500 mb-2">Processing</p>
+    <h1 class="text-2xl md:text-3xl font-black text-white mb-2">Running your audit</h1>
+    <p class="text-sm text-gray-400 mb-6">Estimated time remaining: <span id="countdown" class="text-white font-bold">90s</span></p>
+    <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
+      <div class="flex-shrink-0 w-6 h-6 bg-[#333] border border-[#555] rounded flex items-center justify-center overflow-hidden">
+        <i data-lucide="globe" id="url-icon-placeholder" class="w-4 h-4 text-gray-500"></i>
+        <img id="url-favicon" src="" alt="" class="w-4 h-4 hidden rounded-sm">
+      </div>
+      <span>Scanning:</span>
+      <span class="text-gray-300">{{ url }}</span>
+    </div>
+    <div id="error" class="hidden mt-6 text-sm text-red-300 bg-red-500/10 border border-red-500/40 p-3"></div>
+  </main>
+
+  <script>
+    (function () {
+      var seconds = 90;
+      var countdownEl = document.getElementById('countdown');
+      var errorEl = document.getElementById('error');
+      var url = {{ url | tojson }};
+      var favicon = document.getElementById('url-favicon');
+      var placeholder = document.getElementById('url-icon-placeholder');
+      var domain = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+
+      if (domain && domain.includes('.')) {
+        var img = new Image();
+        img.onload = function () {
+          favicon.src = img.src;
+          favicon.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+        };
+        img.onerror = function () {
+          favicon.classList.add('hidden');
+          placeholder.classList.remove('hidden');
+        };
+        img.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+      }
+
+      function tick() {
+        seconds = Math.max(0, seconds - 1);
+        countdownEl.textContent = seconds + 's';
+      }
+      var timer = setInterval(tick, 1000);
+
+      fetch('/app/results?url=' + encodeURIComponent(url), { credentials: 'same-origin' })
+        .then(function (res) {
+          if (!res.ok) {
+            throw new Error('Audit failed.');
+          }
+          return res.text();
+        })
+        .then(function (html) {
+          clearInterval(timer);
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(function () {
+          clearInterval(timer);
+          errorEl.textContent = 'Audit failed. Please try again.';
+          errorEl.classList.remove('hidden');
+        });
+    })();
+  </script>
+</body>
+</html>

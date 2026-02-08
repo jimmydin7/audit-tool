@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit: {{ audit.url | replace('https://', '') | replace('http://', '') }} | PageAudit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+  <style>
+    :root { --bg:#1F1F1F; --s:#2a2a2a; --s2:#333; --b:#444; --a:#fca5a5; --t:#e5e5e5; --tm:#999; }
+    * { box-sizing:border-box; }
+    body { background:var(--bg); color:var(--t); font-family:'Bricolage Grotesque',sans-serif; margin:0; }
+    .fm { font-family:'JetBrains Mono',monospace; }
+    .ring { transform:rotate(-90deg); }
+    .ring-t { stroke:var(--s2); }
+    .ring-f { transition:stroke-dashoffset 1s ease-out; }
+    .issue-row:hover { background:rgba(252,165,165,0.04); }
+    .tab-btn.active { background:var(--a); color:#000; border-color:var(--b); }
+    .tab-c { display:none; }
+    .tab-c.active { display:block; }
+    .sev-critical { color:#ef4444; }
+    .sev-high { color:#f97316; }
+    .sev-medium { color:#f59e0b; }
+    .sev-low { color:#3b82f6; }
+    .dot-critical { background:#ef4444; }
+    .dot-high { background:#f97316; }
+    .dot-medium { background:#f59e0b; }
+    .dot-low { background:#3b82f6; }
+    .dot-passed { background:#22c55e; }
+    .dot-warning { background:#f59e0b; }
+    .dot-failed { background:#ef4444; }
+    .bar { transition:width 1s ease-out; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation:fadeUp .5s ease-out both; }
+    .fade-up-1 { animation-delay:.05s; }
+    .fade-up-2 { animation-delay:.1s; }
+    .fade-up-3 { animation-delay:.15s; }
+    .fade-up-4 { animation-delay:.2s; }
+    .no-blue-outline *:focus { outline: none; box-shadow: none; }
+  </style>
+</head>
+<body class="min-h-screen relative">
+<div class="paper-grid"></div>
+<div class="noise-overlay"></div>
+
+{% set domain = audit.url | replace('https://', '') | replace('http://', '') | replace('/', '') %}
+{% set dur = (audit.scan_duration_ms / 1000) | round(1) %}
+{% set s = audit.scores %}
+{% set pw = audit.performance.page_weight %}
+{% set safe_total = audit.issues.total if audit.issues.total else 1 %}
+{% set safe_total_kb = pw.total_kb if pw.total_kb else 1 %}
+
+<!-- Nav -->
+<nav class="border-b border-[#333] bg-[#2a2a2a] px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-50">
+  <a href="/"><span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span></a>
+  <div class="flex items-center gap-4">
+    <button onclick="window.print()" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export PDF</button>
+    <a href="/" class="bg-[#fca5a5] text-black px-4 py-2 fm text-xs font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">NEW AUDIT</a>
+  </div>
+</nav>
+
+<!-- Header -->
+<header class="px-4 md:px-8 py-8 md:py-10 border-b border-[#333]">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <p class="fm text-[10px] text-gray-500 uppercase mb-2">Audit Report</p>
+      <h1 class="text-2xl md:text-4xl font-black text-white flex items-center gap-3">
+        <img src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64" class="w-8 h-8 rounded" alt="">
+        {{ domain }}
+      </h1>
+      <p class="text-gray-500 fm text-sm mt-2">{{ audit.scanned_at[:10] }} &middot; {{ dur }}s scan &middot; {{ s.overall.grade }} grade</p>
+      <p class="text-gray-400 text-sm mt-1">{{ s.overall.summary }}</p>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      {% if audit.metadata.technology_stack.framework %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ audit.metadata.technology_stack.framework }}</span>{% endif %}
+      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ dur }}s load</span>
+      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (pw.total_kb / 1024) | round(1) }} MB</span>
+      {% for a in audit.metadata.technology_stack.analytics %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ a }}</span>{% endfor %}
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-10 no-blue-outline">
+
+<!-- Scores -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+  <!-- Overall ring -->
+  <div class="bg-[#2a2a2a] p-8 flex flex-col items-center justify-center fade-up">
+    <p class="fm text-[10px] text-gray-500 uppercase mb-5">Overall Score</p>
+    {% set os = s.overall.score %}
+    {% set circ = 326.73 %}
+    {% set off = circ - (circ * os / 100) %}
+    {% if os >= 80 %}{% set sc = '#22c55e' %}{% elif os >= 60 %}{% set sc = '#f59e0b' %}{% else %}{% set sc = '#ef4444' %}{% endif %}
+    <div class="relative w-44 h-44">
+      <svg viewBox="0 0 120 120" class="w-full h-full ring"><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" class="ring-t"/><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke="{{ sc }}" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ off }}" stroke-linecap="round" class="ring-f"/></svg>
+      <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-5xl font-black text-white">{{ os }}</span><span class="text-sm text-gray-500 fm">/100</span></div>
+    </div>
+    <p class="mt-4 fm text-xs text-gray-500">Grade: <span class="text-white font-bold">{{ s.overall.grade }}</span></p>
+  </div>
+
+  <!-- Category score grid -->
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 grid grid-cols-2 gap-4 fade-up fade-up-2">
+    {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility')] %}
+    {% set cs = s[cat].score %}
+    {% if cs >= 80 %}{% set cc = '#22c55e' %}{% elif cs >= 60 %}{% set cc = '#f59e0b' %}{% else %}{% set cc = '#ef4444' %}{% endif %}
+    <div class="bg-[#1F1F1F] border border-[#444] p-4 flex flex-col justify-between min-h-[110px]">
+      <div class="flex items-center justify-between">
+        <span class="fm text-[10px] uppercase text-gray-400">{{ label }}</span>
+        <span class="fm text-[10px] uppercase" style="color:{{ cc }}">{{ s[cat].grade }}</span>
+      </div>
+      <div class="flex items-end justify-between">
+        <span class="text-3xl font-black text-white">{{ cs }}</span>
+        <span class="text-[10px] text-gray-500 fm">{{ s[cat].passed }}&#10003; {{ s[cat].failed }}&#10007; {{ s[cat].warnings }}&#9888;</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Copy Changes -->
+<section class="mb-10">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8">
+    <h3 class="text-xl font-black text-white mb-2">Copy Changes to Increase Customers</h3>
+    <p class="text-sm text-gray-400 mb-6">Targeted text swaps to improve clarity and conversion intent.</p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {% for change in audit.conversion.copy_changes or [] %}
+      {% if change is mapping %}
+      <div class="bg-[#1F1F1F] border border-[#444] p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="fm text-[10px] uppercase text-gray-500">{{ change.location | default('Copy Change') }}</span>
+          {% if change.expected_impact %}<span class="fm text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30">{{ change.expected_impact }}</span>{% endif %}
+        </div>
+        <div class="grid grid-cols-1 gap-3">
+          <div class="border border-[#333] p-3">
+            <p class="fm text-[10px] uppercase text-gray-500 mb-1">Current</p>
+            <p class="text-sm text-gray-300">"{{ change.original_text | default('') }}"</p>
+          </div>
+          <div class="border border-[#fca5a5]/30 p-3">
+            <p class="fm text-[10px] uppercase text-[#fca5a5] mb-1">Suggested</p>
+            <p class="text-sm text-[#fca5a5]">"{{ change.suggested_text | default('') }}"</p>
+          </div>
+        </div>
+        {% if change.reasoning %}<p class="text-xs text-gray-400 mt-3">{{ change.reasoning }}</p>{% endif %}
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Quick Stats -->
+<section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+  {% set stats = [
+    ('Issues Found', audit.issues.total, audit.issues.critical ~ ' critical'),
+    ('Page Speed', dur ~ 's', 'LCP: ' ~ (audit.performance.metrics.largest_contentful_paint.value_ms / 1000) | round(1) ~ 's'),
+    ('Page Size', (pw.total_kb / 1024) | round(1) ~ ' MB', pw.images_kb ~ ' KB images'),
+    ('CTA Count', audit.conversion.cta_analysis.total_ctas, audit.conversion.cta_analysis.overall_effectiveness),
+    ('A11y Score', audit.accessibility.compliance_percentage ~ '%', audit.accessibility.summary)
+  ] %}
+  {% for label, val, sub in stats %}
+  <div class="fade-up bg-[#2a2a2a] border-2 border-[#444] p-4" style="animation-delay:{{ loop.index * 0.05 }}s">
+    <p class="fm text-[10px] uppercase text-gray-500 mb-1">{{ label }}</p>
+    <p class="text-2xl font-black text-white">{{ val }}</p>
+    <p class="text-xs text-gray-500 mt-1">{{ sub }}</p>
+  </div>
+  {% endfor %}
+</section>
+
+<!-- Issue distribution + severity pies -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+  <!-- Pie chart -->
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
+    <h3 class="fm text-[10px] uppercase text-gray-500 mb-5">Issues by Category</h3>
+    {% set cats = {} %}
+    {% for item in audit.issues['items'] %}{% set cats = cats.update({item.category: (cats.get(item.category,0)+1)}) or cats %}{% endfor %}
+    {% set total = safe_total %}
+    {% set colors = {'seo':'#fca5a5','conversion':'#f59e0b','performance':'#3b82f6','accessibility':'#22c55e'} %}
+    <div class="flex items-center justify-center">
+      <div class="relative w-40 h-40">
+        <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+          {% set ns = namespace(offset=0) %}
+          {% for cat, count in cats.items() %}
+          {% set pct = count / total * 251.33 %}
+          <circle cx="50" cy="50" r="40" fill="none" stroke-width="20" stroke="{{ colors.get(cat, '#666') }}" stroke-dasharray="{{ pct }} {{ 251.33 - pct }}" stroke-dashoffset="{{ -ns.offset }}"/>
+          {% set ns.offset = ns.offset + pct %}
+          {% endfor %}
+        </svg>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      {% for cat, count in cats.items() %}
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-sm" style="background:{{ colors.get(cat,'#666') }}"></span><span class="text-xs text-gray-400">{{ cat | capitalize }} ({{ count }})</span></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Severity pie -->
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
+    <h3 class="fm text-[10px] uppercase text-gray-500 mb-5">Issues by Severity</h3>
+    {% set sev_counts = {
+      'critical': audit.issues.critical,
+      'high': audit.issues.high,
+      'medium': audit.issues.medium,
+      'low': audit.issues.low
+    } %}
+    {% set sev_colors = {'critical':'#ef4444','high':'#f97316','medium':'#f59e0b','low':'#3b82f6'} %}
+    <div class="flex items-center justify-center">
+      <div class="relative w-40 h-40">
+        <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+          {% set ns2 = namespace(offset=0) %}
+          {% for sev, count in sev_counts.items() %}
+          {% set pct = (count / safe_total) * 251.33 %}
+          <circle cx="50" cy="50" r="40" fill="none" stroke-width="20" stroke="{{ sev_colors.get(sev, '#666') }}" stroke-dasharray="{{ pct }} {{ 251.33 - pct }}" stroke-dashoffset="{{ -ns2.offset }}"/>
+          {% set ns2.offset = ns2.offset + pct %}
+          {% endfor %}
+        </svg>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      {% for sev, count in sev_counts.items() %}
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-sm" style="background:{{ sev_colors.get(sev,'#666') }}"></span><span class="text-xs text-gray-400">{{ sev | capitalize }} ({{ count }})</span></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Site preview -->
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
+    <h3 class="fm text-[10px] uppercase text-gray-500 mb-5">Site Preview</h3>
+    <div class="aspect-video bg-[#1F1F1F] border border-[#444] overflow-hidden">
+      <iframe src="{{ audit.url }}" class="w-full h-full" loading="lazy" referrerpolicy="no-referrer"></iframe>
+    </div>
+    <p class="text-xs text-gray-500 mt-3">Preview may be blocked by some sites that disallow iframes.</p>
+  </div>
+</section>
+<!-- Tabs -->
+<section class="mb-10">
+  <div class="flex flex-wrap gap-2 mb-6 border-b border-[#333] pb-4">
+    {% for tab, label in [('seo','SEO'),('conversion','Conversion & CTA'),('performance','Performance'),('accessibility','Accessibility')] %}
+    <button class="tab-btn {% if loop.first %}active{% endif %} fm text-xs font-bold px-4 py-2 border-2 border-transparent {% if not loop.first %}text-gray-400 hover:text-white{% endif %} transition-all" onclick="switchTab('{{ tab }}')">{{ label }}</button>
+    {% endfor %}
+  </div>
+
+  <!-- SEO Tab -->
+  <div id="tab-seo" class="tab-c active">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-4">
+        <h3 class="text-xl font-black text-white mb-1">SEO Analysis</h3>
+        <p class="text-sm text-gray-400 mb-4">{{ audit.seo.summary }}</p>
+
+        {% for key, el in audit.seo.elements.items() if el is mapping %}
+        <div class="bg-[#2a2a2a] border-2 border-[#444]">
+          <div class="px-5 py-3 border-b border-[#444] flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="w-2.5 h-2.5 rounded-full dot-{{ el.status }} flex-shrink-0"></span>
+              <span class="fm text-xs uppercase text-gray-300">{{ key | replace('_', ' ') }}</span>
+            </div>
+            <span class="fm text-[10px] uppercase {% if el.status == 'passed' %}text-green-400{% elif el.status == 'warning' %}text-yellow-400{% else %}text-red-400{% endif %}">{{ el.status }}</span>
+          </div>
+          <div class="px-5 py-4">
+            {% if el.value is not none and el.value != true %}
+            <p class="fm text-xs text-gray-500 mb-2 break-all">{{ el.value }}</p>
+            {% elif el.value == true %}
+            <p class="fm text-xs text-green-400 mb-2">Enabled</p>
+            {% endif %}
+            {% if el.get('length') %}<p class="text-xs text-gray-500">{{ el.length }} characters</p>{% endif %}
+            {% if el.get('images_without_alt') %}<p class="text-xs text-gray-500">{{ el.images_with_alt }}/{{ el.total_images }} images have alt text</p>{% endif %}
+            <p class="text-xs text-gray-400 mt-2">{{ el.why_important }}</p>
+            {% if el.recommendation %}
+            <div class="mt-3 bg-[#1F1F1F] border border-[#444] p-3 rounded">
+              <p class="fm text-[10px] text-gray-500 mb-1">Recommendation:</p>
+              <p class="text-xs text-[#fca5a5]">{{ el.recommendation }}</p>
+              {% if el.get('suggested_value') %}
+              <code class="block mt-2 fm text-[11px] text-gray-300 bg-[#2a2a2a] p-2 border border-[#444] break-all">{{ el.suggested_value }}</code>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- SEO Checklist sidebar -->
+      <div>
+        <h3 class="text-xl font-black text-white mb-4">SEO Checklist</h3>
+        <div class="bg-[#2a2a2a] border-2 border-[#444] divide-y divide-[#333]">
+          {% for key, el in audit.seo.elements.items() if el is mapping %}
+          <div class="px-4 py-3 flex items-center gap-3">
+            {% if el.status == 'passed' %}<i data-lucide="check-circle" class="w-4 h-4 text-green-400 flex-shrink-0"></i>
+            {% elif el.status == 'warning' %}<i data-lucide="alert-circle" class="w-4 h-4 text-yellow-400 flex-shrink-0"></i>
+            {% else %}<i data-lucide="x-circle" class="w-4 h-4 text-red-400 flex-shrink-0"></i>{% endif %}
+            <span class="text-sm text-gray-300">{{ key | replace('_', ' ') | title }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversion Tab -->
+  <div id="tab-conversion" class="tab-c">
+    <h3 class="text-xl font-black text-white mb-1">Conversion & CTA Analysis</h3>
+    <p class="text-sm text-gray-400 mb-6">{{ audit.conversion.summary }} &middot; {{ audit.conversion.cta_analysis.total_ctas }} CTAs found &middot; Effectiveness: {{ audit.conversion.cta_analysis.overall_effectiveness }}</p>
+
+    <div class="space-y-4">
+    {% for cta in audit.conversion.cta_analysis.recommendations %}
+    {% if cta is mapping and cta.get('original') and cta.get('suggested') %}
+      <div class="bg-[#2a2a2a] border-2 border-[#444]">
+        <div class="px-5 py-3 border-b border-[#444] flex items-center justify-between">
+          <span class="fm text-xs text-gray-400">{{ cta.location | default('CTA Recommendation') }}</span>
+          <span class="fm text-[10px] px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">NEEDS WORK</span>
+        </div>
+        <div class="p-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-[#1F1F1F] border border-[#444] p-4 rounded">
+              <p class="fm text-[10px] uppercase text-gray-500 mb-2">Current</p>
+              <p class="text-lg font-bold text-white">"{{ cta.original.text | default('') }}"</p>
+              {% if cta.original.style_notes %}<p class="text-xs text-gray-500 mt-1">{{ cta.original.style_notes }}</p>{% endif %}
+            </div>
+            <div class="bg-[#1F1F1F] border border-[#fca5a5]/30 p-4 rounded">
+              <p class="fm text-[10px] uppercase text-[#fca5a5] mb-2">Suggested</p>
+              <p class="text-lg font-bold text-[#fca5a5]">"{{ cta.suggested.text | default('') }}"</p>
+              {% if cta.suggested.reasoning %}<p class="text-xs text-gray-400 mt-1">{{ cta.suggested.reasoning }}</p>{% endif %}
+              {% if cta.suggested.expected_improvement %}<p class="fm text-[10px] text-green-400 mt-2">Expected: {{ cta.suggested.expected_improvement }}</p>{% endif %}
+            </div>
+          </div>
+          <div>
+            <p class="fm text-[10px] uppercase text-gray-500 mb-2">Issues</p>
+            <div class="flex flex-wrap gap-2">
+              {% for issue in cta.issues or [] %}
+              <span class="text-xs bg-[#333] border border-[#444] text-gray-400 px-2 py-1">{{ issue }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    {% endfor %}
+    </div>
+
+    <div class="mt-2">
+      <h4 class="text-lg font-black text-white mb-3">CTA Improvements</h4>
+    </div>
+  </div>
+
+  <!-- Performance Tab -->
+  <div id="tab-performance" class="tab-c">
+    <h3 class="text-xl font-black text-white mb-1">Performance Audit</h3>
+    <p class="text-sm text-gray-400 mb-6">{{ audit.performance.summary }}</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Resource breakdown -->
+      <div class="bg-[#2a2a2a] border-2 border-[#444]">
+        <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Resource Breakdown</span></div>
+        <div class="p-5 space-y-4">
+          {% set resources = [('Images', pw.images_kb, '#fca5a5'), ('JavaScript', pw.js_kb, '#3b82f6'), ('CSS', pw.css_kb, '#a855f7'), ('Fonts', pw.fonts_kb, '#f59e0b'), ('HTML', pw.html_kb, '#22c55e')] %}
+          {% for name, kb, color in resources %}
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-sm text-gray-300">{{ name }}</span>
+              <span class="fm text-xs text-gray-500">{{ kb }} KB ({{ (kb / safe_total_kb * 100) | int }}%)</span>
+            </div>
+            <div class="w-full h-3 bg-[#333] rounded-full overflow-hidden"><div class="bar h-full rounded-full" style="width:{{ (kb / safe_total_kb * 100) | int }}%;background:{{ color }}"></div></div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Performance issues -->
+      <div class="bg-[#2a2a2a] border-2 border-[#444]">
+        <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Performance Issues</span></div>
+        <div class="divide-y divide-[#333]">
+          {% for item in audit.issues['items'] if item is mapping and item.category == 'performance' %}
+          <div class="issue-row px-5 py-4 flex items-start gap-4">
+            <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
+            <div>
+              <p class="text-sm font-medium text-white">{{ item.name }}</p>
+              <p class="text-xs text-gray-500 mt-1">{{ item.description }}</p>
+              {% if item.code_example %}
+              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap">{{ item.code_example }}</code></div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessibility Tab -->
+  <div id="tab-accessibility" class="tab-c">
+    <h3 class="text-xl font-black text-white mb-1">Accessibility Audit</h3>
+    <p class="text-sm text-gray-400 mb-6">{{ audit.accessibility.summary }} &middot; WCAG {{ audit.accessibility.wcag_level }} &middot; {{ audit.accessibility.compliance_percentage }}% compliant</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      {% for area, label in [('keyboard_navigation','Keyboard Nav'),('screen_reader','Screen Reader'),('color_contrast','Color Contrast')] %}
+      {% set a = audit.accessibility[area] %}
+      {% if a.status == 'passed' %}{% set ac = '#22c55e' %}{% elif a.status == 'needs_improvement' %}{% set ac = '#f59e0b' %}{% else %}{% set ac = '#ef4444' %}{% endif %}
+      <div class="bg-[#2a2a2a] border-2 border-[#444] p-5">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-sm text-gray-300 font-medium">{{ label }}</span>
+          <span class="fm text-xs font-bold" style="color:{{ ac }}">{{ a.score }}/100</span>
+        </div>
+        <div class="w-full h-2 bg-[#333] rounded-full overflow-hidden mb-3"><div class="bar h-full rounded-full" style="width:{{ a.score }}%;background:{{ ac }}"></div></div>
+        {% for issue in a.issues %}
+        <p class="text-xs text-gray-500 flex items-center gap-2 mt-1"><span class="w-1.5 h-1.5 rounded-full" style="background:{{ ac }}"></span>{{ issue }}</p>
+        {% endfor %}
+        {% if not a.issues %}<p class="text-xs text-green-400">All checks passed</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-[#2a2a2a] border-2 border-[#444]">
+        <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Accessibility Issues</span></div>
+        <div class="divide-y divide-[#333]">
+          {% for item in audit.issues['items'] if item is mapping and item.category == 'accessibility' %}
+          <div class="issue-row px-5 py-4 flex items-start gap-4">
+            <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
+            <div>
+              <p class="text-sm font-medium text-white">{{ item.name }}</p>
+              <p class="text-xs text-gray-500 mt-1">{{ item.impact }}</p>
+              <p class="text-xs text-gray-400 mt-2">{{ item.solution }}</p>
+              {% if item.code_example %}
+              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap">{{ item.code_example }}</code></div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- All Issues Table -->
+<section class="mb-10">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-xl font-black text-white">All Issues ({{ audit.issues.total }})</h3>
+    <div class="flex gap-2">
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] text-gray-400 hover:text-white transition-colors" onclick="filterIssues('all')">All</button>
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-critical" onclick="filterIssues('critical')">Critical ({{ audit.issues.critical }})</button>
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-high" onclick="filterIssues('high')">High ({{ audit.issues.high }})</button>
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-medium" onclick="filterIssues('medium')">Medium ({{ audit.issues.medium }})</button>
+      <button class="fm text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#444] sev-low" onclick="filterIssues('low')">Low ({{ audit.issues.low }})</button>
+    </div>
+  </div>
+
+  <div class="bg-[#2a2a2a] border-2 border-[#444] overflow-hidden">
+    <div class="grid grid-cols-12 gap-4 px-5 py-3 border-b-2 border-[#444] text-gray-500">
+      <div class="col-span-1 fm text-[10px] uppercase"></div>
+      <div class="col-span-5 fm text-[10px] uppercase">Issue</div>
+      <div class="col-span-2 fm text-[10px] uppercase hidden md:block">Category</div>
+      <div class="col-span-2 fm text-[10px] uppercase hidden md:block">Severity</div>
+      <div class="col-span-2 fm text-[10px] uppercase hidden md:block">Impact</div>
+    </div>
+    {% for item in audit.issues['items'] if item is mapping %}
+    <div class="issue-row issue-sev-{{ item.severity }} grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-start cursor-pointer" onclick="this.querySelector('.issue-detail').classList.toggle('hidden')">
+      <div class="col-span-1"><span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} inline-block mt-1"></span></div>
+      <div class="col-span-5">
+        <p class="text-sm text-gray-200">{{ item.name }}</p>
+        <div class="issue-detail hidden mt-3 space-y-2">
+          <p class="text-xs text-gray-400">{{ item.description }}</p>
+          <div class="bg-[#1F1F1F] border border-[#444] p-3 rounded">
+            <p class="fm text-[10px] text-gray-500 mb-1">Fix:</p>
+            <p class="text-xs text-[#fca5a5]">{{ item.solution }}</p>
+            {% if item.code_example %}
+            <code class="block mt-2 fm text-[11px] text-gray-300 bg-[#2a2a2a] p-2 border border-[#444] whitespace-pre-wrap">{{ item.code_example }}</code>
+            {% endif %}
+          </div>
+          {% for el in item.affected_elements %}
+          <p class="fm text-[10px] text-gray-500">{{ el.location | default('') }} &middot; {{ el.selector | default('') }}</p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-span-2 hidden md:block"><span class="fm text-xs text-gray-500">{{ item.category | capitalize }}</span></div>
+      <div class="col-span-2 hidden md:block"><span class="fm text-[10px] sev-{{ item.severity }} uppercase font-bold">{{ item.severity }}</span></div>
+      <div class="col-span-2 hidden md:block"><p class="text-xs text-gray-500 line-clamp-2">{{ item.impact }}</p></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+
+
+<!-- Bottom CTA -->
+<section class="bg-[#2a2a2a] border-2 border-[#444] p-8 md:p-12 text-center mb-10">
+  <h3 class="text-2xl md:text-3xl font-black text-white mb-2">{{ audit.issues.total }} issues found on {{ domain }}</h3>
+  <p class="text-gray-400 mb-6 max-w-lg mx-auto">{{ s.overall.summary }}</p>
+  <div class="flex flex-col sm:flex-row gap-4 justify-center">
+    <a href="/#scan" class="bg-[#fca5a5] text-black px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Run Another Audit</a>
+    <button onclick="window.print()" class="bg-[#333] text-white px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Export Report</button>
+  </div>
+</section>
+</main>
+
+<footer class="border-t border-[#333] px-4 md:px-8 py-6 text-center">
+  <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span>
+  <p class="text-gray-600 fm text-xs mt-2">2026 Copyright FixMyLanding</p>
+</footer>
+
+<script>
+  lucide.createIcons();
+  function switchTab(t){document.querySelectorAll('.tab-c').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>{e.classList.remove('active');e.classList.add('text-gray-400')});document.getElementById('tab-'+t).classList.add('active');event.target.classList.add('active');event.target.classList.remove('text-gray-400');}
+  function filterIssues(s){document.querySelectorAll('[class*="issue-sev-"]').forEach(r=>{if(s==='all'){r.style.display='';}else{r.style.display=r.classList.contains('issue-sev-'+s)?'':'none';}});}
+</script>
+</body>
+</html>
