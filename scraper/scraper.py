@@ -1,5 +1,8 @@
 
 import json
+import os
+import httpx
+from openai import OpenAI
 from openrouter import OpenRouter
 from datetime import datetime
 import requests
@@ -250,11 +253,52 @@ def scrape(url: str) -> str:
     return response.text
 
 
-def analyze_with_ai(html: str, url: str) -> dict:
-    client = OpenRouter(
-        api_key="sk-hc-v1-26bde2bf677f4fea8f3c9487f3653fbf30a5ac95a4f349eeabda07ea4563ea39",
-        server_url="https://ai.hackclub.com/proxy/v1",
+def _run_model_new(client, model: str, prompt: str) -> dict:
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You output strict JSON only."},
+            {"role": "user", "content": prompt},
+        ],
     )
+
+    content = response.choices[0].message.content
+    extracted = _extract_json(content)
+    try:
+        parsed = json.loads(extracted)
+    except json.JSONDecodeError:
+        parsed = {}
+    if isinstance(parsed, str):
+        parsed = {}
+    return parsed
+
+
+def _run_openrouter(prompt: str) -> dict:
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        raise RuntimeError("Missing OPENROUTER_API_KEY")
+    client = OpenRouter(api_key=api_key, server_url="https://openrouter.ai/api/v1")
+    response = client.chat.send(
+        model="openai/gpt-oss-120b",
+        messages=[
+            {"role": "system", "content": "You output strict JSON only."},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    content = response.choices[0].message.content
+    extracted = _extract_json(content)
+    try:
+        parsed = json.loads(extracted)
+    except json.JSONDecodeError:
+        parsed = {}
+    if isinstance(parsed, str):
+        parsed = {}
+    return parsed
+
+
+def analyze_with_ai(html: str, url: str) -> dict:
+    api_key = os.environ.get("OPENAI_KEY")
+    client = OpenAI(api_key=api_key, http_client=httpx.Client())
 
     prompt = f"""
 You are an advanced website auditing engine.
@@ -288,22 +332,11 @@ HTML SOURCE:
 ----------------
 """
 
-    response = client.chat.send(
-        model="openai/gpt-oss-120b",
-        messages=[
-            {"role": "system", "content": "You output strict JSON only."},
-            {"role": "user", "content": prompt},
-        ],
-    )
-
-    content = response.choices[0].message.content
-    extracted = _extract_json(content)
     try:
-        parsed = json.loads(extracted)
-    except json.JSONDecodeError:
-        parsed = {}
-    if isinstance(parsed, str):
-        parsed = {}
+        parsed = _run_openrouter(prompt)
+    except Exception as e:
+        print("OpenRouter failed, falling back to gpt-4o-mini:", e)
+        parsed = _run_model_new(client, "gpt-4o-mini", prompt)
     audit = _merge_schema(DEFAULT_AUDIT, parsed)
     audit["url"] = url
     if not audit.get("scanned_at"):

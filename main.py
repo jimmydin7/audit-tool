@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, url_for, session
+from flask import Flask, render_template, redirect, request, url_for, session, jsonify
 from dotenv import load_dotenv
 from supabase import create_client
 import json
@@ -7,8 +7,13 @@ from urllib.parse import urlparse
 from scraper.scraper import analyze
 import threading
 import uuid
+import time
+from collections import deque
 
 AUDIT_JOBS = {}
+RATE_LIMITS = {}
+RATE_LIMIT_WINDOW_SEC = 60
+RATE_LIMIT_MAX_REQUESTS = 5
 
 
 load_dotenv()
@@ -29,6 +34,27 @@ def store_post_login_redirect(target_path):
     if not target_path:
         return
     session["post_login_redirect"] = target_path
+
+
+def _client_ip():
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.remote_addr or "unknown"
+
+
+def _rate_limited(key: str):
+    now = time.time()
+    q = RATE_LIMITS.get(key)
+    if q is None:
+        q = deque()
+        RATE_LIMITS[key] = q
+    while q and now - q[0] > RATE_LIMIT_WINDOW_SEC:
+        q.popleft()
+    if len(q) >= RATE_LIMIT_MAX_REQUESTS:
+        return True
+    q.append(now)
+    return False
 
     
 def run_audit(job_id, url):
@@ -277,6 +303,8 @@ def new_audit():
     if not user:
         store_post_login_redirect(request.full_path.rstrip("?"))
         return redirect('/login')
+    if _rate_limited(f"audit_new:{_client_ip()}"):
+        return render_template('app/new.html', user=user, error="Too many audits. Please wait a minute and try again.")
 
     raw_url = request.values.get('url', '').strip()
     url = normalize_url(raw_url) if raw_url else None
@@ -284,7 +312,17 @@ def new_audit():
         return render_template('app/new.html', user=user, error="Please enter a valid URL.")
 
     if url:
-        return render_template('app/processing.html', user=user, url=url)
+        job_id = str(uuid.uuid4())
+        AUDIT_JOBS[job_id] = {
+            "status": "running",
+            "result": None,
+            "error": None,
+            "url": url
+        }
+        thread = threading.Thread(target=run_audit, args=(job_id, url))
+        thread.daemon = True
+        thread.start()
+        return render_template('app/processing.html', user=user, url=url, job_id=job_id)
 
     return render_template('app/new.html', user=user)
 
@@ -294,6 +332,8 @@ def audit_results():
     user = session.get("user")
     if not user:
         return redirect('/login')
+    if _rate_limited(f"audit_results:{_client_ip()}"):
+        return redirect(url_for('index', error="Too many audits. Please wait a minute and try again."))
 
     raw_url = request.values.get('url', '')
     url = normalize_url(raw_url)
@@ -329,7 +369,7 @@ def audit_status(job_id):
         )
 
     if job["status"] == "running":
-        return render_template("app/processing.html", url=job.get("url"))
+        return render_template("app/processing.html", url=job.get("url"), job_id=job_id)
 
     if job["status"] == "error":
         return render_template(
@@ -347,6 +387,17 @@ def audit_status(job_id):
     )
 
 
+@app.route('/app/results/<job_id>/status')
+def audit_status_api(job_id):
+    job = AUDIT_JOBS.get(job_id)
+    if not job:
+        return jsonify({"status": "not_found"}), 404
+    return jsonify({
+        "status": job["status"],
+        "error": job.get("error")
+    })
+
+
 
 @app.errorhandler(404)
 def not_found(e):
@@ -354,4 +405,4 @@ def not_found(e):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=1700)
+    app.run(host="0.0.0.0", port=1500)

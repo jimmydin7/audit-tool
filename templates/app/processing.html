@@ -53,6 +53,7 @@
       var countdownEl = document.getElementById('countdown');
       var errorEl = document.getElementById('error');
       var url = {{ (url or "") | tojson }};
+      var jobId = {{ (job_id or "") | tojson }};
       var favicon = document.getElementById('url-favicon');
       var placeholder = document.getElementById('url-icon-placeholder');
       var domain = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
@@ -71,30 +72,53 @@
         img.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
       }
 
+      var start = Date.now();
       function tick() {
-        seconds = Math.max(0, seconds - 1);
-        countdownEl.textContent = seconds + 's';
+        var elapsed = Math.floor((Date.now() - start) / 1000);
+        var remaining = Math.max(0, 90 - elapsed);
+        countdownEl.textContent = remaining + 's';
       }
       var timer = setInterval(tick, 1000);
+      tick();
 
-      fetch('/app/results?url=' + encodeURIComponent(url), { credentials: 'same-origin' })
-        .then(function (res) {
-          if (!res.ok) {
-            throw new Error('Audit failed.');
-          }
-          return res.text();
-        })
-        .then(function (html) {
-          clearInterval(timer);
-          document.open();
-          document.write(html);
-          document.close();
-        })
-        .catch(function () {
-          clearInterval(timer);
-          errorEl.textContent = 'Audit failed. Please try again.';
-          errorEl.classList.remove('hidden');
-        });
+      if (jobId) {
+        var poll = setInterval(function () {
+          fetch('/app/results/' + encodeURIComponent(jobId) + '/status', { credentials: 'same-origin' })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (data.status === 'done') {
+                clearInterval(poll);
+                clearInterval(timer);
+                window.location.href = '/app/results/' + encodeURIComponent(jobId);
+              } else if (data.status === 'error') {
+                clearInterval(poll);
+                clearInterval(timer);
+                errorEl.textContent = data.error || 'Audit failed. Please try again.';
+                errorEl.classList.remove('hidden');
+              }
+            })
+            .catch(function () {});
+        }, 2000);
+      } else if (url) {
+        fetch('/app/results?url=' + encodeURIComponent(url), { credentials: 'same-origin' })
+          .then(function (res) {
+            if (!res.ok) {
+              throw new Error('Audit failed.');
+            }
+            return res.text();
+          })
+          .then(function (html) {
+            clearInterval(timer);
+            document.open();
+            document.write(html);
+            document.close();
+          })
+          .catch(function () {
+            clearInterval(timer);
+            errorEl.textContent = 'Audit failed. Please try again.';
+            errorEl.classList.remove('hidden');
+          });
+      }
     })();
   </script>
 </body>
