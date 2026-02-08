@@ -352,7 +352,7 @@ HTML SOURCE:
 
 def analyze(url):
     html_code = scrape(url)
-    max_input_chars = 60000
+    max_input_chars = 250000
     if len(html_code) > max_input_chars:
         audit = _merge_schema(DEFAULT_AUDIT, {})
         audit["url"] = url
