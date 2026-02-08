@@ -8,6 +8,8 @@ from scraper.scraper import analyze
 import threading
 import uuid
 
+AUDIT_JOBS = {}
+
 
 load_dotenv()
 
