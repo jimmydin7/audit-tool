@@ -308,7 +308,8 @@ def audit_results():
     AUDIT_JOBS[job_id] = {
         "status": "running",
         "result": None,
-        "error": None
+        "error": None,
+        "url": url
     }
 
     thread = threading.Thread(target=run_audit, args=(job_id, url))
@@ -328,7 +329,7 @@ def audit_status(job_id):
         )
 
     if job["status"] == "running":
-        return render_template("app/processing.html")
+        return render_template("app/processing.html", url=job.get("url"))
 
     if job["status"] == "error":
         return render_template(

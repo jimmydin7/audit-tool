@@ -52,7 +52,7 @@
       var seconds = 90;
       var countdownEl = document.getElementById('countdown');
       var errorEl = document.getElementById('error');
-      var url = {{ url | tojson }};
+      var url = {{ (url or "") | tojson }};
       var favicon = document.getElementById('url-favicon');
       var placeholder = document.getElementById('url-icon-placeholder');
       var domain = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
