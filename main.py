@@ -496,6 +496,7 @@ def billing_checkout():
             customer=customer_id,
             client_reference_id=user["id"],
             line_items=[{"price": price_id, "quantity": 1}],
+            allow_promotion_codes=True,
             success_url=f"{base_url}/billing/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{base_url}/billing/cancel"
         )
