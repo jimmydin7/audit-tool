@@ -105,16 +105,38 @@ def _sanitize_audit_for_public(audit):
     return masked
 
     
+def _normalize_plan(value):
+    if not value:
+        return "free"
+    plan = str(value).strip().lower()
+    if plan in {"paid", "pro", "premium", "active", "trialing", "trial"}:
+        return "paid"
+    return "free"
+
+
 def _get_user_stats(user_id):
+    scans_this_month = 0
+    plan = "free"
     try:
         resp = supabase.table("user_stats").select("scans_this_month,subscription_type").eq("user_id", user_id).single().execute()
         row = resp.data or {}
-        return {
-            "scans_this_month": row.get("scans_this_month") or 0,
-            "plan": row.get("subscription_type") or "free",
-        }
+        scans_this_month = row.get("scans_this_month") or 0
+        plan = _normalize_plan(row.get("subscription_type"))
     except Exception:
-        return {"scans_this_month": 0, "plan": "free"}
+        scans_this_month = 0
+        plan = "free"
+
+    if plan == "free":
+        try:
+            sub_resp = supabase.table("subscriptions").select("status").eq("user_id", user_id).limit(1).execute()
+            if sub_resp.data:
+                status = (sub_resp.data[0].get("status") or "").lower()
+                if status in {"active", "trialing"}:
+                    plan = "paid"
+        except Exception:
+            pass
+
+    return {"scans_this_month": scans_this_month, "plan": plan}
 
 
 

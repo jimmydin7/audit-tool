@@ -356,36 +356,8 @@ HTML SOURCE:
 def analyze(url, plan="free"):
     html_code = scrape(url)
     max_input_chars = 250000
-    if plan != "paid" and len(html_code) > max_input_chars:
-        audit = _merge_schema(DEFAULT_AUDIT, {})
-        audit["url"] = url
-        audit["scanned_at"] = datetime.utcnow().isoformat()
-        audit["scores"]["overall"]["summary"] = "Website too large for the free scan. Upgrade to scan full pages."
-        audit["metadata"]["upgrade_required"] = True
-        audit["conversion"]["summary"] = "Upgrade required for full conversion analysis."
-        audit["performance"]["summary"] = "Upgrade required for full performance analysis."
-        audit["accessibility"]["summary"] = "Upgrade required for full accessibility analysis."
-        audit["issues"]["items"] = [
-            {
-                "category": "conversion",
-                "severity": "medium",
-                "name": "Full scan requires upgrade",
-                "description": "This page exceeds the free scan size limit.",
-                "impact": "Some issues and copy improvements may be missing.",
-                "solution": "Upgrade to scan full pages and get complete results.",
-                "code_example": "",
-                "affected_elements": [],
-            }
-        ]
-        audit["issues"]["total"] = 1
-        audit["issues"]["critical"] = 0
-        audit["issues"]["high"] = 0
-        audit["issues"]["medium"] = 1
-        audit["issues"]["low"] = 0
-        return audit
-
     try:
-        input_html = html_code if plan == "paid" else html_code[:max_input_chars]
+        input_html = html_code
         audit = analyze_with_ai(input_html, url)
         return audit
     except Exception:
