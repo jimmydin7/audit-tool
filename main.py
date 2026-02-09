@@ -70,6 +70,40 @@ def _rate_limited(key: str):
     q.append(now)
     return False
 
+
+def _sanitize_audit_for_public(audit):
+    source = audit or {}
+    def scrub(value):
+        if isinstance(value, dict):
+            return {k: scrub(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [scrub(v) for v in value]
+        if isinstance(value, str):
+            return "Lorem ipsum"
+        if isinstance(value, (int, float)):
+            return 0
+        return value
+
+    masked = scrub(source)
+
+    # Preserve real top-section fields
+    masked["url"] = source.get("url")
+    masked["scanned_at"] = source.get("scanned_at")
+    if isinstance(masked.get("scores"), dict) and isinstance(source.get("scores"), dict):
+        if isinstance(masked["scores"].get("overall"), dict) and isinstance(source.get("scores").get("overall"), dict):
+            masked["scores"]["overall"]["grade"] = source["scores"]["overall"].get("grade")
+            masked["scores"]["overall"]["score"] = source["scores"]["overall"].get("score") or 0
+            masked["scores"]["overall"]["summary"] = "Lorem ipsum dolor sit amet."
+    if isinstance(masked.get("performance"), dict) and isinstance(source.get("performance"), dict):
+        if isinstance(masked["performance"].get("page_weight"), dict) and isinstance(source.get("performance").get("page_weight"), dict):
+            masked["performance"]["page_weight"]["total_kb"] = source["performance"]["page_weight"].get("total_kb") or 0
+    if isinstance(masked.get("metadata"), dict) and isinstance(source.get("metadata"), dict):
+        if isinstance(masked["metadata"].get("technology_stack"), dict) and isinstance(source.get("metadata").get("technology_stack"), dict):
+            masked["metadata"]["technology_stack"]["framework"] = source["metadata"]["technology_stack"].get("framework")
+            masked["metadata"]["technology_stack"]["analytics"] = source["metadata"]["technology_stack"].get("analytics") or []
+    masked["scan_duration_ms"] = source.get("scan_duration_ms") or 0
+    return masked
+
     
 def _get_user_stats(user_id):
     try:
@@ -86,6 +120,9 @@ def _get_user_stats(user_id):
 def run_audit(job_id, url):
     try:
         user_id = AUDIT_JOBS[job_id].get("user_id")
+        user_email = AUDIT_JOBS[job_id].get("user_email")
+        user_first = AUDIT_JOBS[job_id].get("user_first_name")
+        user_last = AUDIT_JOBS[job_id].get("user_last_name")
         plan = "free"
         if user_id:
             stats = _get_user_stats(user_id)
@@ -93,6 +130,15 @@ def run_audit(job_id, url):
         result = analyze(url, plan=plan)
         audit_id = None
         if user_id:
+            try:
+                supabase.table("users").upsert({
+                    "id": user_id,
+                    "email": user_email,
+                    "first_name": user_first,
+                    "last_name": user_last
+                }, on_conflict="id").execute()
+            except Exception as e:
+                print("Failed to upsert user record:", e)
             try:
                 insert_resp = supabase.table("audits").insert({
                     "user_id": user_id,
@@ -298,6 +344,10 @@ def start_oauth(provider):
 def oauth_login(provider):
     if provider not in ("google", "github"):
         return redirect("/login")
+    shared_id = request.args.get("shared")
+    if shared_id:
+        session["shared_audit_id"] = shared_id
+        session["post_login_redirect"] = f"/app/dashboard?shared={shared_id}"
     return start_oauth(provider)
 
 
@@ -354,6 +404,12 @@ def auth_callback():
             "onboarding_complete": True
         }
         try:
+            supabase.table("users").upsert({
+                "id": user.id,
+                "email": user.email,
+                "first_name": session['user'].get("first_name"),
+                "last_name": session['user'].get("last_name")
+            }, on_conflict="id").execute()
             supabase.table("profiles").upsert({
                 "id": user.id,
                 "email": user.email
@@ -371,6 +427,10 @@ def auth_callback():
 
 @app.route('/signup')
 def signup():
+    shared_id = request.args.get("shared")
+    if shared_id:
+        session["shared_audit_id"] = shared_id
+        session["post_login_redirect"] = f"/app/dashboard?shared={shared_id}"
     store_post_login_redirect("/app/dashboard")
     return redirect('/login')
 
@@ -380,7 +440,11 @@ def login():
     if session.get("user"):
         redirect_target = session.pop("post_login_redirect", None)
         return redirect(redirect_target or "/app/dashboard")
-    return render_template('auth/login.html')
+    shared_id = request.args.get("shared")
+    if shared_id:
+        session["shared_audit_id"] = shared_id
+        session["post_login_redirect"] = f"/app/dashboard?shared={shared_id}"
+    return render_template('auth/login.html', shared_audit_id=shared_id)
 
 
 @app.route('/account', methods=['GET', 'POST'])
@@ -555,6 +619,7 @@ def dashboard():
     if not user:
         return redirect('/login')
     active_tab = request.args.get("tab", "audits")
+    shared_id = request.args.get("shared") or session.get("shared_audit_id")
     refresh_subscription_status(user["id"])
     audits = []
     subscription = None
@@ -586,7 +651,25 @@ def dashboard():
         domain = parsed.netloc or raw_url.replace("https://", "").replace("http://", "").split("/")[0]
         if domain in demo_domains:
             continue
+        a["is_shared"] = False
         filtered_audits.append(a)
+
+    if audits and not filtered_audits:
+        filtered_audits = []
+        for a in audits:
+            a["is_shared"] = False
+            filtered_audits.append(a)
+
+    if shared_id:
+        try:
+            shared_resp = supabase.table("audits").select("id,url,result,created_at").eq("id", shared_id).single().execute()
+            shared_row = shared_resp.data
+            if shared_row:
+                if not any(a.get("id") == shared_row.get("id") for a in filtered_audits):
+                    shared_row["is_shared"] = True
+                    filtered_audits.insert(0, shared_row)
+        except Exception as e:
+            print("Failed to load shared audit:", e)
 
     stats = _get_user_stats(user["id"])
     plan = stats["plan"]
@@ -617,7 +700,8 @@ def dashboard():
         plan=plan,
         scan_limit=scan_limit,
         active_tab=active_tab,
-        subscription=subscription
+        subscription=subscription,
+        shared_audit_id=shared_id
     )
 
 
@@ -642,15 +726,18 @@ def new_audit():
         if stats["scans_this_month"] >= limit:
             return render_template('app/new.html', user=user, quota_exceeded=True)
 
-    if url:
-        job_id = str(uuid.uuid4())
-        AUDIT_JOBS[job_id] = {
-            "status": "running",
-            "result": None,
-            "error": None,
-            "url": url,
-            "user_id": user["id"]
-        }
+        if url:
+            job_id = str(uuid.uuid4())
+            AUDIT_JOBS[job_id] = {
+                "status": "running",
+                "result": None,
+                "error": None,
+                "url": url,
+                "user_id": user["id"],
+                "user_email": user.get("email"),
+                "user_first_name": user.get("first_name"),
+                "user_last_name": user.get("last_name")
+            }
         thread = threading.Thread(target=run_audit, args=(job_id, url))
         thread.daemon = True
         thread.start()
@@ -745,6 +832,7 @@ def audit_detail(audit_id):
         return render_template("app/error.html", error="Audit not found. Please try again.")
 
     audit = audit_row.get("result")
+    audit["created_at"] = audit_row.get("created_at")
     audit_json = json.dumps(audit, indent=2)
     share_url = get_public_base_url() + "/share/" + audit_id
     stats = _get_user_stats(user["id"])
@@ -762,10 +850,14 @@ def share_audit(audit_id):
         return render_template("app/error.html", error="Audit not found.")
 
     audit = audit_row.get("result")
+    audit["created_at"] = audit_row.get("created_at")
     audit_json = json.dumps(audit, indent=2)
     share_url = get_public_base_url() + "/share/" + audit_id
     user = session.get("user")
     logged_out = user is None
+    if logged_out:
+        audit = _sanitize_audit_for_public(audit)
+        audit_json = json.dumps(audit, indent=2)
     return render_template(
         "app/results.html",
         audit=audit,
@@ -774,7 +866,8 @@ def share_audit(audit_id):
         limited_view=True,
         force_blur=logged_out,
         require_login=logged_out,
-        obfuscate=logged_out
+        obfuscate=False,
+        shared_audit_id=audit_id
     )
 
 

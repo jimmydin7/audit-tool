@@ -299,9 +299,11 @@ def _run_openrouter(prompt: str) -> dict:
 def analyze_with_ai(html: str, url: str) -> dict:
     api_key = os.environ.get("OPENAI_KEY")
     client = OpenAI(api_key=api_key, http_client=httpx.Client())
+    current_date = datetime.utcnow().date().isoformat()
 
     prompt = f"""
 You are an advanced website auditing engine.
+Today's date is: {current_date}
 
 Analyze the HTML source of this website:
 URL: {url}
@@ -324,8 +326,9 @@ RULES:
 - Never mention AI or "AI-powered" in any copy suggestions; be informative and conversion-focused.
 - Make copy_changes cover most of the page: hero, subheadline, primary CTA, features, paragraphs, social proof, pricing, FAQ, footer, and more.
 - Don't fill ANYTHING randomly
-- Be brutally honest, don't feel bad giving low scores
-- Lots of purple and blue indicate a website is vibecode (lower the score much, no one trusts vibecoded websites)
+- Be brutally honest
+- Never use em dashes on copy suggestions
+- Make copy_changes cover bigger parts of text as well (paragraphs) not only headlines, and make sure there are many suggestions for different parts of the website to increase conversion.
 
 EXAMPLE JSON (schema reference):
 {EXAMPLE_JSON}

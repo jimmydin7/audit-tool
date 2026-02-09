@@ -309,13 +309,18 @@
           {% if score >= 80 %}{% set ring = '#22c55e' %}{% elif score >= 60 %}{% set ring = '#f59e0b' %}{% else %}{% set ring = '#ef4444' %}{% endif %}
           {% set dash = 94.25 %}
           {% set offset = dash - (dash * score / 100) %}
-          <a href="/app/audits/{{ audit.id }}" class="block audit-item" data-audit="{{ (domain ~ ' ' ~ path ~ ' ' ~ score ~ ' ' ~ issues_total ~ ' ' ~ (audit.created_at[:10] if audit.created_at else '') ) | lower }}">
+          <a href="{% if audit.is_shared %}/share/{{ audit.id }}{% else %}/app/audits/{{ audit.id }}{% endif %}" class="block audit-item" data-audit="{{ (domain ~ ' ' ~ path ~ ' ' ~ score ~ ' ' ~ issues_total ~ ' ' ~ (audit.created_at[:10] if audit.created_at else '') ) | lower }}">
             <!-- Desktop row -->
             <div class="audit-row audit-row-desktop grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-center cursor-pointer">
               <div class="col-span-5 flex items-center gap-3">
                 <img src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64" class="w-7 h-7 rounded" alt="">
                 <div>
-                  <p class="text-sm font-medium text-white">{{ domain }}</p>
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-medium text-white">{{ domain }}</p>
+                    {% if audit.is_shared %}
+                    <span class="font-mono text-[9px] uppercase px-1.5 py-0.5 bg-[#333] text-gray-300 border border-[#444]">Shared</span>
+                    {% endif %}
+                  </div>
                   <p class="text-[11px] text-gray-500 font-mono truncate">{{ path if path != '/' else '/' }}</p>
                 </div>
               </div>
