@@ -792,6 +792,8 @@ def audit_status(job_id):
     if user:
         stats = _get_user_stats(user["id"])
         limited_view = stats.get("plan") != "paid"
+    if (audit.get("metadata") or {}).get("model_limit"):
+        return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
 
     return render_template(
         "app/results.html",
@@ -819,6 +821,8 @@ def audit_detail(audit_id):
     share_url = get_public_base_url() + "/share/" + audit_id
     stats = _get_user_stats(user["id"])
     limited_view = stats.get("plan") != "paid"
+    if (audit.get("metadata") or {}).get("model_limit"):
+        return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
     return render_template("app/results.html", audit=audit, audit_json=audit_json, share_url=share_url, limited_view=limited_view)
 
 
@@ -837,6 +841,8 @@ def share_audit(audit_id):
     share_url = get_public_base_url() + "/share/" + audit_id
     user = session.get("user")
     logged_out = user is None
+    if (audit.get("metadata") or {}).get("model_limit"):
+        return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
     if logged_out:
         audit = _sanitize_audit_for_public(audit)
         audit_json = json.dumps(audit, indent=2)
