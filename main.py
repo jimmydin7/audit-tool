@@ -17,7 +17,7 @@ AUDIT_JOBS = {}
 #RATE_LIMITS = {}
 #RATE_LIMIT_WINDOW_SEC = 60
 #RATE_LIMIT_MAX_REQUESTS = 5
-SCAN_LIMITS = {"free": 1, "paid": 20}
+SCAN_LIMITS = {"free": 1, "paid": 25}
 DISCORD_CONTACT_WEBHOOK = "https://discord.com/api/webhooks/1470306076694941719/ClTudUO8_Lu_I40i1t0P51oMcKcVtxzSlmdPUF-cy7lYy9niqsvZ4MNRaVQqw0JGpLYL"
 DISCORD_SCAN_WEBHOOK = "https://discord.com/api/webhooks/1470306210036318231/LVGfUqdLSniOKg3Cg3Udzb_q4dkuURHPXxZ0KwiyIMefUcahmUizPmb2NgHDITTQ52Xc"
 
