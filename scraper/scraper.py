@@ -390,7 +390,7 @@ def analyze(url, plan="free", on_fallback=None):
 
     try:
         audit = analyze_with_ai(html_code, url, model="gpt-4.1-mini")
-        audit["_scan_cost"] = 4
+        audit["_scan_cost"] = 1
         return audit
     except Exception as e:
         print("gpt-4.1-mini failed:", e)

@@ -17,7 +17,7 @@ AUDIT_JOBS = {}
 #RATE_LIMITS = {}
 #RATE_LIMIT_WINDOW_SEC = 60
 #RATE_LIMIT_MAX_REQUESTS = 5
-SCAN_LIMITS = {"free": 1, "paid": 50}
+SCAN_LIMITS = {"free": 1, "paid": 20}
 DISCORD_CONTACT_WEBHOOK = "https://discord.com/api/webhooks/1470306076694941719/ClTudUO8_Lu_I40i1t0P51oMcKcVtxzSlmdPUF-cy7lYy9niqsvZ4MNRaVQqw0JGpLYL"
 DISCORD_SCAN_WEBHOOK = "https://discord.com/api/webhooks/1470306210036318231/LVGfUqdLSniOKg3Cg3Udzb_q4dkuURHPXxZ0KwiyIMefUcahmUizPmb2NgHDITTQ52Xc"
 
@@ -138,6 +138,7 @@ def _get_user_stats(user_id):
 
     return {"scans_this_month": scans_this_month, "plan": plan}
 
+ADMIN_EMAILS = ["dimdinias@gmail.com"]
 
 
 
@@ -742,8 +743,10 @@ def new_audit():
     if url:
         stats = _get_user_stats(user["id"])
         limit = SCAN_LIMITS.get(stats["plan"], 1)
-        if stats["scans_this_month"] >= limit:
-            return render_template('app/new.html', user=user, quota_exceeded=True)
+        user_email = (user.get("email") or "").lower() if user else ""
+        if user_email not in ADMIN_EMAILS:
+            if stats["scans_this_month"] >= limit:
+                return render_template('app/new.html', user=user, quota_exceeded=True)
 
         if url:
             job_id = str(uuid.uuid4())
@@ -773,8 +776,10 @@ def audit_results():
 
     stats = _get_user_stats(user["id"])
     limit = SCAN_LIMITS.get(stats["plan"], 1)
-    if stats["scans_this_month"] >= limit:
-        return render_template('app/new.html', user=user, quota_exceeded=True)
+    user_email = (user.get("email") or "").lower() if user else ""
+    if user_email not in ADMIN_EMAILS:
+        if stats["scans_this_month"] >= limit:
+            return render_template('app/new.html', user=user, quota_exceeded=True)
 
     raw_url = request.values.get('url', '')
     url = normalize_url(raw_url)
