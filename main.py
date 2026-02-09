@@ -117,6 +117,23 @@ def _get_user_stats(user_id):
         return {"scans_this_month": 0, "plan": "free"}
 
 
+def _increment_scan_count(user_id):
+    if not user_id:
+        return
+    try:
+        resp = supabase.table("user_stats").select("scans_this_month,subscription_type").eq("user_id", user_id).single().execute()
+        row = resp.data or {}
+        current = row.get("scans_this_month") or 0
+        plan = row.get("subscription_type") or "free"
+        supabase.table("user_stats").upsert({
+            "user_id": user_id,
+            "scans_this_month": current + 1,
+            "subscription_type": plan
+        }, on_conflict="user_id").execute()
+    except Exception as e:
+        print("Failed to update scan count:", e)
+
+
 def run_audit(job_id, url):
     try:
         user_id = AUDIT_JOBS[job_id].get("user_id")
@@ -147,6 +164,7 @@ def run_audit(job_id, url):
                 }).execute()
                 if insert_resp.data:
                     audit_id = insert_resp.data[0].get("id")
+                    _increment_scan_count(user_id)
             except Exception as e:
                 print("Failed to save audit:", e)
         AUDIT_JOBS[job_id]["status"] = "done"
