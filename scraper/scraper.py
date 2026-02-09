@@ -242,15 +242,25 @@ def _extract_json(text: str) -> str:
             return content[start:end + 1]
     return content
 
-
 def scrape(url: str) -> str:
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    import cloudscraper
+    import time
 
-    response = requests.get(url, headers=headers, timeout=15)
-    response.raise_for_status()
-    return response.text
+    scraper = cloudscraper.create_scraper(
+        browser={"browser": "chrome", "platform": "windows", "desktop": True}
+    )
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        response = scraper.get(url, timeout=20)
+        if response.status_code == 429:
+            retry_after = int(response.headers.get("Retry-After", 2 ** (attempt + 1)))
+            time.sleep(retry_after)
+            continue
+        response.raise_for_status()
+        return response.text
+
+    raise Exception(f"Failed to fetch {url} after {max_retries} retries (429 Too Many Requests)")
 
 
 def _run_model_new(client, model: str, prompt: str) -> dict:
@@ -296,7 +306,7 @@ def _run_openrouter(prompt: str) -> dict:
     return parsed
 
 
-def analyze_with_ai(html: str, url: str) -> dict:
+def analyze_with_ai(html: str, url: str, model: str = "gpt-4o-mini") -> dict:
     api_key = os.environ.get("OPENAI_KEY")
     client = OpenAI(api_key=api_key, http_client=httpx.Client())
     current_date = datetime.utcnow().date().isoformat()
@@ -342,8 +352,8 @@ HTML SOURCE:
     try:
         parsed = _run_openrouter(prompt)
     except Exception as e:
-        print("OpenRouter failed, falling back to gpt-4o-mini:", e)
-        parsed = _run_model_new(client, "gpt-4o-mini", prompt)
+        print(f"OpenRouter failed, falling back to {model}:", e)
+        parsed = _run_model_new(client, model, prompt)
     audit = _merge_schema(DEFAULT_AUDIT, parsed)
     audit["url"] = url
     if not audit.get("scanned_at"):
@@ -353,37 +363,44 @@ HTML SOURCE:
 
 
 
-def analyze(url, plan="free"):
+def analyze(url, plan="free", on_fallback=None):
     html_code = scrape(url)
-    max_input_chars = 250000
+
     try:
-        input_html = html_code
-        audit = analyze_with_ai(input_html, url)
+        audit = analyze_with_ai(html_code, url, model="gpt-4o-mini")
+        audit["_scan_cost"] = 1
         return audit
-    except Exception:
+    except Exception as e:
+        print("gpt-4o-mini failed:", e)
+
+    if plan != "paid":
         audit = _merge_schema(DEFAULT_AUDIT, {})
         audit["url"] = url
         audit["scanned_at"] = datetime.utcnow().isoformat()
-        audit["scores"]["overall"]["summary"] = "The model couldn't process this page size. This is a model limitation, not a plan limit. We'll upgrade capacity soon."
-        audit["conversion"]["summary"] = "Model couldn't analyze this page."
-        audit["performance"]["summary"] = "Model couldn't analyze this page."
-        audit["accessibility"]["summary"] = "Model couldn't analyze this page."
+        audit["scores"]["overall"]["summary"] = "This site is too large for the free plan. Upgrade to Pro to scan larger sites."
         audit["metadata"]["model_limit"] = True
-        audit["issues"]["items"] = [
-            {
-                "category": "performance",
-                "severity": "medium",
-                "name": "Model size limit",
-                "description": "The analysis model could not process this page size.",
-                "impact": "Some issues and copy improvements may be missing.",
-                "solution": "Try again later. We'll increase model capacity soon.",
-                "code_example": "",
-                "affected_elements": [],
-            }
-        ]
-        audit["issues"]["total"] = 1
-        audit["issues"]["critical"] = 0
-        audit["issues"]["high"] = 0
-        audit["issues"]["medium"] = 1
-        audit["issues"]["low"] = 0
+        audit["metadata"]["upgrade_required"] = True
+        audit["issues"]["items"] = []
+        audit["issues"]["total"] = 0
+        audit["_scan_cost"] = 0
         return audit
+
+    if on_fallback:
+        on_fallback()
+
+    try:
+        audit = analyze_with_ai(html_code, url, model="gpt-4.1-mini")
+        audit["_scan_cost"] = 4
+        return audit
+    except Exception as e:
+        print("gpt-4.1-mini failed:", e)
+
+    audit = _merge_schema(DEFAULT_AUDIT, {})
+    audit["url"] = url
+    audit["scanned_at"] = datetime.utcnow().isoformat()
+    audit["scores"]["overall"]["summary"] = "We were unable to process this website. The maximum model limit was reached. Please contact support."
+    audit["metadata"]["model_limit"] = True
+    audit["issues"]["items"] = []
+    audit["issues"]["total"] = 0
+    audit["_scan_cost"] = 0
+    return audit

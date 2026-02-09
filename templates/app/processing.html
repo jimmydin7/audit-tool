@@ -44,6 +44,9 @@
     <p class="font-mono text-[10px] uppercase text-gray-500 mb-2">Processing</p>
     <h1 class="text-2xl md:text-3xl font-black text-white mb-2">Running your audit</h1>
     <p class="text-sm text-gray-400 mb-6">Estimated time remaining: <span id="countdown" class="text-white font-bold">90s</span></p>
+    <div id="fallback-notice" class="hidden mb-4 text-xs text-yellow-300 bg-yellow-500/10 border border-yellow-500/30 p-3 rounded">
+      This is a large website — switching to an advanced model. This scan will use <strong>4 credits</strong> and may take up to <strong>3 minutes</strong>.
+    </div>
     <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
       <div class="flex-shrink-0 w-6 h-6 bg-[#333] border border-[#555] rounded flex items-center justify-center overflow-hidden">
         <i data-lucide="globe" id="url-icon-placeholder" class="w-4 h-4 text-gray-500"></i>
@@ -60,6 +63,8 @@
       var seconds = 90;
       var countdownEl = document.getElementById('countdown');
       var errorEl = document.getElementById('error');
+      var fallbackNotice = document.getElementById('fallback-notice');
+      var fallbackTriggered = false;
       var url = {{ (url or "") | tojson }};
       var jobId = {{ (job_id or "") | tojson }};
       var favicon = document.getElementById('url-favicon');
@@ -83,7 +88,7 @@
       var start = Date.now();
       function tick() {
         var elapsed = Math.floor((Date.now() - start) / 1000);
-        var remaining = Math.max(0, 90 - elapsed);
+        var remaining = Math.max(0, seconds - elapsed);
         countdownEl.textContent = remaining + 's';
       }
       var timer = setInterval(tick, 1000);
@@ -94,6 +99,13 @@
           fetch('/app/results/' + encodeURIComponent(jobId) + '/status', { credentials: 'same-origin' })
             .then(function (res) { return res.json(); })
             .then(function (data) {
+              if (data.fallback && !fallbackTriggered) {
+                fallbackTriggered = true;
+                fallbackNotice.classList.remove('hidden');
+                start = Date.now();
+                seconds = 180;
+                tick();
+              }
               if (data.status === 'done') {
                 clearInterval(poll);
                 clearInterval(timer);

@@ -7,16 +7,16 @@ from urllib.parse import urlparse
 from scraper.scraper import analyze
 import threading
 import uuid
-import time
-from collections import deque
+#import time
+#from collections import deque
 from datetime import datetime, timezone
 import stripe
 import requests
 
 AUDIT_JOBS = {}
-RATE_LIMITS = {}
-RATE_LIMIT_WINDOW_SEC = 60
-RATE_LIMIT_MAX_REQUESTS = 5
+#RATE_LIMITS = {}
+#RATE_LIMIT_WINDOW_SEC = 60
+#RATE_LIMIT_MAX_REQUESTS = 5
 SCAN_LIMITS = {"free": 1, "paid": 50}
 DISCORD_CONTACT_WEBHOOK = "https://discord.com/api/webhooks/1470306076694941719/ClTudUO8_Lu_I40i1t0P51oMcKcVtxzSlmdPUF-cy7lYy9niqsvZ4MNRaVQqw0JGpLYL"
 DISCORD_SCAN_WEBHOOK = "https://discord.com/api/webhooks/1470306210036318231/LVGfUqdLSniOKg3Cg3Udzb_q4dkuURHPXxZ0KwiyIMefUcahmUizPmb2NgHDITTQ52Xc"
@@ -57,18 +57,18 @@ def _client_ip():
     return request.remote_addr or "unknown"
 
 
-def _rate_limited(key: str):
-    now = time.time()
-    q = RATE_LIMITS.get(key)
-    if q is None:
-        q = deque()
-        RATE_LIMITS[key] = q
-    while q and now - q[0] > RATE_LIMIT_WINDOW_SEC:
-        q.popleft()
-    if len(q) >= RATE_LIMIT_MAX_REQUESTS:
-        return True
-    q.append(now)
-    return False
+#def _rate_limited(key: str):
+#    now = time.time()
+#    q = RATE_LIMITS.get(key)
+#    if q is None:
+#        q = deque()
+#        RATE_LIMITS[key] = q
+#    while q and now - q[0] > RATE_LIMIT_WINDOW_SEC:
+#        q.popleft()
+#    if len(q) >= RATE_LIMIT_MAX_REQUESTS:
+#        return True
+#    q.append(now)
+#    return False
 
 
 def _sanitize_audit_for_public(audit):
@@ -148,7 +148,11 @@ def run_audit(job_id, url):
         if user_id:
             stats = _get_user_stats(user_id)
             plan = stats.get("plan") or "free"
-        result = analyze(url, plan=plan)
+        def _on_fallback():
+            AUDIT_JOBS[job_id]["fallback"] = True
+
+        result = analyze(url, plan=plan, on_fallback=_on_fallback)
+        scan_cost = result.pop("_scan_cost", 1)
         audit_id = None
         if user_id:
             try:
@@ -161,6 +165,14 @@ def run_audit(job_id, url):
                     audit_id = insert_resp.data[0].get("id")
             except Exception as e:
                 print("Failed to save audit:", e)
+            if scan_cost > 1:
+                try:
+                    extra = scan_cost - 1
+                    supabase.table("user_stats").update({
+                        "scans_this_month": stats["scans_this_month"] + extra
+                    }).eq("user_id", user_id).execute()
+                except Exception as e:
+                    print("Failed to add extra scan cost:", e)
         AUDIT_JOBS[job_id]["status"] = "done"
         AUDIT_JOBS[job_id]["result"] = result
         AUDIT_JOBS[job_id]["audit_id"] = audit_id
@@ -719,8 +731,8 @@ def new_audit():
         store_post_login_redirect(request.full_path.rstrip("?"))
         return redirect('/login')
     refresh_subscription_status(user["id"])
-    if _rate_limited(f"audit_new:{_client_ip()}"):
-        return render_template('app/new.html', user=user, error="Too many audits. Please wait a minute and try again.")
+    #if _rate_limited(f"audit_new:{_client_ip()}"):
+    #    return render_template('app/new.html', user=user, error="Too many audits. Please wait a minute and try again.")
 
     raw_url = request.values.get('url', '').strip()
     url = normalize_url(raw_url) if raw_url else None
@@ -756,8 +768,8 @@ def audit_results():
     if not user:
         return redirect('/login')
     refresh_subscription_status(user["id"])
-    if _rate_limited(f"audit_results:{_client_ip()}"):
-        return redirect(url_for('index', error="Too many audits. Please wait a minute and try again."))
+    #if _rate_limited(f"audit_results:{_client_ip()}"):
+    #    return redirect(url_for('index', error="Too many audits. Please wait a minute and try again."))
 
     stats = _get_user_stats(user["id"])
     limit = SCAN_LIMITS.get(stats["plan"], 1)
@@ -814,6 +826,8 @@ def audit_status(job_id):
     if user:
         stats = _get_user_stats(user["id"])
         limited_view = stats.get("plan") != "paid"
+    if (audit.get("metadata") or {}).get("upgrade_required"):
+        return render_template("app/error.html", error="This site is too large for the free plan. Upgrade to Pro to scan larger websites.", upgrade=True)
     if (audit.get("metadata") or {}).get("model_limit"):
         return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
 
@@ -843,6 +857,8 @@ def audit_detail(audit_id):
     share_url = get_public_base_url() + "/share/" + audit_id
     stats = _get_user_stats(user["id"])
     limited_view = stats.get("plan") != "paid"
+    if (audit.get("metadata") or {}).get("upgrade_required"):
+        return render_template("app/error.html", error="This site is too large for the free plan. Upgrade to Pro to scan larger websites.", upgrade=True)
     if (audit.get("metadata") or {}).get("model_limit"):
         return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
     return render_template("app/results.html", audit=audit, audit_json=audit_json, share_url=share_url, limited_view=limited_view)
@@ -889,7 +905,8 @@ def audit_status_api(job_id):
     return jsonify({
         "status": job["status"],
         "error": job.get("error"),
-        "audit_id": job.get("audit_id")
+        "audit_id": job.get("audit_id"),
+        "fallback": job.get("fallback", False)
     })
 
 
