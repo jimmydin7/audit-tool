@@ -4,7 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dashboard | PageAudit</title>
+  <title>Dashboard | FixMyLanding</title>
+  <meta name="description" content="View and manage your FixMyLanding audits.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Dashboard | FixMyLanding">
+  <meta property="og:description" content="View and manage your FixMyLanding audits.">
+  <meta property="og:image" content="{{ url_for('static', filename='imgs/og-image.png') }}">
+  <meta property="og:image:alt" content="FixMyLanding preview">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -52,50 +59,167 @@
     }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+
+    @media (max-width: 900px) {
+      .dashboard-sidebar {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 80%;
+        max-width: 280px;
+        height: 100vh;
+        border-right: 2px solid #333;
+        border-bottom: 0;
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+        z-index: 60;
+      }
+      .dashboard-main {
+        padding-left: 0;
+      }
+      .sidebar-open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 55;
+        display: none;
+      }
+      .sidebar-overlay.active {
+        display: block;
+      }
+      .dash-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .dash-controls {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .dash-controls input,
+      .dash-controls select {
+        width: 100%;
+      }
+      .dash-table-header { display: none; }
+      .audit-row-mobile { display: flex !important; }
+      .audit-row-desktop { display: none !important; }
+      .billing-plan-header {
+        flex-direction: column;
+        gap: 16px;
+      }
+      .billing-plan-header .text-right {
+        text-align: left;
+      }
+      .billing-features-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .billing-actions {
+        flex-direction: column;
+      }
+      .billing-actions a {
+        text-align: center;
+      }
+    }
+    @media (min-width: 901px) {
+      .audit-row-mobile { display: none !important; }
+      .audit-row-desktop { display: grid !important; }
+    }
   </style>
 </head>
 
-<body class="flex min-h-screen">
+<body class="flex min-h-screen flex-col md:flex-row">
+
+  <!-- Mobile Header -->
+  <div class="md:hidden flex items-center justify-between px-4 py-4 border-b-2 border-[#333] bg-[#2a2a2a] sticky top-0 z-50">
+    <button id="menu-toggle" class="w-10 h-10 flex items-center justify-center border-2 border-[#444] bg-[#333]">
+      <i data-lucide="menu" class="w-5 h-5 text-gray-300"></i>
+    </button>
+    <a href="/" class="text-lg font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span></a>
+    <div class="w-10 h-10"></div>
+  </div>
+
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
   <!-- Sidebar -->
-  <aside class="fixed w-64 h-screen flex flex-col justify-between border-r-2 border-[#333] bg-[#2a2a2a] z-50">
+ <aside id="sidebar" class="dashboard-sidebar hidden md:flex md:fixed w-full md:w-64 h-screen flex-col border-r-2 border-[#333] bg-[#2a2a2a] md:z-50" style="z-index:60">
 
-    <div>
-      <!-- Logo -->
-      <a href="/">
-        <div class="p-6 pb-8">
-          <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span>
-        </div>
-      </a>
+  <!-- Top section: Logo + New Audit + Nav -->
+  <div class="flex flex-col">
+    <!-- Mobile menu -->
+    <div class="md:hidden flex items-center justify-between px-4 pt-4">
+      <span class="text-sm font-mono text-gray-400">Menu</span>
+      <button id="menu-close" class="w-9 h-9 flex items-center justify-center border-2 border-[#444] bg-[#333]">
+        <i data-lucide="x" class="w-4 h-4 text-gray-300"></i>
+      </button>
+    </div>
 
-      <!-- New Audit Button -->
-      <div class="px-4 mb-6">
-        <a href="/app/new" class="flex items-center justify-center gap-2 w-full bg-[#fca5a5] text-black py-2.5 font-bold text-sm border-2 border-[#444] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          New Audit
-        </a>
+    <!-- Logo -->
+    <a href="/">
+      <div class="p-6 pb-8">
+        <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span>
       </div>
+    </a>
 
-      <!-- Nav -->
-      <nav class="flex flex-col gap-1 px-4">
-        <button onclick="switchDashTab('audits')" class="tab-btn active sidebar-link flex items-center gap-3 py-2.5 px-3 rounded text-sm text-left w-full">
-          <i data-lucide="search" class="w-4 h-4"></i>
-          Audits
-        </button>
-        <button onclick="switchDashTab('billing')" class="tab-btn sidebar-link flex items-center gap-3 py-2.5 px-3 rounded text-sm text-gray-400 text-left w-full">
-          <i data-lucide="credit-card" class="w-4 h-4"></i>
-          Billing
-        </button>
-        <a href="/account" class="sidebar-link flex items-center gap-3 py-2.5 px-3 rounded text-sm text-gray-400">
-          <i data-lucide="settings" class="w-4 h-4"></i>
-          Settings
-        </a>
-      </nav>
+    <!-- New Audit Button -->
+    <div class="px-4 mb-6">
+      <a href="/app/new" class="flex items-center justify-center gap-2 w-full bg-[#fca5a5] text-black py-2.5 font-bold text-sm border-2 border-[#444] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        New Audit
+      </a>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex flex-col gap-1 px-4">
+      <button onclick="switchDashTab('audits')" class="tab-btn {% if active_tab == 'audits' %}active{% else %}text-gray-400{% endif %} sidebar-link flex items-center gap-3 py-2.5 px-3 rounded text-sm text-left w-full">
+        <i data-lucide="search" class="w-4 h-4"></i>
+        Audits
+      </button>
+      <button onclick="switchDashTab('billing')" class="tab-btn {% if active_tab == 'billing' %}active{% else %}text-gray-400{% endif %} sidebar-link flex items-center gap-3 py-2.5 px-3 rounded text-sm text-left w-full">
+        <i data-lucide="credit-card" class="w-4 h-4"></i>
+        Billing
+      </button>
+      <a href="/account" class="sidebar-link flex items-center gap-3 py-2.5 px-3 rounded text-sm text-gray-400">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        Settings
+      </a>
+    </nav>
+  </div>
+
+  <!-- Bottom section: Scans + User Info -->
+  <div class="mt-auto">
+    <!-- Scan Usage -->
+    <div class="px-4 pb-3">
+      {% set used = month_count or 0 %}
+      {% set limit = scan_limit or 1 %}
+      {% set pct = (used / limit * 100) if limit else 0 %}
+      {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+      {% set is_free = (plan or 'free') == 'free' %}
+      {% set over = used >= limit %}
+      <div class="bg-[#1F1F1F] border border-[#444] rounded p-3">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[10px] uppercase text-gray-500">Scans</span>
+          <span class="font-mono text-[10px] px-1.5 py-0.5 rounded {% if over %}bg-red-500/20 text-red-400 border border-red-500/30{% elif not is_free %}bg-green-500/20 text-green-400 border border-green-500/30{% else %}bg-[#333] text-gray-400 border border-[#444]{% endif %}">{{ 'Pro' if not is_free else 'Free' }}</span>
+        </div>
+        <div class="w-full h-1.5 bg-[#333] rounded-full overflow-hidden mb-2">
+          <div class="h-full rounded-full {% if over %}bg-red-400{% else %}bg-[#fca5a5]{% endif %}" style="width:{{ pct }}%"></div>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-xs {% if over %}text-red-400{% else %}text-gray-400{% endif %}">{{ used }} / {{ limit }}</span>
+          {% if is_free %}
+          <a href="/billing/checkout" class="font-mono text-[10px] text-[#fca5a5] hover:underline">Upgrade</a>
+          {% endif %}
+        </div>
+      </div>
     </div>
 
     <!-- User Info -->
     <a href="/account">
-      <div class="p-4 border-t-2 border-[#333] flex items-center gap-3 hover:bg-[#333] transition-colors">
+      <div class="p-4 border-t border-[#333] flex items-center gap-3 hover:bg-[#333] transition-colors">
         {% if user and user.avatar_url %}
         <img src="{{ user.avatar_url }}" alt="Profile" class="w-10 h-10 rounded-full border-2 border-[#444] object-cover">
         {% else %}
@@ -109,24 +233,27 @@
         </div>
       </div>
     </a>
-  </aside>
+  </div>
+
+</aside>
+
 
   <!-- Main Content -->
-  <main class="flex-1 pl-64 min-h-screen">
+  <main class="dashboard-main flex-1 pl-0 md:pl-64 min-h-screen">
 
     <!-- Audits Tab -->
-    <div id="panel-audits" class="tab-panel active">
+    <div id="panel-audits" class="tab-panel {% if active_tab == 'audits' %}active{% endif %}">
 
       <!-- Header -->
-      <div class="px-8 pt-8 pb-6 border-b border-[#333] flex items-center justify-between">
+      <div class="dash-header px-4 md:px-8 pt-8 pb-6 border-b border-[#333] flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-black text-white">Your Audits</h1>
           <p class="text-sm text-gray-500 mt-1">All your landing page audits in one place.</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="dash-controls flex items-center gap-3">
           <div class="relative">
             <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input type="text" placeholder="Search audits..." class="bg-[#2a2a2a] border-2 border-[#444] text-white text-sm pl-9 pr-4 py-2 w-56 focus:outline-none focus:border-[#fca5a5] placeholder-gray-600 font-mono">
+            <input id="audit-search" type="text" placeholder="Search audits..." class="bg-[#2a2a2a] border-2 border-[#444] text-white text-sm pl-9 pr-4 py-2 w-56 max-w-full focus:outline-none focus:border-[#fca5a5] placeholder-gray-600 font-mono">
           </div>
           <select class="bg-[#2a2a2a] border-2 border-[#444] text-gray-400 text-sm px-3 py-2 focus:outline-none font-mono appearance-none cursor-pointer">
             <option>Most Recent</option>
@@ -138,31 +265,31 @@
       </div>
 
       <!-- Stats Overview -->
-      <div class="px-8 py-6 grid grid-cols-4 gap-4">
+      <div class="px-4 md:px-8 py-6 grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-[#2a2a2a] border-2 border-[#444] p-4">
           <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">Total Audits</p>
-          <p class="text-2xl font-black text-white">12</p>
+          <p class="text-2xl font-black text-white">{{ total_audits or 0 }}</p>
         </div>
         <div class="bg-[#2a2a2a] border-2 border-[#444] p-4">
           <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">Avg Score</p>
-          <p class="text-2xl font-black text-[#fca5a5]">78</p>
+          <p class="text-2xl font-black text-[#fca5a5]">{{ avg_score or 0 }}</p>
         </div>
         <div class="bg-[#2a2a2a] border-2 border-[#444] p-4">
           <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">Issues Fixed</p>
-          <p class="text-2xl font-black text-white">34</p>
+          <p class="text-2xl font-black text-white">{{ total_issues or 0 }}</p>
         </div>
         <div class="bg-[#2a2a2a] border-2 border-[#444] p-4">
           <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">This Month</p>
-          <p class="text-2xl font-black text-white">5</p>
+          <p class="text-2xl font-black text-white">{{ month_count or 0 }}</p>
         </div>
       </div>
 
       <!-- Audits List -->
-      <div class="px-8 pb-8">
-        <div class="bg-[#2a2a2a] border-2 border-[#444]">
+      <div class="px-4 md:px-8 pb-8">
+        <div class="dash-table bg-[#2a2a2a] border-2 border-[#444]">
 
-          <!-- Table Header -->
-          <div class="grid grid-cols-12 gap-4 px-5 py-3 border-b-2 border-[#444] text-gray-500">
+          <!-- Table Header (desktop only) -->
+          <div class="dash-table-header grid grid-cols-12 gap-4 px-5 py-3 border-b-2 border-[#444] text-gray-500">
             <div class="col-span-5 font-mono text-[10px] uppercase">Website</div>
             <div class="col-span-2 font-mono text-[10px] uppercase">Score</div>
             <div class="col-span-2 font-mono text-[10px] uppercase">Issues</div>
@@ -170,253 +297,128 @@
             <div class="col-span-1"></div>
           </div>
 
-          <!-- Audit Rows -->
-          <a href="/app/results" class="block">
-            <div class="audit-row grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-center cursor-pointer">
+          {% if audits and audits|length %}
+          {% for audit in audits %}
+          {% set url_clean = audit.url | replace('https://', '') | replace('http://', '') %}
+          {% set domain = url_clean.split('/')[0] %}
+          {% set path = '/' ~ (url_clean.split('/', 1)[1] if '/' in url_clean else '') %}
+          {% set res = audit.result or {} %}
+          {% set score = ((res.get('scores') or {}).get('overall') or {}).get('score') or 0 %}
+          {% set issues_total = ((res.get('issues') or {}).get('total')) or 0 %}
+          {% set grade = ((res.get('scores') or {}).get('overall') or {}).get('grade') or '' %}
+          {% if score >= 80 %}{% set ring = '#22c55e' %}{% elif score >= 60 %}{% set ring = '#f59e0b' %}{% else %}{% set ring = '#ef4444' %}{% endif %}
+          {% set dash = 94.25 %}
+          {% set offset = dash - (dash * score / 100) %}
+          <a href="/app/audits/{{ audit.id }}" class="block audit-item" data-audit="{{ (domain ~ ' ' ~ path ~ ' ' ~ score ~ ' ' ~ issues_total ~ ' ' ~ (audit.created_at[:10] if audit.created_at else '') ) | lower }}">
+            <!-- Desktop row -->
+            <div class="audit-row audit-row-desktop grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-center cursor-pointer">
               <div class="col-span-5 flex items-center gap-3">
-                <img src="https://www.google.com/s2/favicons?domain=stripe.com&sz=64" class="w-7 h-7 rounded" alt="">
+                <img src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64" class="w-7 h-7 rounded" alt="">
                 <div>
-                  <p class="text-sm font-medium text-white">stripe.com</p>
-                  <p class="text-[11px] text-gray-500 font-mono truncate">/payments/checkout</p>
+                  <p class="text-sm font-medium text-white">{{ domain }}</p>
+                  <p class="text-[11px] text-gray-500 font-mono truncate">{{ path if path != '/' else '/' }}</p>
                 </div>
               </div>
               <div class="col-span-2 flex items-center gap-2">
                 <div class="relative w-9 h-9">
                   <svg viewBox="0 0 36 36" class="w-full h-full score-ring">
                     <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" class="score-track" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="#22c55e"
-                      stroke-dasharray="94.25" stroke-dashoffset="9.42" stroke-linecap="round" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="{{ ring }}"
+                      stroke-dasharray="{{ dash }}" stroke-dashoffset="{{ offset }}" stroke-linecap="round" />
                   </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">90</span>
+                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">{{ score }}</span>
                 </div>
               </div>
               <div class="col-span-2">
-                <span class="font-mono text-sm text-gray-300">6</span>
+                <span class="font-mono text-sm text-gray-300">{{ issues_total }}</span>
                 <span class="text-xs text-gray-500 ml-1">issues</span>
               </div>
-              <div class="col-span-2 font-mono text-xs text-gray-500">Feb 8, 2026</div>
+              <div class="col-span-2 font-mono text-xs text-gray-500">{{ audit.created_at[:10] if audit.created_at else '' }}</div>
               <div class="col-span-1 flex justify-end">
                 <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
               </div>
             </div>
-          </a>
-
-          <a href="/app/results" class="block">
-            <div class="audit-row grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-center cursor-pointer">
-              <div class="col-span-5 flex items-center gap-3">
-                <img src="https://www.google.com/s2/favicons?domain=linear.app&sz=64" class="w-7 h-7 rounded" alt="">
-                <div>
-                  <p class="text-sm font-medium text-white">linear.app</p>
-                  <p class="text-[11px] text-gray-500 font-mono truncate">/</p>
+            <!-- Mobile card -->
+            <div class="audit-row audit-row-mobile flex-col gap-3 px-4 py-4 border-b border-[#333] cursor-pointer">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 min-w-0">
+                  <img src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64" class="w-7 h-7 rounded flex-shrink-0" alt="">
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-white truncate">{{ domain }}</p>
+                    <p class="text-[11px] text-gray-500 font-mono truncate">{{ path if path != '/' else '/' }}</p>
+                  </div>
                 </div>
-              </div>
-              <div class="col-span-2 flex items-center gap-2">
-                <div class="relative w-9 h-9">
+                <div class="relative w-10 h-10 flex-shrink-0 ml-3">
                   <svg viewBox="0 0 36 36" class="w-full h-full score-ring">
                     <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" class="score-track" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="#22c55e"
-                      stroke-dasharray="94.25" stroke-dashoffset="16.96" stroke-linecap="round" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="{{ ring }}"
+                      stroke-dasharray="{{ dash }}" stroke-dashoffset="{{ offset }}" stroke-linecap="round" />
                   </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">82</span>
+                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">{{ score }}</span>
                 </div>
               </div>
-              <div class="col-span-2">
-                <span class="font-mono text-sm text-gray-300">11</span>
-                <span class="text-xs text-gray-500 ml-1">issues</span>
-              </div>
-              <div class="col-span-2 font-mono text-xs text-gray-500">Feb 7, 2026</div>
-              <div class="col-span-1 flex justify-end">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-3">
+                  <span class="font-mono text-gray-300">{{ issues_total }} <span class="text-gray-500">issues</span></span>
+                  <span class="font-mono text-gray-500">{{ audit.created_at[:10] if audit.created_at else '' }}</span>
+                </div>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
               </div>
             </div>
           </a>
-
-          <a href="/app/results" class="block">
-            <div class="audit-row grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-center cursor-pointer">
-              <div class="col-span-5 flex items-center gap-3">
-                <img src="https://www.google.com/s2/favicons?domain=vercel.com&sz=64" class="w-7 h-7 rounded" alt="">
-                <div>
-                  <p class="text-sm font-medium text-white">vercel.com</p>
-                  <p class="text-[11px] text-gray-500 font-mono truncate">/home</p>
-                </div>
-              </div>
-              <div class="col-span-2 flex items-center gap-2">
-                <div class="relative w-9 h-9">
-                  <svg viewBox="0 0 36 36" class="w-full h-full score-ring">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" class="score-track" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="#f59e0b"
-                      stroke-dasharray="94.25" stroke-dashoffset="28.28" stroke-linecap="round" />
-                  </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">70</span>
-                </div>
-              </div>
-              <div class="col-span-2">
-                <span class="font-mono text-sm text-gray-300">18</span>
-                <span class="text-xs text-gray-500 ml-1">issues</span>
-              </div>
-              <div class="col-span-2 font-mono text-xs text-gray-500">Feb 5, 2026</div>
-              <div class="col-span-1 flex justify-end">
-                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
-              </div>
-            </div>
-          </a>
-
-          <a href="/app/results" class="block">
-            <div class="audit-row grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-center cursor-pointer">
-              <div class="col-span-5 flex items-center gap-3">
-                <img src="https://www.google.com/s2/favicons?domain=notion.so&sz=64" class="w-7 h-7 rounded" alt="">
-                <div>
-                  <p class="text-sm font-medium text-white">notion.so</p>
-                  <p class="text-[11px] text-gray-500 font-mono truncate">/product</p>
-                </div>
-              </div>
-              <div class="col-span-2 flex items-center gap-2">
-                <div class="relative w-9 h-9">
-                  <svg viewBox="0 0 36 36" class="w-full h-full score-ring">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" class="score-track" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="#22c55e"
-                      stroke-dasharray="94.25" stroke-dashoffset="5.66" stroke-linecap="round" />
-                  </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">94</span>
-                </div>
-              </div>
-              <div class="col-span-2">
-                <span class="font-mono text-sm text-gray-300">3</span>
-                <span class="text-xs text-gray-500 ml-1">issues</span>
-              </div>
-              <div class="col-span-2 font-mono text-xs text-gray-500">Feb 3, 2026</div>
-              <div class="col-span-1 flex justify-end">
-                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
-              </div>
-            </div>
-          </a>
-
-          <a href="/app/results" class="block">
-            <div class="audit-row grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-center cursor-pointer">
-              <div class="col-span-5 flex items-center gap-3">
-                <img src="https://www.google.com/s2/favicons?domain=cal.com&sz=64" class="w-7 h-7 rounded" alt="">
-                <div>
-                  <p class="text-sm font-medium text-white">cal.com</p>
-                  <p class="text-[11px] text-gray-500 font-mono truncate">/</p>
-                </div>
-              </div>
-              <div class="col-span-2 flex items-center gap-2">
-                <div class="relative w-9 h-9">
-                  <svg viewBox="0 0 36 36" class="w-full h-full score-ring">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" class="score-track" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="#ef4444"
-                      stroke-dasharray="94.25" stroke-dashoffset="42.41" stroke-linecap="round" />
-                  </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">55</span>
-                </div>
-              </div>
-              <div class="col-span-2">
-                <span class="font-mono text-sm text-gray-300">24</span>
-                <span class="text-xs text-gray-500 ml-1">issues</span>
-              </div>
-              <div class="col-span-2 font-mono text-xs text-gray-500">Jan 28, 2026</div>
-              <div class="col-span-1 flex justify-end">
-                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
-              </div>
-            </div>
-          </a>
-
-          <a href="/app/results" class="block">
-            <div class="audit-row grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-center cursor-pointer">
-              <div class="col-span-5 flex items-center gap-3">
-                <img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" class="w-7 h-7 rounded" alt="">
-                <div>
-                  <p class="text-sm font-medium text-white">github.com</p>
-                  <p class="text-[11px] text-gray-500 font-mono truncate">/features</p>
-                </div>
-              </div>
-              <div class="col-span-2 flex items-center gap-2">
-                <div class="relative w-9 h-9">
-                  <svg viewBox="0 0 36 36" class="w-full h-full score-ring">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" class="score-track" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="#22c55e"
-                      stroke-dasharray="94.25" stroke-dashoffset="11.31" stroke-linecap="round" />
-                  </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">88</span>
-                </div>
-              </div>
-              <div class="col-span-2">
-                <span class="font-mono text-sm text-gray-300">8</span>
-                <span class="text-xs text-gray-500 ml-1">issues</span>
-              </div>
-              <div class="col-span-2 font-mono text-xs text-gray-500">Jan 22, 2026</div>
-              <div class="col-span-1 flex justify-end">
-                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
-              </div>
-            </div>
-          </a>
-
-          <a href="/app/results" class="block">
-            <div class="audit-row grid grid-cols-12 gap-4 px-5 py-4 items-center cursor-pointer">
-              <div class="col-span-5 flex items-center gap-3">
-                <img src="https://www.google.com/s2/favicons?domain=figma.com&sz=64" class="w-7 h-7 rounded" alt="">
-                <div>
-                  <p class="text-sm font-medium text-white">figma.com</p>
-                  <p class="text-[11px] text-gray-500 font-mono truncate">/</p>
-                </div>
-              </div>
-              <div class="col-span-2 flex items-center gap-2">
-                <div class="relative w-9 h-9">
-                  <svg viewBox="0 0 36 36" class="w-full h-full score-ring">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" class="score-track" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" stroke="#f59e0b"
-                      stroke-dasharray="94.25" stroke-dashoffset="24.51" stroke-linecap="round" />
-                  </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">74</span>
-                </div>
-              </div>
-              <div class="col-span-2">
-                <span class="font-mono text-sm text-gray-300">14</span>
-                <span class="text-xs text-gray-500 ml-1">issues</span>
-              </div>
-              <div class="col-span-2 font-mono text-xs text-gray-500">Jan 15, 2026</div>
-              <div class="col-span-1 flex justify-end">
-                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
-              </div>
-            </div>
-          </a>
+          {% endfor %}
+          {% else %}
+          <div class="px-6 py-10 text-center">
+            <p class="text-gray-400">No audits yet.</p>
+            <a href="/app/new" class="mt-4 inline-block bg-[#fca5a5] text-black px-6 py-2 font-bold border-2 border-[#444] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Start your first audit</a>
+          </div>
+          {% endif %}
 
         </div>
       </div>
     </div>
 
     <!-- Billing Tab -->
-    <div id="panel-billing" class="tab-panel">
-      <div class="px-8 pt-8 pb-6 border-b border-[#333]">
+    <div id="panel-billing" class="tab-panel {% if active_tab == 'billing' %}active{% endif %}">
+      <div class="px-4 md:px-8 pt-8 pb-6 border-b border-[#333]">
         <h1 class="text-2xl font-black text-white">Billing</h1>
         <p class="text-sm text-gray-500 mt-1">Manage your subscription and payment details.</p>
       </div>
 
-      <div class="px-8 py-8 max-w-3xl">
+      <div class="px-4 md:px-8 py-8 max-w-3xl">
 
         <!-- Current Plan -->
         <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 mb-6">
-          <div class="flex items-center justify-between mb-4">
+          <div class="billing-plan-header flex items-center justify-between mb-4">
             <div>
               <div class="flex items-center gap-2 mb-1">
-                <h3 class="text-lg font-black text-white">Pro Plan</h3>
+                <h3 class="text-lg font-black text-white">{% if plan == 'paid' %}Pro Plan{% else %}Free Plan{% endif %}</h3>
+                {% if subscription and subscription.status == 'active' %}
                 <span class="bg-[#fca5a5] text-black px-2 py-0.5 font-mono text-[10px] font-bold">ACTIVE</span>
+                {% else %}
+                <span class="bg-[#333] text-gray-300 px-2 py-0.5 font-mono text-[10px] font-bold">FREE</span>
+                {% endif %}
               </div>
-              <p class="text-sm text-gray-500">Billed monthly. Renews on March 8, 2026.</p>
+              {% if subscription and subscription.current_period_end %}
+              <p class="text-sm text-gray-500">Renews on {{ subscription.current_period_end[:10] }}.</p>
+              {% else %}
+              <p class="text-sm text-gray-500">{% if plan == 'paid' %}Active subscription{% else %}No active subscription{% endif %}</p>
+              {% endif %}
             </div>
             <div class="text-right">
-              <p class="text-3xl font-black text-white">$15</p>
-              <p class="text-xs text-gray-500 font-mono">/month</p>
+              <p class="text-3xl font-black text-white">{% if plan == 'paid' %}Pro{% else %}Free{% endif %}</p>
+              <p class="text-xs text-gray-500 font-mono">{% if plan == 'paid' %}Monthly{% else %}Limited{% endif %}</p>
             </div>
           </div>
 
           <div class="border-t border-[#444] pt-4 mt-4">
             <div class="flex items-center justify-between mb-3">
               <span class="text-sm text-gray-400">Audits this month</span>
-              <span class="font-mono text-sm text-white">5 / unlimited</span>
+              <span class="font-mono text-sm text-white">{{ month_count }} / {{ scan_limit if plan == 'paid' else scan_limit }}</span>
             </div>
             <div class="w-full h-2 bg-[#333] rounded-full overflow-hidden">
-              <div class="h-full bg-[#fca5a5] rounded-full" style="width: 40%"></div>
+              {% set pct = (month_count / (scan_limit if scan_limit else 1) * 100) | int %}
+              <div class="h-full bg-[#fca5a5] rounded-full" style="width: {{ pct }}%"></div>
             </div>
           </div>
         </div>
@@ -424,7 +426,7 @@
         <!-- Plan Features -->
         <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 mb-6">
           <h3 class="font-mono text-xs uppercase text-gray-500 mb-4">What's included</h3>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="billing-features-grid grid grid-cols-2 gap-3">
             <div class="flex items-center gap-2 text-sm text-gray-300">
               <i data-lucide="check" class="w-4 h-4 text-[#fca5a5]"></i> Unlimited audits
             </div>
@@ -452,70 +454,17 @@
           </div>
         </div>
 
-        <!-- Payment Method -->
-        <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 mb-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-mono text-xs uppercase text-gray-500">Payment Method</h3>
-            <button class="font-mono text-xs text-[#fca5a5] hover:underline">Update</button>
-          </div>
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-8 bg-[#333] border border-[#444] rounded flex items-center justify-center">
-              <span class="font-mono text-xs text-gray-400 font-bold">VISA</span>
-            </div>
-            <div>
-              <p class="text-sm text-white font-mono">**** **** **** 4242</p>
-              <p class="text-xs text-gray-500">Expires 12/27</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Invoice History -->
-        <div class="bg-[#2a2a2a] border-2 border-[#444]">
-          <div class="px-6 py-4 border-b border-[#444]">
-            <h3 class="font-mono text-xs uppercase text-gray-500">Invoice History</h3>
-          </div>
-          <div class="divide-y divide-[#333]">
-            <div class="px-6 py-3 flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <span class="font-mono text-xs text-gray-500">Feb 8, 2026</span>
-                <span class="text-sm text-gray-300">Pro Plan - Monthly</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <span class="font-mono text-sm text-white">$15.00</span>
-                <span class="font-mono text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30">PAID</span>
-              </div>
-            </div>
-            <div class="px-6 py-3 flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <span class="font-mono text-xs text-gray-500">Jan 8, 2026</span>
-                <span class="text-sm text-gray-300">Pro Plan - Monthly</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <span class="font-mono text-sm text-white">$15.00</span>
-                <span class="font-mono text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30">PAID</span>
-              </div>
-            </div>
-            <div class="px-6 py-3 flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <span class="font-mono text-xs text-gray-500">Dec 8, 2025</span>
-                <span class="text-sm text-gray-300">Pro Plan - Monthly</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <span class="font-mono text-sm text-white">$15.00</span>
-                <span class="font-mono text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30">PAID</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Actions -->
-        <div class="flex gap-4 mt-6">
-          <button class="bg-[#333] text-gray-400 px-5 py-2 text-sm font-bold border-2 border-[#444] hover:text-white transition-colors">
-            Switch to Annual (Save 17%)
-          </button>
-          <button class="text-gray-600 px-5 py-2 text-sm font-medium hover:text-red-400 transition-colors">
-            Cancel Subscription
-          </button>
+        <div class="billing-actions flex gap-4 mt-6">
+          {% if plan == 'paid' %}
+          <a href="/billing/portal" class="bg-[#333] text-gray-300 px-5 py-2 text-sm font-bold border-2 border-[#444] hover:text-white transition-colors">
+            Manage Subscription
+          </a>
+          {% else %}
+          <a href="/billing/checkout" class="bg-[#fca5a5] text-black px-5 py-2 text-sm font-bold border-2 border-[#444] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            Upgrade to Pro
+          </a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -534,6 +483,48 @@
       document.getElementById('panel-' + tab).classList.add('active');
       event.target.closest('.tab-btn').classList.add('active');
       event.target.closest('.tab-btn').classList.remove('text-gray-400');
+    }
+
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menu-toggle');
+    const menuClose = document.getElementById('menu-close');
+    const overlay = document.getElementById('sidebar-overlay');
+    function openSidebar() {
+      sidebar.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        sidebar.classList.add('sidebar-open');
+        overlay.classList.add('active');
+      });
+    }
+    function closeSidebar() {
+      sidebar.classList.remove('sidebar-open');
+      overlay.classList.remove('active');
+      sidebar.addEventListener('transitionend', function handler() {
+        if (!sidebar.classList.contains('sidebar-open')) {
+          sidebar.classList.add('hidden');
+        }
+        sidebar.removeEventListener('transitionend', handler);
+      });
+    }
+    if (menuToggle && sidebar) {
+      menuToggle.addEventListener('click', openSidebar);
+    }
+    if (menuClose) {
+      menuClose.addEventListener('click', closeSidebar);
+    }
+    if (overlay) {
+      overlay.addEventListener('click', closeSidebar);
+    }
+    const auditSearch = document.getElementById('audit-search');
+    if (auditSearch) {
+      auditSearch.addEventListener('input', (event) => {
+        const query = event.target.value.trim().toLowerCase();
+        const items = document.querySelectorAll('.audit-item');
+        items.forEach((item) => {
+          const haystack = item.dataset.audit || '';
+          item.style.display = !query || haystack.includes(query) ? '' : 'none';
+        });
+      });
     }
   </script>
 </body>

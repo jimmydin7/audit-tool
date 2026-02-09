@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Audit: {{ audit.url | replace('https://', '') | replace('http://', '') }} | PageAudit</title>
+  <title>Audit: {{ audit.url | replace('https://', '') | replace('http://', '') }} | FixMyLanding</title>
+  <meta name="description" content="Audit results for {{ audit.url | replace('https://', '') | replace('http://', '') }}.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Audit: {{ audit.url | replace('https://', '') | replace('http://', '') }} | FixMyLanding">
+  <meta property="og:description" content="Audit results for {{ audit.url | replace('https://', '') | replace('http://', '') }}.">
+  <meta property="og:image" content="{{ url_for('static', filename='imgs/og-image.png') }}">
+  <meta property="og:image:alt" content="FixMyLanding preview">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
   <style>
     :root { --bg:#1F1F1F; --s:#2a2a2a; --s2:#333; --b:#444; --a:#fca5a5; --t:#e5e5e5; --tm:#999; }
     * { box-sizing:border-box; }
@@ -41,6 +47,7 @@
     .fade-up-4 { animation-delay:.2s; }
     .no-blue-outline *:focus { outline: none; box-shadow: none; }
     .score-box { outline: none; box-shadow: none; }
+    .blurred-text { filter: blur(6px); user-select: none; pointer-events: none; }
   </style>
 </head>
 <body class="min-h-screen relative">
@@ -52,6 +59,10 @@
 {% set s = audit.scores %}
 {% set pw = audit.performance.page_weight %}
 {% set safe_total_kb = pw.total_kb if pw.total_kb else 1 %}
+{% set limited_view = limited_view | default(false) %}
+{% set force_blur = force_blur | default(false) %}
+{% set require_login = require_login | default(false) %}
+{% set obfuscate = obfuscate | default(false) %}
 {% set ns = namespace(total=0, critical=0, high=0, medium=0, low=0, cats={}) %}
 {% for item in audit.issues['items'] if item is mapping %}
   {% set ns.total = ns.total + 1 %}
@@ -71,7 +82,15 @@
 <nav class="border-b border-[#333] bg-[#2a2a2a] px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-50">
   <a href="/"><span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span></a>
   <div class="flex items-center gap-4">
+    {% if share_url %}
+    <button onclick="copyShareLink()" id="share-btn" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="link" class="w-4 h-4"></i> <span id="share-btn-text">Share</span></button>
+    {% endif %}
+    {% if not require_login %}
     <button onclick="window.print()" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export PDF</button>
+    {% endif %}
+    {% if require_login %}
+    <a href="/signup" class="bg-[#fca5a5] text-black px-4 py-2 fm text-xs font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">SIGN UP TO VIEW</a>
+    {% endif %}
     <a href="/" class="bg-[#fca5a5] text-black px-4 py-2 fm text-xs font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">NEW AUDIT</a>
   </div>
 </nav>
@@ -85,14 +104,14 @@
         <img src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64" class="w-8 h-8 rounded" alt="">
         {{ domain }}
       </h1>
-      <p class="text-gray-500 fm text-sm mt-2">{{ audit.scanned_at[:10] }} &middot; {{ dur }}s scan &middot; {{ s.overall.grade }} grade</p>
-      <p class="text-gray-400 text-sm mt-1">{{ s.overall.summary }}</p>
+      <p class="text-gray-500 fm text-sm mt-2">{{ '2026-01-01' if obfuscate else audit.scanned_at[:10] }} &middot; {{ (9.9 if obfuscate else dur) }}s scan &middot; {{ ('B' if obfuscate else s.overall.grade) }} grade</p>
+      <p class="text-gray-400 text-sm mt-1">{{ 'High-level audit summary is hidden until you sign in.' if obfuscate else s.overall.summary }}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
-      {% if audit.metadata.technology_stack.framework %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ audit.metadata.technology_stack.framework }}</span>{% endif %}
-      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ dur }}s load</span>
-      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (pw.total_kb / 1024) | round(1) }} MB</span>
-      {% for a in audit.metadata.technology_stack.analytics %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ a }}</span>{% endfor %}
+      {% if not obfuscate and audit.metadata.technology_stack.framework %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ audit.metadata.technology_stack.framework }}</span>{% endif %}
+      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (9.9 if obfuscate else dur) }}s load</span>
+      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (3.7 if obfuscate else (pw.total_kb / 1024) | round(1)) }} MB</span>
+      {% if not obfuscate %}{% for a in audit.metadata.technology_stack.analytics %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ a }}</span>{% endfor %}{% endif %}
     </div>
   </div>
 </header>
@@ -113,11 +132,41 @@
     <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] fm text-[10px] font-bold mb-3">PRO</span>
     <h3 class="text-2xl md:text-3xl font-black text-white mb-2">Unlimited Full-Page Scans</h3>
     <p class="text-gray-400 mb-6">Get complete audits, full copy changes, and detailed fixes for large pages.</p>
-    <a href="/#pricing" class="bg-[#fca5a5] text-black px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all inline-block">See Pricing</a>
+    <a href="/billing/checkout" class="bg-[#fca5a5] text-black px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all inline-block">Upgrade Now</a>
   </div>
 </section>
 
 {% else %}
+{% if audit.metadata.model_limit %}
+<section class="mb-8">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-4 md:p-5">
+    <p class="fm text-[10px] uppercase tracking-widest text-gray-500 mb-1">Model Limit</p>
+    <p class="text-sm text-gray-300">This is a model capacity limit, not a plan limit. We’ll upgrade it soon.</p>
+  </div>
+</section>
+{% endif %}
+
+{% if limited_view %}
+<section class="mb-8">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-4 md:p-5">
+    <p class="fm text-[10px] uppercase tracking-widest text-gray-500 mb-1">Limited View</p>
+    <p class="text-sm text-gray-300">Some copy suggestions and code fixes are hidden. Upgrade to view the full report.</p>
+    <a href="/billing/checkout" class="mt-3 inline-block bg-[#fca5a5] text-black px-4 py-2 font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Upgrade to Pro</a>
+  </div>
+</section>
+{% endif %}
+
+{% if require_login %}
+<section class="mb-8">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-4 md:p-5">
+    <p class="fm text-[10px] uppercase tracking-widest text-gray-500 mb-1">Sign In Required</p>
+    <p class="text-sm text-gray-300">Create an account or sign in to view the full report.</p>
+    <a href="/login" class="mt-3 inline-block bg-[#fca5a5] text-black px-4 py-2 font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Sign In</a>
+    <a href="/signup" class="mt-3 ml-2 inline-block bg-[#fca5a5] text-black px-5 py-2.5 font-black border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Sign Up</a>
+  </div>
+</section>
+{% endif %}
+
 <!-- Scores -->
 <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
   <!-- Overall ring -->
@@ -129,7 +178,7 @@
     {% if os >= 80 %}{% set sc = '#22c55e' %}{% elif os >= 60 %}{% set sc = '#f59e0b' %}{% else %}{% set sc = '#ef4444' %}{% endif %}
     <div class="relative w-44 h-44">
       <svg viewBox="0 0 120 120" class="w-full h-full ring"><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" class="ring-t"/><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke="{{ sc }}" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ off }}" stroke-linecap="round" class="ring-f"/></svg>
-      <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-5xl font-black text-white">{{ os }}</span><span class="text-sm text-gray-500 fm">/100</span></div>
+      <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-5xl font-black text-white">{{ 78 if obfuscate else os }}</span><span class="text-sm text-gray-500 fm">/100</span></div>
     </div>
     <p class="mt-4 fm text-xs text-gray-500">Grade: <span class="text-white font-bold">{{ s.overall.grade }}</span></p>
   </div>
@@ -145,7 +194,7 @@
         <span class="fm text-[10px] uppercase" style="color:{{ cc }}">{{ s[cat].grade }}</span>
       </div>
       <div class="flex items-end justify-between">
-        <span class="text-3xl font-black text-white">{{ cs }}</span>
+        <span class="text-3xl font-black text-white">{{ (72 if loop.index == 1 else 74) if obfuscate else cs }}</span>
         <span class="text-[10px] text-gray-500 fm">{{ s[cat].passed }}&#10003; {{ s[cat].failed }}&#10007; {{ s[cat].warnings }}&#9888;</span>
       </div>
     </div>
@@ -173,7 +222,11 @@
           </div>
           <div class="border border-[#fca5a5]/30 p-3">
             <p class="fm text-[10px] uppercase text-[#fca5a5] mb-1">Suggested</p>
+            {% if limited_view and loop.index > 3 %}
+            <p class="text-sm text-[#fca5a5] blurred-text">"Lorem ipsum dolor sit amet, consectetur adipiscing elit."</p>
+            {% else %}
             <p class="text-sm text-[#fca5a5]">"{{ change.suggested_text | default('') }}"</p>
+            {% endif %}
           </div>
         </div>
         {% if change.reasoning %}<p class="text-xs text-gray-400 mt-3">{{ change.reasoning }}</p>{% endif %}
@@ -196,8 +249,8 @@
   {% for label, val, sub in stats %}
   <div class="fade-up bg-[#2a2a2a] border-2 border-[#444] p-4" style="animation-delay:{{ loop.index * 0.05 }}s">
     <p class="fm text-[10px] uppercase text-gray-500 mb-1">{{ label }}</p>
-    <p class="text-2xl font-black text-white">{{ val }}</p>
-    <p class="text-xs text-gray-500 mt-1">{{ sub }}</p>
+    <p class="text-2xl font-black text-white">{{ ('—' if obfuscate else val) }}</p>
+    <p class="text-xs text-gray-500 mt-1">{{ ('Sign in to view details.' if obfuscate else sub) }}</p>
   </div>
   {% endfor %}
 </section>
@@ -360,7 +413,11 @@
               <p class="text-sm font-medium text-white">{{ item.name }}</p>
               <p class="text-xs text-gray-500 mt-1">{{ item.description }}</p>
               {% if item.code_example %}
+              {% if limited_view %}
+              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap blurred-text">/* Lorem ipsum dolor sit amet */</code></div>
+              {% else %}
               <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap">{{ item.code_example }}</code></div>
+              {% endif %}
               {% endif %}
             </div>
           </div>
@@ -405,9 +462,17 @@
             <div>
               <p class="text-sm font-medium text-white">{{ item.name }}</p>
               <p class="text-xs text-gray-500 mt-1">{{ item.impact }}</p>
+              {% if limited_view %}
+              <p class="text-xs text-gray-400 mt-2 blurred-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              {% else %}
               <p class="text-xs text-gray-400 mt-2">{{ item.solution }}</p>
+              {% endif %}
               {% if item.code_example %}
+              {% if limited_view %}
+              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap blurred-text">/* Lorem ipsum dolor sit amet */</code></div>
+              {% else %}
               <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap">{{ item.code_example }}</code></div>
+              {% endif %}
               {% endif %}
             </div>
           </div>
@@ -440,17 +505,25 @@
       <div class="col-span-2 fm text-[10px] uppercase hidden md:block">Impact</div>
     </div>
     {% for item in audit.issues['items'] if item is mapping %}
-    <div class="issue-row issue-sev-{{ item.severity }} grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-start cursor-pointer" onclick="this.querySelector('.issue-detail').classList.toggle('hidden')">
+    <div class="issue-row issue-sev-{{ item.severity }} grid grid-cols-12 gap-4 px-5 py-4 border-b border-[#333] items-start">
       <div class="col-span-1"><span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} inline-block mt-1"></span></div>
       <div class="col-span-5">
         <p class="text-sm text-gray-200">{{ item.name }}</p>
-        <div class="issue-detail hidden mt-3 space-y-2">
+        <div class="issue-detail mt-3 space-y-2">
           <p class="text-xs text-gray-400">{{ item.description }}</p>
           <div class="bg-[#1F1F1F] border border-[#444] p-3 rounded">
             <p class="fm text-[10px] text-gray-500 mb-1">Fix:</p>
+            {% if limited_view %}
+            <p class="text-xs text-[#fca5a5] blurred-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            {% else %}
             <p class="text-xs text-[#fca5a5]">{{ item.solution }}</p>
+            {% endif %}
             {% if item.code_example %}
+            {% if limited_view %}
+            <code class="block mt-2 fm text-[11px] text-gray-300 bg-[#2a2a2a] p-2 border border-[#444] whitespace-pre-wrap blurred-text">// Lorem ipsum dolor sit amet</code>
+            {% else %}
             <code class="block mt-2 fm text-[11px] text-gray-300 bg-[#2a2a2a] p-2 border border-[#444] whitespace-pre-wrap">{{ item.code_example }}</code>
+            {% endif %}
             {% endif %}
           </div>
           {% for el in item.affected_elements %}
@@ -468,7 +541,88 @@
 
 
 
-<!-- Bottom CTA -->
+<!-- Bottom CTA / Pricing -->
+{% if limited_view %}
+<section class="bg-[#2a2a2a] border-2 border-[#444] p-8 md:p-12 mb-10">
+  <div class="max-w-4xl mx-auto text-center">
+    <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] fm text-[10px] font-bold mb-4">PRO</span>
+    <h3 class="text-2xl md:text-3xl font-black text-white mb-2">Unlock the Full Report</h3>
+    <section id="pricing" class="py-16 md:py-24 px-4 md:px-12 border-y border-[#333]">
+    <div class="max-w-5xl mx-auto">
+
+      <h2 class="text-3xl md:text-4xl font-black mb-6 text-white">Pricing</h2>
+
+      <div class="flex items-center gap-3 mb-10">
+        <span class="font-mono text-sm font-bold text-gray-300">Monthly</span>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 items-start">
+
+        <div class="flex flex-col justify-center">
+          <h3 class="text-3xl md:text-4xl font-black mb-4 text-white">One Simple Plan.<br>Simple Pricing.<br>All Features.</h3>
+          <p class="text-gray-400 font-medium mb-8 text-lg">
+            No confusing tiers. No hidden limits. Just everything you need to audit and optimize your landing pages.
+          </p>
+
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
+            <p class="text-gray-300 font-medium italic mb-4">
+              "Changed our landing page text to what was suggested and we saw an 8% conversion boost"
+            </p>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center font-bold text-black text-sm">
+                <img src="https://ca.slack-edge.com/E09V59WQY1E-U020X4GCWSF-253b77f85aa8-192" alt="">
+              </div>
+              <div>
+                <p class="font-bold text-sm text-white">Rushil Chopra</p>
+                <p class="text-gray-500 text-xs">Founder, Agathon, SF</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+               hover:translate-x-0.5 hover:translate-y-0.5 transition-all
+               flex flex-col relative">
+
+
+          <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-xs font-bold mb-4">PRO</span>
+          <p class="text-gray-400 font-medium mb-6">
+            Perfect for founders, marketers, and freelancers.
+          </p>
+
+          <div class="text-4xl font-black mb-6 text-white">
+            <span>$5</span>
+            <span class="text-base font-medium text-gray-400"> / month</span>
+          </div>
+
+          <ul class="space-y-3 text-sm font-medium mb-8">
+            <li class="text-red-400">&#10003; 50 audits per month</li>
+            <li class="text-red-400">&#10003; Conversion analysis</li>
+            <li class="text-red-400">&#10003; SEO scoring & recommendations</li>
+            <li class="text-red-400">&#10003; Performance & Core Web Vitals</li>
+            <li class="text-red-400">&#10003; Accessibility compliance</li>
+            <li class="text-red-400">&#10003; Exportable PDF reports</li>
+            <li class="text-red-400">&#10003; Priority 24/7 support</li>
+            <li class="text-red-400">&#10003; Integrations to your workflow</li>
+            <li class="text-red-400">&#10003; Faster & Smarter AI Model</li>
+            <li class="text-red-400">&#10003; Scan larger websites</li>
+            <li class="text-red-400">&#10003; View all issues solutions</li>
+            <li class="text-red-400">&#10003; View all issues code patches</li>
+            <li class="text-red-400">&#10003; View all copy changed text</li>
+          </ul>
+
+          <a href="/billing/checkout" class="nf-shimmer mt-auto block text-center bg-[#fca5a5] text-black border-2 border-[#444] py-3 font-bold
+                 brutalist-shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+           Upgrade Now →
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  </div>
+</section>
+{% else %}
 <section class="bg-[#2a2a2a] border-2 border-[#444] p-8 md:p-12 text-center mb-10">
   <h3 class="text-2xl md:text-3xl font-black text-white mb-2">{{ ns.total }} issues found on {{ domain }}</h3>
   <p class="text-gray-400 mb-6 max-w-lg mx-auto">{{ s.overall.summary }}</p>
@@ -477,6 +631,7 @@
     <button onclick="window.print()" class="bg-[#333] text-white px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Export Report</button>
   </div>
 </section>
+{% endif %}
 </main>
 {% endif %}
 
@@ -488,6 +643,15 @@
 <script>
   lucide.createIcons();
   function filterIssues(s){document.querySelectorAll('[class*="issue-sev-"]').forEach(r=>{if(s==='all'){r.style.display='';}else{r.style.display=r.classList.contains('issue-sev-'+s)?'':'none';}});}
+  function copyShareLink(){
+    var url={{ (share_url or '') | tojson }};
+    if(!url)return;
+    navigator.clipboard.writeText(url).then(function(){
+      var t=document.getElementById('share-btn-text');
+      t.textContent='Copied!';
+      setTimeout(function(){t.textContent='Share';},2000);
+    });
+  }
 </script>
 </body>
 </html>

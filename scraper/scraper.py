@@ -350,10 +350,10 @@ HTML SOURCE:
 
 
 
-def analyze(url):
+def analyze(url, plan="free"):
     html_code = scrape(url)
     max_input_chars = 250000
-    if len(html_code) > max_input_chars:
+    if plan != "paid" and len(html_code) > max_input_chars:
         audit = _merge_schema(DEFAULT_AUDIT, {})
         audit["url"] = url
         audit["scanned_at"] = datetime.utcnow().isoformat()
@@ -381,5 +381,34 @@ def analyze(url):
         audit["issues"]["low"] = 0
         return audit
 
-    audit = analyze_with_ai(html_code[:max_input_chars], url)
-    return audit
+    try:
+        input_html = html_code if plan == "paid" else html_code[:max_input_chars]
+        audit = analyze_with_ai(input_html, url)
+        return audit
+    except Exception:
+        audit = _merge_schema(DEFAULT_AUDIT, {})
+        audit["url"] = url
+        audit["scanned_at"] = datetime.utcnow().isoformat()
+        audit["scores"]["overall"]["summary"] = "The model couldn't process this page size. This is a model limitation, not a plan limit. We'll upgrade capacity soon."
+        audit["conversion"]["summary"] = "Model couldn't analyze this page."
+        audit["performance"]["summary"] = "Model couldn't analyze this page."
+        audit["accessibility"]["summary"] = "Model couldn't analyze this page."
+        audit["metadata"]["model_limit"] = True
+        audit["issues"]["items"] = [
+            {
+                "category": "performance",
+                "severity": "medium",
+                "name": "Model size limit",
+                "description": "The analysis model could not process this page size.",
+                "impact": "Some issues and copy improvements may be missing.",
+                "solution": "Try again later. We'll increase model capacity soon.",
+                "code_example": "",
+                "affected_elements": [],
+            }
+        ]
+        audit["issues"]["total"] = 1
+        audit["issues"]["critical"] = 0
+        audit["issues"]["high"] = 0
+        audit["issues"]["medium"] = 1
+        audit["issues"]["low"] = 0
+        return audit

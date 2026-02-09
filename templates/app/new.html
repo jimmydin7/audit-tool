@@ -3,9 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>New Audit | fixmyland.ing</title>
+  <title>New Audit | FixMyLanding</title>
+  <meta name="description" content="Start a new FixMyLanding audit.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="New Audit | FixMyLanding">
+  <meta property="og:description" content="Start a new FixMyLanding audit.">
+  <meta property="og:image" content="{{ url_for('static', filename='imgs/og-image.png') }}">
+  <meta property="og:image:alt" content="FixMyLanding preview">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
   <style>
@@ -28,6 +36,18 @@
       <a href="/logout" class="text-sm font-bold text-gray-300 hover:text-white">Log out</a>
     </div>
 
+    {% if quota_exceeded %}
+    <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center">
+      <p class="font-mono text-[10px] uppercase text-gray-500 mb-2">Scan limit reached</p>
+      <h1 class="text-2xl md:text-3xl font-black text-white mb-2">You've used all your free scans</h1>
+      <p class="text-sm text-gray-400 mb-6">Upgrade to Pro for 50 scans per month, faster AI, and full-page analysis.</p>
+      <a href="/billing/checkout" class="inline-block w-full bg-[#fca5a5] text-black border-2 border-[#444] px-8 py-3 font-bold text-base shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+        Upgrade to Pro
+      </a>
+      
+      <a href="/app/dashboard" class="block mt-4 text-sm text-gray-500 hover:text-gray-300 transition-colors">Back to dashboard</a>
+    </div>
+    {% else %}
     <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
       <p class="font-mono text-[10px] uppercase text-gray-500 mb-2">New Audit</p>
       <h1 class="text-2xl md:text-3xl font-black text-white mb-2">Run a landing page audit</h1>
@@ -63,6 +83,7 @@
         </button>
       </form>
     </div>
+    {% endif %}
   </main>
   <script>
     let faviconTimeout;
@@ -92,6 +113,8 @@
         img.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
       }, 300);
     }
+
+    lucide.createIcons();
 
     const form = document.getElementById('audit-form');
     form.addEventListener('submit', function () {

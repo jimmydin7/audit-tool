@@ -4,16 +4,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PageAudit | AI-Powered Landing Page Auditor</title>
+  <title>FixMyLanding | AI-Powered Landing Page Auditor</title>
 
   <meta name="description"
     content="Analyze your landing pages for conversion issues, SEO problems, accessibility gaps, and performance bottlenecks. Get actionable insights powered by AI.">
   <meta name="robots" content="index,follow">
 
   <meta property="og:type" content="website">
-  <meta property="og:title" content="PageAudit | AI-Powered Landing Page Auditor">
+  <meta property="og:title" content="FixMyLanding | AI-Powered Landing Page Auditor">
   <meta property="og:description"
     content="Analyze your landing pages for conversion issues, SEO problems, accessibility gaps, and performance bottlenecks.">
+  <meta property="og:image" content="{{ url_for('static', filename='imgs/og-image.png') }}">
+  <meta property="og:image:alt" content="FixMyLanding preview">
 
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
 
@@ -66,9 +68,9 @@
           </button>
         </a>
         {% else %}
-        <a href="#scan">
+        <a href="/app/dashboard">
           <button class="bg-[#fca5a5] text-black px-4 py-2 md:px-5 font-mono text-xs md:text-sm font-bold uppercase border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
-            Start Audit
+            Log In
           </button>
         </a>
         {% endif %}
@@ -477,16 +479,6 @@
 
       <div class="flex items-center gap-3 mb-10">
         <span class="font-mono text-sm font-bold text-gray-300">Monthly</span>
-        <button id="billingToggle"
-          class="w-16 h-8 border-2 border-[#444] bg-[#333] brutalist-shadow-sm relative rounded-sm transition-all"
-          onclick="toggleBilling()">
-          <span id="billingKnob"
-            class="absolute top-0.5 left-0.5 w-7 h-7 bg-[#fca5a5] border-2 border-[#444] rounded-sm transition-all"></span>
-        </button>
-        <span class="font-mono text-sm font-bold text-gray-300">Annual</span>
-        <span class="bg-[#fca5a5] text-black px-2 py-0.5 border border-[#444] font-mono text-xs font-bold">
-          Get 2 months for free with Annual
-        </span>
       </div>
 
       <div class="grid md:grid-cols-2 gap-8 items-start">
@@ -524,12 +516,12 @@
           </p>
 
           <div class="text-4xl font-black mb-6 text-white">
-            <span id="originalPrice" class="hidden text-gray-500 line-through mr-2">$60</span><span id="priceAmount">$5</span>
-            <span class="text-base font-medium text-gray-400" id="priceInterval"> / month</span>
+            <span>$5</span>
+            <span class="text-base font-medium text-gray-400"> / month</span>
           </div>
 
           <ul class="space-y-3 text-sm font-medium mb-8">
-            <li class="text-red-400">&#10003; 100 audits per month</li>
+            <li class="text-red-400">&#10003; 50 full audits per month</li>
             <li class="text-red-400">&#10003; Conversion analysis</li>
             <li class="text-red-400">&#10003; SEO scoring & recommendations</li>
             <li class="text-red-400">&#10003; Performance & Core Web Vitals</li>
@@ -539,9 +531,12 @@
             <li class="text-red-400">&#10003; Integrations to your workflow</li>
             <li class="text-red-400">&#10003; Faster & Smarter AI Model</li>
             <li class="text-red-400">&#10003; Scan larger websites</li>
+            <li class="text-red-400">&#10003; View all issues solutions</li>
+            <li class="text-red-400">&#10003; View all issues code patches</li>
+            <li class="text-red-400">&#10003; View all copy changed text</li>
           </ul>
 
-          <a href="#scan" class="nf-shimmer mt-auto block text-center bg-[#fca5a5] text-black border-2 border-[#444] py-3 font-bold
+          <a href="/billing/checkout" class="nf-shimmer mt-auto block text-center bg-[#fca5a5] text-black border-2 border-[#444] py-3 font-bold
                  brutalist-shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
            Upgrade Now →
           </a>
@@ -552,28 +547,6 @@
   </section>
 
   <script>
-    let isAnnual = false;
-
-    function toggleBilling() {
-      const knob = document.getElementById("billingKnob");
-      const price = document.getElementById("priceAmount");
-      const interval = document.getElementById("priceInterval");
-      const originalPrice = document.getElementById("originalPrice");
-
-      isAnnual = !isAnnual;
-
-      if (isAnnual) {
-        knob.style.transform = "translateX(28px)";
-        originalPrice.classList.remove("hidden");
-        price.textContent = "$50";
-        interval.textContent = " / year";
-      } else {
-        knob.style.transform = "translateX(0)";
-        originalPrice.classList.add("hidden");
-        price.textContent = "$5";
-        interval.textContent = " / month";
-      }
-    }
   </script>
 
   <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0px;">
