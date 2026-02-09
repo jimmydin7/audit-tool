@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black scroll-smooth">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Privacy Policy | FixMyLanding</title>
+
+  <meta name="description" content="Privacy Policy for FixMyLanding — how we collect, use, and protect your data.">
+  <meta name="robots" content="noindex,follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Privacy Policy | FixMyLanding">
+  <meta property="og:description" content="Privacy Policy for FixMyLanding — how we collect, use, and protect your data.">
+  <meta property="og:image" content="{{ url_for('static', filename='imgs/og-image.png') }}">
+  <meta property="og:image:alt" content="FixMyLanding preview">
+
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+
+<body class="relative">
+
+  <div class="paper-grid"></div>
+  <div class="noise-overlay"></div>
+
+  <header class="w-full px-4 md:px-12 py-6">
+    <a href="/" class="inline-block">
+      <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span></span>
+    </a>
+  </header>
+
+  <main class="relative z-10 max-w-3xl mx-auto px-4 md:px-8 pb-24 pt-8 md:pt-12">
+
+    <h1 class="text-3xl md:text-5xl font-black text-white mb-2">Privacy Policy</h1>
+    <p class="font-mono text-xs text-gray-500 uppercase tracking-wider mb-12">Last updated: February 2026</p>
+
+    <div class="space-y-10 text-gray-300 text-sm md:text-base leading-relaxed">
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">1. Introduction</h2>
+        <p>
+          FixMyLanding ("we", "us", or "our") operates the website
+          <a href="https://fixmyland.ing" class="text-[#fca5a5] hover:underline">fixmyland.ing</a>.
+          This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you
+          use our service. By accessing or using FixMyLanding, you agree to the terms of this Privacy Policy.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">2. Information We Collect</h2>
+
+        <h3 class="text-lg font-semibold text-white mt-4 mb-2">Account Information</h3>
+        <p>
+          When you sign up via Google OAuth or GitHub OAuth, we receive your name, email address, and profile
+          picture from the respective provider. We do not receive or store your passwords for these services.
+        </p>
+
+        <h3 class="text-lg font-semibold text-white mt-4 mb-2">URLs Submitted for Audit</h3>
+        <p>
+          When you submit a URL for analysis, we store that URL along with the generated audit report and
+          associate it with your account.
+        </p>
+
+        <h3 class="text-lg font-semibold text-white mt-4 mb-2">Usage Data</h3>
+        <p>
+          We automatically collect certain information when you visit our site, including your IP address,
+          browser type, operating system, referring URLs, pages viewed, and the dates and times of your visits.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">3. How We Use Your Information</h2>
+        <ul class="list-disc list-inside space-y-2 ml-2">
+          <li>To provide, operate, and maintain our service</li>
+          <li>To create and manage your account</li>
+          <li>To process your audit requests and deliver reports</li>
+          <li>To process payments and manage subscriptions</li>
+          <li>To communicate with you about your account, updates, or support requests</li>
+          <li>To monitor usage patterns and improve our service</li>
+          <li>To detect, prevent, and address technical issues or abuse</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">4. Data Storage</h2>
+        <p>
+          Your data is stored using <a href="https://supabase.com" class="text-[#fca5a5] hover:underline" target="_blank" rel="noopener">Supabase</a>,
+          a hosted database platform. Supabase provides encryption at rest and in transit. We take reasonable
+          measures to protect your personal information, but no method of electronic storage is 100% secure.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">5. Third-Party Services</h2>
+        <p class="mb-3">We use the following third-party services that may receive or process your data:</p>
+        <ul class="list-disc list-inside space-y-2 ml-2">
+          <li><strong class="text-white">Google OAuth</strong> — for account authentication via your Google account.</li>
+          <li><strong class="text-white">GitHub OAuth</strong> — for account authentication via your GitHub account.</li>
+          <li><strong class="text-white">Stripe</strong> — for processing subscription payments. We do not store your full credit card details; Stripe handles all payment information securely.</li>
+          <li><strong class="text-white">Google Favicons API</strong> — to display website favicons when you submit a URL for audit.</li>
+        </ul>
+        <p class="mt-3">
+          Each of these services has its own privacy policy governing how it handles your data. We encourage
+          you to review their respective policies.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">6. Cookies and Sessions</h2>
+        <p>
+          We use cookies and similar technologies to maintain your session, remember your preferences, and keep
+          you logged in. These are essential cookies required for the service to function. We do not use
+          third-party advertising or tracking cookies.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">7. Data Retention</h2>
+        <p>
+          We retain your account information and audit data for as long as your account is active. If you
+          delete your account, we will remove your personal information and audit history within 30 days.
+          Some anonymized, aggregated data may be retained for analytics purposes.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">8. Your Rights</h2>
+        <p class="mb-3">You have the right to:</p>
+        <ul class="list-disc list-inside space-y-2 ml-2">
+          <li><strong class="text-white">Access</strong> — request a copy of the personal data we hold about you.</li>
+          <li><strong class="text-white">Deletion</strong> — request that we delete your account and all associated personal data.</li>
+          <li><strong class="text-white">Correction</strong> — request that we correct any inaccurate information.</li>
+          <li><strong class="text-white">Portability</strong> — request your data in a structured, machine-readable format.</li>
+        </ul>
+        <p class="mt-3">
+          To exercise any of these rights, please contact us via our contact page:
+          <a href="/contact" class="text-[#fca5a5] hover:underline">fixmyland.ing/contact</a>.
+          We will respond to your request within 30 days.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">9. Children's Privacy</h2>
+        <p>
+          FixMyLanding is not intended for use by individuals under the age of 13. We do not knowingly collect
+          personal information from children under 13. If we become aware that we have collected data from a
+          child under 13, we will take steps to delete that information promptly.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">10. Changes to This Policy</h2>
+        <p>
+          We may update this Privacy Policy from time to time. When we do, we will revise the "Last updated"
+          date at the top of this page. We encourage you to review this policy periodically. Your continued
+          use of the service after any changes constitutes acceptance of the updated policy.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl md:text-2xl font-bold text-white mb-3">11. Contact Us</h2>
+        <p>
+          If you have any questions or concerns about this Privacy Policy, please contact us via our contact page:
+        </p>
+        <p class="mt-2">
+          <a href="/contact" class="text-[#fca5a5] hover:underline">fixmyland.ing/contact</a>
+        </p>
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer class="relative z-10 border-t border-[#333] py-8 text-center">
+    <div class="flex flex-col md:flex-row items-center justify-center gap-3 font-mono text-[10px] text-gray-500 uppercase">
+      <div class="flex items-center gap-3">
+        <a href="/terms" class="hover:text-white transition-colors">Terms</a>
+        <span class="text-gray-700">•</span>
+        <a href="/privacy" class="hover:text-white transition-colors">Privacy</a>
+        <span class="text-gray-700">•</span>
+        <a href="/contact" class="hover:text-white transition-colors">Contact</a>
+      </div>
+      <span class="text-gray-600">&copy; 2026 FixMyLanding</span>
+    </div>
+  </footer>
+
+</body>
+
+</html>

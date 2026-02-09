@@ -603,7 +603,6 @@
             <li class="text-red-400">&#10003; Accessibility compliance</li>
             <li class="text-red-400">&#10003; Exportable PDF reports</li>
             <li class="text-red-400">&#10003; Priority 24/7 support</li>
-            <li class="text-red-400">&#10003; Integrations to your workflow</li>
             <li class="text-red-400">&#10003; Faster & Smarter AI Model</li>
             <li class="text-red-400">&#10003; Scan larger websites</li>
             <li class="text-red-400">&#10003; View all issues solutions</li>
@@ -636,8 +635,19 @@
 {% endif %}
 
 <footer class="border-t border-[#333] px-4 md:px-8 py-6 text-center">
-  <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span>
-  <p class="text-gray-600 fm text-xs mt-2">2026 Copyright FixMyLanding</p>
+  <div class="flex flex-col items-center gap-3">
+    <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span>
+    <div class="flex flex-col md:flex-row items-center justify-center gap-3 fm text-[10px] text-gray-500 uppercase">
+      <div class="flex items-center gap-3">
+        <a href="/terms" class="hover:text-white transition-colors">Terms</a>
+        <span class="text-gray-700">•</span>
+        <a href="/privacy" class="hover:text-white transition-colors">Privacy</a>
+        <span class="text-gray-700">•</span>
+        <a href="/contact" class="hover:text-white transition-colors">Contact</a>
+      </div>
+      <span class="text-gray-600">&copy; 2026 FixMyLanding</span>
+    </div>
+  </div>
 </footer>
 
 <script>

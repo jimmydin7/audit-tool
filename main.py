@@ -11,12 +11,15 @@ import time
 from collections import deque
 from datetime import datetime, timezone
 import stripe
+import requests
 
 AUDIT_JOBS = {}
 RATE_LIMITS = {}
 RATE_LIMIT_WINDOW_SEC = 60
 RATE_LIMIT_MAX_REQUESTS = 5
 SCAN_LIMITS = {"free": 1, "paid": 50}
+DISCORD_CONTACT_WEBHOOK = "https://discord.com/api/webhooks/1470306076694941719/ClTudUO8_Lu_I40i1t0P51oMcKcVtxzSlmdPUF-cy7lYy9niqsvZ4MNRaVQqw0JGpLYL"
+DISCORD_SCAN_WEBHOOK = "https://discord.com/api/webhooks/1470306210036318231/LVGfUqdLSniOKg3Cg3Udzb_q4dkuURHPXxZ0KwiyIMefUcahmUizPmb2NgHDITTQ52Xc"
 
 
 load_dotenv()
@@ -103,6 +106,11 @@ def run_audit(job_id, url):
         AUDIT_JOBS[job_id]["status"] = "done"
         AUDIT_JOBS[job_id]["result"] = result
         AUDIT_JOBS[job_id]["audit_id"] = audit_id
+        try:
+            domain = url.replace("https://", "").replace("http://", "").split("/")[0]
+            requests.post(DISCORD_SCAN_WEBHOOK, json={"content": f"Scan completed: **{domain}**"}, timeout=5)
+        except Exception:
+            pass
     except Exception as e:
         AUDIT_JOBS[job_id]["status"] = "error"
         AUDIT_JOBS[job_id]["error"] = str(e)
@@ -238,6 +246,39 @@ def refresh_subscription_status(user_id):
     except Exception as e:
         print("Failed to refresh subscription:", e)
 
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        message = request.form.get('message', '').strip()
+        if not name or not email or not message:
+            return render_template('contact.html', error="Please fill in all fields.")
+        try:
+            requests.post(DISCORD_CONTACT_WEBHOOK, json={
+                "embeds": [{
+                    "title": "New Contact Message",
+                    "color": 16751790,
+                    "fields": [
+                        {"name": "Name", "value": name, "inline": True},
+                        {"name": "Email", "value": email, "inline": True},
+                        {"name": "Message", "value": message},
+                    ]
+                }]
+            }, timeout=10)
+            return render_template('contact.html', success=True)
+        except Exception:
+            return render_template('contact.html', error="Failed to send message. Please try again.")
+    return render_template('contact.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('legal/terms.html')
+
+@app.route('/privacy')
+def privacy():
+    return render_template('legal/privacy.html')
 
 @app.route('/')
 def index():
