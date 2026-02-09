@@ -117,29 +117,11 @@ def _get_user_stats(user_id):
         return {"scans_this_month": 0, "plan": "free"}
 
 
-def _increment_scan_count(user_id):
-    if not user_id:
-        return
-    try:
-        resp = supabase.table("user_stats").select("scans_this_month,subscription_type").eq("user_id", user_id).single().execute()
-        row = resp.data or {}
-        current = row.get("scans_this_month") or 0
-        plan = row.get("subscription_type") or "free"
-        supabase.table("user_stats").upsert({
-            "user_id": user_id,
-            "scans_this_month": current + 1,
-            "subscription_type": plan
-        }, on_conflict="user_id").execute()
-    except Exception as e:
-        print("Failed to update scan count:", e)
 
 
 def run_audit(job_id, url):
     try:
         user_id = AUDIT_JOBS[job_id].get("user_id")
-        user_email = AUDIT_JOBS[job_id].get("user_email")
-        user_first = AUDIT_JOBS[job_id].get("user_first_name")
-        user_last = AUDIT_JOBS[job_id].get("user_last_name")
         plan = "free"
         if user_id:
             stats = _get_user_stats(user_id)
@@ -148,15 +130,6 @@ def run_audit(job_id, url):
         audit_id = None
         if user_id:
             try:
-                supabase.table("users").upsert({
-                    "id": user_id,
-                    "email": user_email,
-                    "first_name": user_first,
-                    "last_name": user_last
-                }, on_conflict="id").execute()
-            except Exception as e:
-                print("Failed to upsert user record:", e)
-            try:
                 insert_resp = supabase.table("audits").insert({
                     "user_id": user_id,
                     "url": url,
@@ -164,7 +137,6 @@ def run_audit(job_id, url):
                 }).execute()
                 if insert_resp.data:
                     audit_id = insert_resp.data[0].get("id")
-                    _increment_scan_count(user_id)
             except Exception as e:
                 print("Failed to save audit:", e)
         AUDIT_JOBS[job_id]["status"] = "done"
@@ -422,12 +394,6 @@ def auth_callback():
             "onboarding_complete": True
         }
         try:
-            supabase.table("users").upsert({
-                "id": user.id,
-                "email": user.email,
-                "first_name": session['user'].get("first_name"),
-                "last_name": session['user'].get("last_name")
-            }, on_conflict="id").execute()
             supabase.table("profiles").upsert({
                 "id": user.id,
                 "email": user.email
@@ -751,10 +717,7 @@ def new_audit():
                 "result": None,
                 "error": None,
                 "url": url,
-                "user_id": user["id"],
-                "user_email": user.get("email"),
-                "user_first_name": user.get("first_name"),
-                "user_last_name": user.get("last_name")
+                "user_id": user["id"]
             }
         thread = threading.Thread(target=run_audit, args=(job_id, url))
         thread.daemon = True
