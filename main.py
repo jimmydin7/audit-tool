@@ -33,7 +33,7 @@ app.secret_key = 'supersecretkey'
 public_base_url = os.environ.get("PUBLIC_SITE_URL") or os.environ.get("APP_BASE_URL")
 STRIPE_SECRET = os.environ.get("STRIPE_SECRET")
 STRIPE_PUBLISHABLE = os.environ.get("STRIPE_PUBLISHABLE")
-STRIPE_PRODUCT_ID = os.environ.get("STRIPE_PRODUCT_ID", "prod_TwYH3ETJb06I52")
+STRIPE_PRODUCT_ID = os.environ.get("STRIPE_PRODUCT_ID", "prod_TwhpvMMBfJyNnP")
 if STRIPE_SECRET:
     stripe.api_key = STRIPE_SECRET
 if public_base_url and public_base_url.startswith("https://"):

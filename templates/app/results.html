@@ -63,6 +63,7 @@
 {% set force_blur = force_blur | default(false) %}
 {% set require_login = require_login | default(false) %}
 {% set obfuscate = obfuscate | default(false) %}
+{% set blurred = require_login or force_blur %}
 {% set ns = namespace(total=0, critical=0, high=0, medium=0, low=0, cats={}) %}
 {% for item in audit.issues['items'] if item is mapping %}
   {% set ns.total = ns.total + 1 %}
@@ -96,7 +97,7 @@
 </nav>
 
 <!-- Header -->
-<header class="px-4 md:px-8 py-8 md:py-10 border-b border-[#333]">
+<header class="px-4 md:px-8 py-8 md:py-10 border-b border-[#333] {% if blurred %}blurred-text{% endif %}">
   <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <p class="fm text-[10px] text-gray-500 uppercase mb-2">Audit Report</p>
@@ -105,7 +106,7 @@
         {{ domain }}
       </h1>
       <p class="text-gray-500 fm text-sm mt-2">{{ '2026-01-01' if obfuscate else audit.scanned_at[:10] }} &middot; {{ (9.9 if obfuscate else dur) }}s scan &middot; {{ ('B' if obfuscate else s.overall.grade) }} grade</p>
-      <p class="text-gray-400 text-sm mt-1">{{ 'High-level audit summary is hidden until you sign in.' if obfuscate else s.overall.summary }}</p>
+      <p class="text-gray-400 text-sm mt-1">{{ 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' if blurred else ('High-level audit summary is hidden until you sign in.' if obfuscate else s.overall.summary) }}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       {% if not obfuscate and audit.metadata.technology_stack.framework %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ audit.metadata.technology_stack.framework }}</span>{% endif %}
@@ -117,6 +118,19 @@
 </header>
 
 <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-10 no-blue-outline">
+
+{% if require_login %}
+<section class="mb-8">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-4 md:p-5">
+    <p class="fm text-[10px] uppercase tracking-widest text-gray-500 mb-1">Sign In Required</p>
+    <p class="text-sm text-gray-300">Create an account or sign in to view the full report.</p>
+    <a href="/login" class="mt-3 inline-block bg-[#fca5a5] text-black px-4 py-2 font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Sign In</a>
+    <a href="/signup" class="mt-3 ml-2 inline-block bg-[#fca5a5] text-black px-5 py-2.5 font-black border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Sign Up</a>
+  </div>
+</section>
+{% endif %}
+
+<div class="{% if blurred %}blurred-text{% endif %}">
 
 {% if audit.metadata.upgrade_required %}
 <section class="mb-8">
@@ -152,17 +166,6 @@
     <p class="fm text-[10px] uppercase tracking-widest text-gray-500 mb-1">Limited View</p>
     <p class="text-sm text-gray-300">Some copy suggestions and code fixes are hidden. Upgrade to view the full report.</p>
     <a href="/billing/checkout" class="mt-3 inline-block bg-[#fca5a5] text-black px-4 py-2 font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Upgrade to Pro</a>
-  </div>
-</section>
-{% endif %}
-
-{% if require_login %}
-<section class="mb-8">
-  <div class="bg-[#2a2a2a] border-2 border-[#444] p-4 md:p-5">
-    <p class="fm text-[10px] uppercase tracking-widest text-gray-500 mb-1">Sign In Required</p>
-    <p class="text-sm text-gray-300">Create an account or sign in to view the full report.</p>
-    <a href="/login" class="mt-3 inline-block bg-[#fca5a5] text-black px-4 py-2 font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Sign In</a>
-    <a href="/signup" class="mt-3 ml-2 inline-block bg-[#fca5a5] text-black px-5 py-2.5 font-black border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Sign Up</a>
   </div>
 </section>
 {% endif %}
@@ -631,6 +634,7 @@
   </div>
 </section>
 {% endif %}
+</div>
 </main>
 {% endif %}
 
