@@ -306,12 +306,8 @@ def _run_openrouter(prompt: str) -> dict:
     return parsed
 
 
-def analyze_with_ai(html: str, url: str, model: str = "gpt-4o-mini") -> dict:
-    api_key = os.environ.get("OPENAI_KEY")
-    client = OpenAI(api_key=api_key, http_client=httpx.Client())
-    current_date = datetime.utcnow().date().isoformat()
-
-    prompt = f"""
+def _build_audit_prompt(html: str, url: str, current_date: str) -> str:
+    return f"""
 You are an advanced website auditing engine.
 Today's date is: {current_date}
 
@@ -349,11 +345,18 @@ HTML SOURCE:
 ----------------
 """
 
+
+def analyze_with_ai(html: str, url: str) -> dict:
+    api_key = os.environ.get("OPENAI_KEY")
+    client = OpenAI(api_key=api_key, http_client=httpx.Client())
+    current_date = datetime.utcnow().date().isoformat()
+    prompt = _build_audit_prompt(html, url, current_date)
+
     try:
         parsed = _run_openrouter(prompt)
     except Exception as e:
-        print(f"OpenRouter failed, falling back to {model}:", e)
-        parsed = _run_model_new(client, model, prompt)
+        print("OpenRouter failed, falling back to gpt-4o-mini:", e)
+        parsed = _run_model_new(client, "gpt-4o-mini", prompt)
     audit = _merge_schema(DEFAULT_AUDIT, parsed)
     audit["url"] = url
     if not audit.get("scanned_at"):
@@ -367,7 +370,7 @@ def analyze(url, plan="free", on_fallback=None):
     html_code = scrape(url)
 
     try:
-        audit = analyze_with_ai(html_code, url, model="gpt-4o-mini")
+        audit = analyze_with_ai(html_code, url)
         audit["_scan_cost"] = 1
         return audit
     except Exception as e:
@@ -389,7 +392,15 @@ def analyze(url, plan="free", on_fallback=None):
         on_fallback()
 
     try:
-        audit = analyze_with_ai(html_code, url, model="gpt-4.1-mini")
+        api_key = os.environ.get("OPENAI_KEY")
+        client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        current_date = datetime.utcnow().date().isoformat()
+        prompt = _build_audit_prompt(html_code, url, current_date)
+        parsed = _run_model_new(client, "gpt-4.1-mini", prompt)
+        audit = _merge_schema(DEFAULT_AUDIT, parsed)
+        audit["url"] = url
+        if not audit.get("scanned_at"):
+            audit["scanned_at"] = datetime.utcnow().isoformat()
         audit["_scan_cost"] = 1
         return audit
     except Exception as e:
