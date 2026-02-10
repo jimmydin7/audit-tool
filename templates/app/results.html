@@ -181,7 +181,7 @@
     {% set off = circ - (circ * os / 100) %}
     {% if os >= 80 %}{% set sc = '#22c55e' %}{% elif os >= 60 %}{% set sc = '#f59e0b' %}{% else %}{% set sc = '#ef4444' %}{% endif %}
     <div class="relative w-44 h-44">
-      <svg viewBox="0 0 120 120" class="w-full h-full ring"><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" class="ring-t"/><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke="{{ sc }}" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ off }}" stroke-linecap="round" class="ring-f"/></svg>
+      <svg viewBox="0 0 120 120" class="w-full h-full"><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" class="ring-t"/><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke="{{ sc }}" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ off }}" stroke-linecap="round" class="ring-f"/></svg>
       <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-5xl font-black text-white">{{ 78 if obfuscate else os }}</span><span class="text-sm text-gray-500 fm">/100</span></div>
     </div>
     <p class="mt-4 fm text-xs text-gray-500">Grade: <span class="text-white font-bold">{{ s.overall.grade }}</span></p>
@@ -517,13 +517,13 @@
           <p class="text-xs text-gray-400">{{ item.description }}</p>
           <div class="bg-[#1F1F1F] border border-[#444] p-3 rounded">
             <p class="fm text-[10px] text-gray-500 mb-1">Fix:</p>
-            {% if limited_view %}
+            {% if limited_view and loop.index > 1 %}
             <p class="text-xs text-[#fca5a5] blurred-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
             {% else %}
             <p class="text-xs text-[#fca5a5]">{{ item.solution }}</p>
             {% endif %}
             {% if item.code_example %}
-            {% if limited_view %}
+            {% if limited_view and loop.index > 1 %}
             <code class="block mt-2 fm text-[11px] text-gray-300 bg-[#2a2a2a] p-2 border border-[#444] whitespace-pre-wrap blurred-text">// Lorem ipsum dolor sit amet</code>
             {% else %}
             <code class="block mt-2 fm text-[11px] text-gray-300 bg-[#2a2a2a] p-2 border border-[#444] whitespace-pre-wrap">{{ item.code_example }}</code>
