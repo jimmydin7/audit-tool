@@ -141,6 +141,45 @@ def _get_user_stats(user_id):
 ADMIN_EMAILS = ["dimdinias@gmail.com"]
 
 
+def _format_domain(url):
+    if not url:
+        return "unknown"
+    return url.replace("https://", "").replace("http://", "").split("/")[0] or "unknown"
+
+
+def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None, audit_id=None, scan_cost=None, duration_ms=None):
+    try:
+        domain = _format_domain(url)
+        title = "Audit Completed" if status == "completed" else "Audit Blocked"
+        color = 3066993 if status == "completed" else 15158332
+        fields = [
+            {"name": "Status", "value": status.replace("_", " ").title(), "inline": True},
+            {"name": "Domain", "value": domain, "inline": True},
+        ]
+        if reason:
+            fields.append({"name": "Reason", "value": reason.replace("_", " ").title(), "inline": False})
+        if plan:
+            fields.append({"name": "Plan", "value": plan, "inline": True})
+        if user_id:
+            fields.append({"name": "User ID", "value": user_id, "inline": True})
+        if audit_id:
+            fields.append({"name": "Audit ID", "value": audit_id, "inline": True})
+        if scan_cost is not None:
+            fields.append({"name": "Scan Cost", "value": str(scan_cost), "inline": True})
+        if duration_ms is not None:
+            fields.append({"name": "Duration", "value": f"{duration_ms} ms", "inline": True})
+
+        requests.post(DISCORD_SCAN_WEBHOOK, json={
+            "embeds": [{
+                "title": title,
+                "color": color,
+                "fields": fields
+            }]
+        }, timeout=5)
+    except Exception:
+        pass
+
+
 
 def run_audit(job_id, url):
     try:
@@ -155,6 +194,7 @@ def run_audit(job_id, url):
         result = analyze(url, plan=plan, on_fallback=_on_fallback)
         scan_cost = result.pop("_scan_cost", 1)
         upgrade_required = (result.get("metadata") or {}).get("upgrade_required", False)
+        model_limit = (result.get("metadata") or {}).get("model_limit", False)
         audit_id = None
         if user_id and not upgrade_required:
             try:
@@ -178,14 +218,34 @@ def run_audit(job_id, url):
         AUDIT_JOBS[job_id]["status"] = "done"
         AUDIT_JOBS[job_id]["result"] = result
         AUDIT_JOBS[job_id]["audit_id"] = audit_id
-        try:
-            domain = url.replace("https://", "").replace("http://", "").split("/")[0]
-            requests.post(DISCORD_SCAN_WEBHOOK, json={"content": f"Scan completed: **{domain}**"}, timeout=5)
-        except Exception:
-            pass
+        if upgrade_required:
+            status = "blocked"
+            reason = "upgrade_required"
+        elif model_limit:
+            status = "blocked"
+            reason = "model_limit"
+        else:
+            status = "completed"
+            reason = None
+        _send_scan_webhook(
+            status=status,
+            reason=reason,
+            url=url,
+            user_id=user_id,
+            plan=plan,
+            audit_id=audit_id,
+            scan_cost=scan_cost,
+            duration_ms=result.get("scan_duration_ms")
+        )
     except Exception as e:
         AUDIT_JOBS[job_id]["status"] = "error"
         AUDIT_JOBS[job_id]["error"] = str(e)
+        _send_scan_webhook(
+            status="error",
+            reason=str(e)[:200],
+            url=AUDIT_JOBS[job_id].get("url"),
+            user_id=AUDIT_JOBS[job_id].get("user_id")
+        )
 
 
 def get_oauth_url(provider, redirect_url):
@@ -747,6 +807,13 @@ def new_audit():
         user_email = (user.get("email") or "").lower() if user else ""
         if user_email not in ADMIN_EMAILS:
             if stats["scans_this_month"] >= limit:
+                _send_scan_webhook(
+                    status="blocked",
+                    reason="limit_reached",
+                    url=url,
+                    user_id=user.get("id"),
+                    plan=stats.get("plan")
+                )
                 return render_template('app/new.html', user=user, quota_exceeded=True)
 
         if url:
@@ -780,6 +847,13 @@ def audit_results():
     user_email = (user.get("email") or "").lower() if user else ""
     if user_email not in ADMIN_EMAILS:
         if stats["scans_this_month"] >= limit:
+            _send_scan_webhook(
+                status="blocked",
+                reason="limit_reached",
+                url=url,
+                user_id=user.get("id"),
+                plan=stats.get("plan")
+            )
             return render_template('app/new.html', user=user, quota_exceeded=True)
 
     raw_url = request.values.get('url', '')
