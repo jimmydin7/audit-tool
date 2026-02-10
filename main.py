@@ -831,7 +831,7 @@ def audit_status(job_id):
     if user:
         stats = _get_user_stats(user["id"])
         limited_view = stats.get("plan") != "paid"
-    if (audit.get("metadata") or {}).get("upgrade_required"):
+    if (audit.get("metadata") or {}).get("upgrade_required") and limited_view:
         return render_template("app/error.html", error="This site is too large for the free plan. Upgrade to Pro to scan larger websites.", upgrade=True)
     if (audit.get("metadata") or {}).get("model_limit"):
         return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
@@ -862,7 +862,7 @@ def audit_detail(audit_id):
     share_url = get_public_base_url() + "/share/" + audit_id
     stats = _get_user_stats(user["id"])
     limited_view = stats.get("plan") != "paid"
-    if (audit.get("metadata") or {}).get("upgrade_required"):
+    if (audit.get("metadata") or {}).get("upgrade_required") and limited_view:
         return render_template("app/error.html", error="This site is too large for the free plan. Upgrade to Pro to scan larger websites.", upgrade=True)
     if (audit.get("metadata") or {}).get("model_limit"):
         return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
@@ -884,7 +884,7 @@ def share_audit(audit_id):
     share_url = get_public_base_url() + "/share/" + audit_id
     user = session.get("user")
     logged_out = user is None
-    if (audit.get("metadata") or {}).get("model_limit"):
+    if (audit.get("metadata") or {}).get("model_limit") and not (audit.get("metadata") or {}).get("upgrade_required"):
         return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
     if logged_out:
         audit = _sanitize_audit_for_public(audit)
