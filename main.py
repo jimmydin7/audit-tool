@@ -154,8 +154,9 @@ def run_audit(job_id, url):
 
         result = analyze(url, plan=plan, on_fallback=_on_fallback)
         scan_cost = result.pop("_scan_cost", 1)
+        upgrade_required = (result.get("metadata") or {}).get("upgrade_required", False)
         audit_id = None
-        if user_id:
+        if user_id and not upgrade_required:
             try:
                 insert_resp = supabase.table("audits").insert({
                     "user_id": user_id,
