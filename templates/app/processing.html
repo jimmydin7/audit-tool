@@ -43,7 +43,7 @@
     <div class="mx-auto mb-6 spinner"></div>
     <p class="font-mono text-[10px] uppercase text-gray-500 mb-2">Processing</p>
     <h1 class="text-2xl md:text-3xl font-black text-white mb-2">Running your audit</h1>
-    <p class="text-sm text-gray-400 mb-6">Estimated time remaining: <span id="countdown" class="text-white font-bold">90s</span></p>
+    <p class="text-sm text-gray-400 mb-6">Estimated time remaining: <span id="countdown" class="text-white font-bold">180s</span></p>
     <div id="fallback-notice" class="hidden mb-4 text-xs text-yellow-300 bg-yellow-500/10 border border-yellow-500/30 p-3 rounded">
       This is a large website — switching to an advanced model. This may take up to <strong>3 minutes</strong>.
     </div>
@@ -59,91 +59,93 @@
   </main>
 
   <script>
-    (function () {
-      var seconds = 90;
-      var countdownEl = document.getElementById('countdown');
-      var errorEl = document.getElementById('error');
-      var fallbackNotice = document.getElementById('fallback-notice');
-      var fallbackTriggered = false;
-      var url = {{ (url or "") | tojson }};
-      var jobId = {{ (job_id or "") | tojson }};
-      var favicon = document.getElementById('url-favicon');
-      var placeholder = document.getElementById('url-icon-placeholder');
-      var domain = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+  (function () {
+    var seconds = 180; // start from 180 for free plan
+    var countdownEl = document.getElementById('countdown');
+    var errorEl = document.getElementById('error');
+    var fallbackNotice = document.getElementById('fallback-notice');
+    var fallbackTriggered = false;
+    var url = {{ (url or "") | tojson }};
+    var jobId = {{ (job_id or "") | tojson }};
+    var favicon = document.getElementById('url-favicon');
+    var placeholder = document.getElementById('url-icon-placeholder');
+    var domain = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
 
-      if (domain && domain.includes('.')) {
-        var img = new Image();
-        img.onload = function () {
-          favicon.src = img.src;
-          favicon.classList.remove('hidden');
-          placeholder.classList.add('hidden');
-        };
-        img.onerror = function () {
-          favicon.classList.add('hidden');
-          placeholder.classList.remove('hidden');
-        };
-        img.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
-      }
+    if (domain && domain.includes('.')) {
+      var img = new Image();
+      img.onload = function () {
+        favicon.src = img.src;
+        favicon.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      };
+      img.onerror = function () {
+        favicon.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      };
+      img.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+    }
 
-      var start = Date.now();
-      function tick() {
-        var elapsed = Math.floor((Date.now() - start) / 1000);
-        var remaining = Math.max(0, seconds - elapsed);
-        countdownEl.textContent = remaining + 's';
-      }
-      var timer = setInterval(tick, 1000);
-      tick();
+    var start = Date.now();
+    function tick() {
+      var elapsed = Math.floor((Date.now() - start) / 1000);
+      var remaining = seconds - elapsed;
+      countdownEl.textContent = remaining > 0 ? remaining + 's' : 'soon';
+    }
 
-      if (jobId) {
-        var poll = setInterval(function () {
-          fetch('/app/results/' + encodeURIComponent(jobId) + '/status', { credentials: 'same-origin' })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-              if (data.fallback && !fallbackTriggered) {
-                fallbackTriggered = true;
-                fallbackNotice.classList.remove('hidden');
-                start = Date.now();
-                seconds = 180;
-                tick();
-              }
-              if (data.status === 'done') {
-                clearInterval(poll);
-                clearInterval(timer);
-                if (data.audit_id) {
-                  window.location.href = '/app/audits/' + encodeURIComponent(data.audit_id);
-                } else {
-                  window.location.href = '/app/results/' + encodeURIComponent(jobId);
-                }
-              } else if (data.status === 'error') {
-                clearInterval(poll);
-                clearInterval(timer);
-                errorEl.textContent = data.error || 'Audit failed. Please try again.';
-                errorEl.classList.remove('hidden');
-              }
-            })
-            .catch(function () {});
-        }, 2000);
-      } else if (url) {
-        fetch('/app/results?url=' + encodeURIComponent(url), { credentials: 'same-origin' })
-          .then(function (res) {
-            if (!res.ok) {
-              throw new Error('Audit failed.');
+    var timer = setInterval(tick, 1000);
+    tick();
+
+    if (jobId) {
+      var poll = setInterval(function () {
+        fetch('/app/results/' + encodeURIComponent(jobId) + '/status', { credentials: 'same-origin' })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (data.fallback && !fallbackTriggered) {
+              fallbackTriggered = true;
+              fallbackNotice.classList.remove('hidden');
+              start = Date.now();
+              seconds = 180;
+              tick();
             }
-            return res.text();
+            if (data.status === 'done') {
+              clearInterval(poll);
+              clearInterval(timer);
+              if (data.audit_id) {
+                window.location.href = '/app/audits/' + encodeURIComponent(data.audit_id);
+              } else {
+                window.location.href = '/app/results/' + encodeURIComponent(jobId);
+              }
+            } else if (data.status === 'error') {
+              clearInterval(poll);
+              clearInterval(timer);
+              errorEl.textContent = data.error || 'Audit failed. Please try again.';
+              errorEl.classList.remove('hidden');
+            }
           })
-          .then(function (html) {
-            clearInterval(timer);
-            document.open();
-            document.write(html);
-            document.close();
-          })
-          .catch(function () {
-            clearInterval(timer);
-            errorEl.textContent = 'Audit failed. Please try again.';
-            errorEl.classList.remove('hidden');
-          });
-      }
-    })();
-  </script>
+          .catch(function () {});
+      }, 2000);
+    } else if (url) {
+      fetch('/app/results?url=' + encodeURIComponent(url), { credentials: 'same-origin' })
+        .then(function (res) {
+          if (!res.ok) {
+            throw new Error('Audit failed.');
+          }
+          return res.text();
+        })
+        .then(function (html) {
+          clearInterval(timer);
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(function () {
+          clearInterval(timer);
+          errorEl.textContent = 'Audit failed. Please try again.';
+          errorEl.classList.remove('hidden');
+        });
+    }
+  })();
+</script>
+
 </body>
 </html>
