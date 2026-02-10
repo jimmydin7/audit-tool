@@ -3,7 +3,6 @@ import json
 import os
 import httpx
 from openai import OpenAI
-from openrouter import OpenRouter
 from datetime import datetime
 import requests
 
@@ -18,6 +17,7 @@ EXAMPLE_AUDIT = {
         "conversion": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
         "performance": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
         "accessibility": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
+        "security": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
     },
     "issues": {
         "total": 1,
@@ -204,6 +204,82 @@ EXAMPLE_AUDIT = {
         "screen_reader": {"score": 100, "status": "passed", "issues": []},
         "color_contrast": {"score": 100, "status": "passed", "issues": []},
     },
+    "security": {
+        "summary": "",
+        "overall_risk": "low",
+        "checks": {
+            "csp_headers": {
+                "status": "failed",
+                "severity": "high",
+                "description": "No Content Security Policy header detected.",
+                "recommendation": "Add a strict CSP header to prevent XSS and data injection attacks.",
+            },
+            "xss_vectors": {
+                "status": "warning",
+                "severity": "medium",
+                "description": "User input may be rendered without sanitization.",
+                "recommendation": "Sanitize all user inputs and avoid innerHTML/dangerouslySetInnerHTML.",
+            },
+            "sensitive_data_exposure": {
+                "status": "passed",
+                "severity": "critical",
+                "description": "No API keys, tokens, or environment variables found in source.",
+                "recommendation": "",
+            },
+            "dependency_safety": {
+                "status": "warning",
+                "severity": "medium",
+                "description": "CDN scripts loaded without Subresource Integrity (SRI) hashes.",
+                "recommendation": "Add integrity and crossorigin attributes to all external scripts.",
+            },
+            "clickjacking_protection": {
+                "status": "failed",
+                "severity": "high",
+                "description": "Page can be embedded in iframes. No X-Frame-Options or frame-ancestors CSP directive.",
+                "recommendation": "Add X-Frame-Options: DENY or CSP frame-ancestors 'none'.",
+            },
+            "insecure_storage": {
+                "status": "warning",
+                "severity": "medium",
+                "description": "Auth tokens stored in localStorage instead of secure cookies.",
+                "recommendation": "Use httpOnly, Secure, SameSite cookies for authentication tokens.",
+            },
+            "form_security": {
+                "status": "passed",
+                "severity": "low",
+                "description": "Forms have proper validation and autocomplete attributes.",
+                "recommendation": "",
+            },
+            "open_redirects": {
+                "status": "passed",
+                "severity": "high",
+                "description": "No open redirect vectors found in client-side routing.",
+                "recommendation": "",
+            },
+            "mixed_content": {
+                "status": "passed",
+                "severity": "medium",
+                "description": "All assets loaded over HTTPS.",
+                "recommendation": "",
+            },
+            "debug_artifacts": {
+                "status": "warning",
+                "severity": "low",
+                "description": "Console.log statements and source maps detected in production.",
+                "recommendation": "Remove debug statements and disable source maps for production builds.",
+            },
+        },
+        "vulnerabilities": [
+            {
+                "type": "xss",
+                "severity": "high",
+                "location": "Search input field",
+                "description": "URL parameters injected into DOM without sanitization.",
+                "proof": "?q=<script>alert(1)</script> renders in page",
+                "fix": "Use textContent instead of innerHTML, sanitize all query params.",
+            }
+        ],
+    },
     "metadata": {
         "scanner_version": "2.1.0",
         "page_type": "",
@@ -283,28 +359,6 @@ def _run_model_new(client, model: str, prompt: str) -> dict:
     return parsed
 
 
-def _run_openrouter(prompt: str) -> dict:
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not api_key:
-        raise RuntimeError("Missing OPENROUTER_API_KEY")
-    client = OpenRouter(api_key=api_key, server_url="https://openrouter.ai/api/v1")
-    response = client.chat.send(
-        model="openai/gpt-oss-120b",
-        messages=[
-            {"role": "system", "content": "You output strict JSON only."},
-            {"role": "user", "content": prompt},
-        ],
-    )
-    content = response.choices[0].message.content
-    extracted = _extract_json(content)
-    try:
-        parsed = json.loads(extracted)
-    except json.JSONDecodeError:
-        parsed = {}
-    if isinstance(parsed, str):
-        parsed = {}
-    return parsed
-
 
 def _build_audit_prompt(html: str, url: str, current_date: str) -> str:
     return f"""
@@ -335,6 +389,9 @@ RULES:
 - Be brutally honest
 - Never use em dashes on copy suggestions
 - Make copy_changes cover bigger parts of text as well (paragraphs) not only headlines, and make sure there are many suggestions for different parts of the website to increase conversion.
+- Ensure security checks cover: CSP headers, XSS vectors, sensitive data exposure, dependency/script safety (SRI), clickjacking protection, insecure storage, form security, open redirects, mixed content, and debug artifacts.
+- Include security issues in the issues.items array with category "security".
+- Be thorough about security: check for exposed API keys, tokens, env variables in HTML source, inline scripts with dynamic values, missing integrity attributes on CDN scripts, localStorage usage for auth, console.log in production, source maps, and open redirect vectors.
 
 EXAMPLE JSON (schema reference):
 {EXAMPLE_JSON}
@@ -351,12 +408,7 @@ def analyze_with_ai(html: str, url: str) -> dict:
     client = OpenAI(api_key=api_key, http_client=httpx.Client())
     current_date = datetime.utcnow().date().isoformat()
     prompt = _build_audit_prompt(html, url, current_date)
-
-    try:
-        parsed = _run_openrouter(prompt)
-    except Exception as e:
-        print("OpenRouter failed, falling back to gpt-4o-mini:", e)
-        parsed = _run_model_new(client, "gpt-4o-mini", prompt)
+    parsed = _run_model_new(client, "gpt-4o-mini", prompt)
     audit = _merge_schema(DEFAULT_AUDIT, parsed)
     audit["url"] = url
     if not audit.get("scanned_at"):

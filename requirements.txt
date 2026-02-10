@@ -5,5 +5,5 @@ supabase
 requests
 cloudscraper
 openai
-openrouter
+
 stripe

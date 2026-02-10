@@ -189,7 +189,7 @@
 
   <!-- Category score grid -->
   <div class="score-box bg-[#2a2a2a] border-2 border-[#444] p-8 grid grid-cols-2 gap-4 fade-up fade-up-2">
-    {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility')] %}
+    {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility'),('security','Security')] %}
     {% set cs = s[cat].score %}
     {% if cs >= 80 %}{% set cc = '#22c55e' %}{% elif cs >= 60 %}{% set cc = '#f59e0b' %}{% else %}{% set cc = '#ef4444' %}{% endif %}
     <div class="bg-[#1F1F1F] border border-[#444] p-4 flex flex-col justify-between min-h-[110px]">
@@ -466,6 +466,101 @@
             <div>
               <p class="text-sm font-medium text-white">{{ item.name }}</p>
               <p class="text-xs text-gray-500 mt-1">{{ item.impact }}</p>
+              {% if limited_view %}
+              <p class="text-xs text-gray-400 mt-2 blurred-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              {% else %}
+              <p class="text-xs text-gray-400 mt-2">{{ item.solution }}</p>
+              {% endif %}
+              {% if item.code_example %}
+              {% if limited_view %}
+              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap blurred-text">/* Lorem ipsum dolor sit amet */</code></div>
+              {% else %}
+              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap">{{ item.code_example }}</code></div>
+              {% endif %}
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Security -->
+<section class="mb-10">
+  <div id="tab-security" class="tab-c active">
+    <h3 class="text-xl font-black text-white mb-1">Security Audit</h3>
+    <p class="text-sm text-gray-400 mb-6">{{ audit.security.summary }} &middot; Risk level: <span class="font-bold {% if audit.security.overall_risk == 'low' %}text-green-400{% elif audit.security.overall_risk == 'medium' %}text-yellow-400{% else %}text-red-400{% endif %}">{{ audit.security.overall_risk | upper }}</span></p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      {% for check_id, check in (audit.security.checks or {}).items() %}
+      <div class="bg-[#2a2a2a] border-2 border-[#444] p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-gray-300 font-medium">{{ check_id | replace('_', ' ') | title }}</span>
+          {% if check.status == 'passed' %}
+          <span class="fm text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30 uppercase font-bold">Passed</span>
+          {% elif check.status == 'warning' %}
+          <span class="fm text-[10px] px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 uppercase font-bold">Warning</span>
+          {% else %}
+          <span class="fm text-[10px] px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 uppercase font-bold">Failed</span>
+          {% endif %}
+        </div>
+        <p class="text-xs text-gray-500 mb-2">{{ check.description }}</p>
+        {% if check.recommendation %}
+        {% if limited_view %}
+        <p class="text-xs text-[#fca5a5] blurred-text">Lorem ipsum dolor sit amet.</p>
+        {% else %}
+        <p class="text-xs text-[#fca5a5]">{{ check.recommendation }}</p>
+        {% endif %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if audit.security.vulnerabilities %}
+    <div class="bg-[#2a2a2a] border-2 border-[#444]">
+      <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Vulnerabilities Found</span></div>
+      <div class="divide-y divide-[#333]">
+        {% for vuln in audit.security.vulnerabilities %}
+        <div class="px-5 py-4 flex items-start gap-4">
+          <span class="w-2.5 h-2.5 rounded-full dot-{{ vuln.severity }} mt-1.5 flex-shrink-0"></span>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <p class="text-sm font-medium text-white">{{ vuln.type | upper }}</p>
+              <span class="fm text-[10px] sev-{{ vuln.severity }} uppercase font-bold">{{ vuln.severity }}</span>
+            </div>
+            <p class="text-xs text-gray-500">{{ vuln.location }}</p>
+            <p class="text-xs text-gray-400 mt-1">{{ vuln.description }}</p>
+            {% if vuln.proof %}
+            <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded">
+              <code class="fm text-[11px] text-yellow-400 whitespace-pre-wrap">{{ vuln.proof }}</code>
+            </div>
+            {% endif %}
+            {% if vuln.fix %}
+            {% if limited_view %}
+            <p class="text-xs text-[#fca5a5] mt-2 blurred-text">Lorem ipsum dolor sit amet, consectetur.</p>
+            {% else %}
+            <p class="text-xs text-[#fca5a5] mt-2">{{ vuln.fix }}</p>
+            {% endif %}
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <div class="bg-[#2a2a2a] border-2 border-[#444]">
+        <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Security Issues</span></div>
+        <div class="divide-y divide-[#333]">
+          {% for item in audit.issues['items'] if item is mapping and item.category == 'security' %}
+          <div class="issue-row px-5 py-4 flex items-start gap-4">
+            <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
+            <div>
+              <p class="text-sm font-medium text-white">{{ item.name }}</p>
+              <p class="text-xs text-gray-500 mt-1">{{ item.description }}</p>
               {% if limited_view %}
               <p class="text-xs text-gray-400 mt-2 blurred-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
               {% else %}
