@@ -734,6 +734,28 @@
 </main>
 {% endif %}
 
+{% if limited_view %}
+<!-- Exit-intent promo overlay -->
+<div id="exit-promo" class="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" style="display:none;">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8 md:p-10 max-w-md w-full mx-4 text-center relative">
+    <button onclick="closeExitPromo()" class="absolute top-3 right-3 text-gray-500 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] fm text-[10px] font-bold mb-4">SPECIAL OFFER</span>
+    <h3 class="text-2xl font-black text-white mb-2">Wait — Don't Leave Yet</h3>
+    <p class="text-gray-400 text-sm mb-5">You're viewing a limited report. Upgrade to Pro to have 15 full audits per month.</p>
+    <div class="bg-[#1F1F1F] border border-dashed border-[#fca5a5] p-4 mb-5">
+      <p class="fm text-[10px] uppercase text-gray-500 mb-1">Promo Code</p>
+      <div class="flex items-center justify-center gap-3">
+        <span id="promo-code" class="fm text-xl font-bold text-[#fca5a5] tracking-widest select-all">MINUS10</span>
+        <button onclick="copyPromo()" id="copy-promo-btn" class="text-gray-400 hover:text-white transition-colors" title="Copy code"><i data-lucide="copy" class="w-4 h-4"></i></button>
+      </div>
+      <p id="promo-copied" class="fm text-[10px] text-green-400 mt-1 hidden">Copied to clipboard</p>
+    </div>
+    <a href="/billing/checkout" class="block bg-[#fca5a5] text-black py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all mb-3">Upgrade Now — Discounted/a>
+    <button onclick="closeExitPromo()" class="text-gray-500 hover:text-white text-xs fm transition-colors">No thanks, I'll stay limited</button>
+  </div>
+</div>
+{% endif %}
+
 <footer class="border-t border-[#333] px-4 md:px-8 py-6 text-center">
   <div class="flex flex-col items-center gap-3">
     <span class="text-xl md:text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span>
@@ -753,6 +775,39 @@
 <script>
   lucide.createIcons();
   function filterIssues(s){document.querySelectorAll('[class*="issue-sev-"]').forEach(r=>{if(s==='all'){r.style.display='';}else{r.style.display=r.classList.contains('issue-sev-'+s)?'':'none';}});}
+  // Exit-intent promo for free tier
+  (function(){
+    var promo=document.getElementById('exit-promo');
+    if(!promo)return;
+    var shown=false, dismissed=false;
+    function showPromo(){
+      if(shown||dismissed)return;
+      shown=true;
+      promo.style.display='flex';
+      requestAnimationFrame(function(){
+        promo.classList.remove('opacity-0','pointer-events-none');
+        promo.classList.add('opacity-100');
+      });
+      lucide.createIcons();
+    }
+    document.addEventListener('mouseleave',function(e){
+      if(e.clientY<=0)showPromo();
+    });
+    window.closeExitPromo=function(){
+      promo.classList.remove('opacity-100');
+      promo.classList.add('opacity-0','pointer-events-none');
+      setTimeout(function(){promo.style.display='none';},300);
+      dismissed=true;
+    };
+    window.copyPromo=function(){
+      navigator.clipboard.writeText('MINUS10').then(function(){
+        var msg=document.getElementById('promo-copied');
+        msg.classList.remove('hidden');
+        setTimeout(function(){msg.classList.add('hidden');},2000);
+      });
+    };
+  })();
+
   function copyShareLink(){
     var url={{ (share_url or '') | tojson }};
     if(!url)return;
