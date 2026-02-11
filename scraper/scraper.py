@@ -339,24 +339,60 @@ def scrape(url: str) -> str:
     raise Exception(f"Failed to fetch {url} after {max_retries} retries (429 Too Many Requests)")
 
 
-def _run_model_new(client, model: str, prompt: str) -> dict:
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You output strict JSON only."},
-            {"role": "user", "content": prompt},
-        ],
-    )
+def _is_placeholder_result(data: dict) -> bool:
+    """Detect when the model returned the example schema instead of real data."""
+    if not isinstance(data, dict):
+        return True
+    scores = data.get("scores")
+    if isinstance(scores, dict):
+        overall = scores.get("overall")
+        if isinstance(overall, dict):
+            grade = overall.get("grade")
+            if grade == "A-F":
+                return True
+            if overall.get("score") == 0 and overall.get("summary") == "":
+                seo = scores.get("seo", {})
+                perf = scores.get("performance", {})
+                if seo.get("score") == 0 and perf.get("score") == 0:
+                    return True
+    return False
 
-    content = response.choices[0].message.content
-    extracted = _extract_json(content)
-    try:
-        parsed = json.loads(extracted)
-    except json.JSONDecodeError:
-        parsed = {}
-    if isinstance(parsed, str):
-        parsed = {}
-    return parsed
+
+def _run_model_new(client, model: str, prompt: str, max_retries: int = 2) -> dict:
+    last_err = None
+    for attempt in range(max_retries + 1):
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "You output strict JSON only."},
+                    {"role": "user", "content": prompt},
+                ],
+                response_format={"type": "json_object"},
+            )
+
+            content = response.choices[0].message.content
+            extracted = _extract_json(content)
+            parsed = json.loads(extracted)
+            if isinstance(parsed, str):
+                parsed = {}
+
+            if _is_placeholder_result(parsed):
+                print(f"Model returned placeholder/template data (attempt {attempt + 1}), retrying...")
+                last_err = ValueError("Model returned placeholder data instead of real analysis")
+                continue
+
+            return parsed
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error (attempt {attempt + 1}): {e}")
+            last_err = e
+            continue
+        except Exception as e:
+            print(f"Model call error (attempt {attempt + 1}): {e}")
+            last_err = e
+            continue
+
+    raise last_err or ValueError("Failed to get valid audit from model")
 
 
 
@@ -373,7 +409,10 @@ Fill it with realistic scores, issues, explanations, and recommendations.
 
 RULES:
 - Output ONLY valid JSON
-- Fill EVERYTHING in the json
+- Fill EVERYTHING in the json with REAL data from the HTML analysis
+- NEVER copy the example values verbatim — every value must reflect the actual page
+- The grade field must be a single letter (A, B, C, D, or F) — NEVER output "A-F"
+- All scores must be real numbers (0-100) based on your analysis — NEVER leave them as 0 unless truly warranted
 - No markdown
 - No commentary
 - No extra keys
