@@ -419,12 +419,19 @@ def analyze_with_ai(html: str, url: str) -> dict:
 
 
 def analyze(url, plan="free", on_fallback=None):
+    import time
+    start_time = time.monotonic()
     html_code = scrape(url)
+
+    def _with_duration(audit):
+        elapsed_ms = int((time.monotonic() - start_time) * 1000)
+        audit["scan_duration_ms"] = elapsed_ms
+        return audit
 
     try:
         audit = analyze_with_ai(html_code, url)
         audit["_scan_cost"] = 1
-        return audit
+        return _with_duration(audit)
     except Exception as e:
         print("gpt-4o-mini failed:", e)
 
@@ -438,7 +445,7 @@ def analyze(url, plan="free", on_fallback=None):
         audit["issues"]["items"] = []
         audit["issues"]["total"] = 0
         audit["_scan_cost"] = 0
-        return audit
+        return _with_duration(audit)
 
     if on_fallback:
         on_fallback()
@@ -454,7 +461,7 @@ def analyze(url, plan="free", on_fallback=None):
         if not audit.get("scanned_at"):
             audit["scanned_at"] = datetime.utcnow().isoformat()
         audit["_scan_cost"] = 1
-        return audit
+        return _with_duration(audit)
     except Exception as e:
         print("gpt-4.1-mini failed:", e)
 
@@ -466,4 +473,4 @@ def analyze(url, plan="free", on_fallback=None):
     audit["issues"]["items"] = []
     audit["issues"]["total"] = 0
     audit["_scan_cost"] = 0
-    return audit
+    return _with_duration(audit)
