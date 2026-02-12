@@ -395,6 +395,181 @@ def _run_model_new(client, model: str, prompt: str, max_retries: int = 2) -> dic
     raise last_err or ValueError("Failed to get valid audit from model")
 
 
+def generate_llm_prompt(audit_json):
+    prompt = "You are an expert full-stack developer, SEO specialist, performance engineer, security analyst, accessibility engineer, and UX copywriter.\n"
+    prompt += f"Your task is to fix ALL issues found in the website: {audit_json.get('url')}\n"
+    prompt += "Follow every recommendation below. Resolve every issue, improve every score, and apply every suggested change.\n\n"
+
+    # CURRENT SCORES
+    scores = audit_json.get("scores", {})
+    overall = scores.get("overall", {})
+    prompt += "=== CURRENT SCORES ===\n"
+    prompt += f"Overall: {overall.get('score', 0)}/100 (Grade {overall.get('grade', 'N/A')})\n"
+    prompt += f"Summary: {overall.get('summary', '')}\n"
+    for cat in ["seo", "conversion", "performance", "accessibility", "security"]:
+        cat_scores = scores.get(cat, {})
+        prompt += f"  {cat.upper()}: {cat_scores.get('score', 0)}/100 (Grade {cat_scores.get('grade', 'N/A')}) — {cat_scores.get('passed', 0)} passed, {cat_scores.get('failed', 0)} failed, {cat_scores.get('warnings', 0)} warnings\n"
+    prompt += "\n"
+
+    # ALL ISSUES
+    issues = audit_json.get("issues", {}).get("items", [])
+    if issues:
+        prompt += f"=== ALL ISSUES ({len(issues)} total) ===\n"
+        for item in issues:
+            if not isinstance(item, dict):
+                continue
+            prompt += f"- [{item.get('severity', 'unknown').upper()}] [{item.get('category', 'other').upper()}] {item.get('name', '')}\n"
+            prompt += f"  Description: {item.get('description', '')}\n"
+            prompt += f"  Impact: {item.get('impact', '')}\n"
+            prompt += f"  Solution: {item.get('solution', '')}\n"
+            if item.get("code_example"):
+                prompt += f"  Code example:\n  {item['code_example']}\n"
+            for el in item.get("affected_elements", []):
+                if isinstance(el, dict):
+                    prompt += f"  Affected: {el.get('location', '')} — {el.get('selector', '')}\n"
+        prompt += "\n"
+
+    # SEO — ALL ELEMENTS
+    seo = audit_json.get("seo", {})
+    if seo.get("summary"):
+        prompt += f"=== SEO ===\nSummary: {seo['summary']}\n"
+    seo_elements = seo.get("elements", {})
+    if seo_elements:
+        prompt += "SEO elements to fix:\n"
+        for key, elem in seo_elements.items():
+            if not isinstance(elem, dict):
+                continue
+            status = elem.get("status", "unknown")
+            prompt += f"- {key} [{status.upper()}]: current value = \"{elem.get('value', '')}\"\n"
+            if elem.get("why_important"):
+                prompt += f"  Why important: {elem['why_important']}\n"
+            if elem.get("recommendation"):
+                prompt += f"  Recommendation: {elem['recommendation']}\n"
+            if elem.get("suggested_value"):
+                prompt += f"  Suggested value: \"{elem['suggested_value']}\"\n"
+            if elem.get("length") is not None:
+                prompt += f"  Current length: {elem['length']} chars\n"
+            if elem.get("images_without_alt"):
+                prompt += f"  Images missing alt: {elem['images_without_alt']} of {elem.get('total_images', '?')}\n"
+        prompt += "\n"
+
+    # CONVERSION — CTA ANALYSIS
+    conversion = audit_json.get("conversion", {})
+    if conversion.get("summary"):
+        prompt += f"=== CONVERSION ===\nSummary: {conversion['summary']}\n"
+    cta = conversion.get("cta_analysis", {})
+    if cta:
+        prompt += f"Total CTAs found: {cta.get('total_ctas', 0)}\n"
+        prompt += f"Overall CTA effectiveness: {cta.get('overall_effectiveness', 'N/A')}\n"
+        for rec in cta.get("recommendations", []):
+            if not isinstance(rec, dict):
+                continue
+            orig = rec.get("original", {})
+            sugg = rec.get("suggested", {})
+            prompt += f"- CTA at {rec.get('location', '?')}:\n"
+            prompt += f"  Current text: \"{orig.get('text', '')}\"\n"
+            if orig.get("style_notes"):
+                prompt += f"  Style notes: {orig['style_notes']}\n"
+            prompt += f"  Suggested text: \"{sugg.get('text', '')}\"\n"
+            prompt += f"  Reasoning: {sugg.get('reasoning', '')}\n"
+            prompt += f"  Expected improvement: {sugg.get('expected_improvement', '')}\n"
+            if rec.get("issues"):
+                prompt += f"  Issues: {', '.join(rec['issues'])}\n"
+        prompt += "\n"
+
+    # CONVERSION — COPY CHANGES
+    copy_changes = conversion.get("copy_changes", [])
+    if copy_changes:
+        prompt += "Copy changes to increase conversion:\n"
+        for change in copy_changes:
+            if not isinstance(change, dict):
+                continue
+            prompt += f"- Location: {change.get('location', '')}\n"
+            prompt += f"  Original: \"{change.get('original_text', '')}\"\n"
+            prompt += f"  Replace with: \"{change.get('suggested_text', '')}\"\n"
+            prompt += f"  Reasoning: {change.get('reasoning', '')}\n"
+            if change.get("expected_impact"):
+                prompt += f"  Expected impact: {change['expected_impact']}\n"
+        prompt += "\n"
+
+    # PERFORMANCE
+    perf = audit_json.get("performance", {})
+    if perf.get("summary"):
+        prompt += f"=== PERFORMANCE ===\nSummary: {perf['summary']}\n"
+    pw = perf.get("page_weight", {})
+    if pw:
+        prompt += f"Page weight: {pw.get('total_kb', 0)} KB total (HTML: {pw.get('html_kb', 0)} KB, CSS: {pw.get('css_kb', 0)} KB, JS: {pw.get('js_kb', 0)} KB, Images: {pw.get('images_kb', 0)} KB, Fonts: {pw.get('fonts_kb', 0)} KB)\n"
+    metrics = perf.get("metrics", {})
+    if metrics:
+        prompt += "Core Web Vitals & metrics:\n"
+        for metric_key, metric_val in metrics.items():
+            if not isinstance(metric_val, dict):
+                continue
+            val = metric_val.get("value_ms") if "value_ms" in metric_val else metric_val.get("value", "?")
+            unit = "ms" if "value_ms" in metric_val else ""
+            prompt += f"  {metric_key}: {val}{unit} [{metric_val.get('status', '?')}] (score: {metric_val.get('score', '?')}/100)\n"
+        prompt += "\n"
+
+    # ACCESSIBILITY
+    a11y = audit_json.get("accessibility", {})
+    if a11y:
+        prompt += f"=== ACCESSIBILITY ===\n"
+        if a11y.get("summary"):
+            prompt += f"Summary: {a11y['summary']}\n"
+        prompt += f"WCAG level: {a11y.get('wcag_level', '?')}\n"
+        prompt += f"Compliance: {a11y.get('compliance_percentage', '?')}%\n"
+        for area_key in ["keyboard_navigation", "screen_reader", "color_contrast"]:
+            area = a11y.get(area_key, {})
+            if not isinstance(area, dict):
+                continue
+            prompt += f"  {area_key.replace('_', ' ').title()}: score {area.get('score', '?')}/100 [{area.get('status', '?')}]\n"
+            for issue in area.get("issues", []):
+                if isinstance(issue, str):
+                    prompt += f"    - {issue}\n"
+                elif isinstance(issue, dict):
+                    prompt += f"    - {issue.get('description', issue)}\n"
+        prompt += "\n"
+
+    # SECURITY — ALL CHECKS
+    security = audit_json.get("security", {})
+    if security:
+        prompt += f"=== SECURITY ===\n"
+        if security.get("summary"):
+            prompt += f"Summary: {security['summary']}\n"
+        prompt += f"Overall risk: {security.get('overall_risk', '?')}\n"
+        checks = security.get("checks", {})
+        if checks:
+            prompt += "Security checks:\n"
+            for check, details in checks.items():
+                if not isinstance(details, dict):
+                    continue
+                prompt += f"- {check} [{details.get('status', '?').upper()}] ({details.get('severity', '?')}): {details.get('description', '')}\n"
+                if details.get("recommendation"):
+                    prompt += f"  Fix: {details['recommendation']}\n"
+            prompt += "\n"
+
+        # VULNERABILITIES
+        vulns = security.get("vulnerabilities", [])
+        if vulns:
+            prompt += "Vulnerabilities to patch:\n"
+            for v in vulns:
+                if not isinstance(v, dict):
+                    continue
+                prompt += f"- {v.get('type', '?')} ({v.get('severity', '?')}), location: {v.get('location', '?')}\n"
+                prompt += f"  Description: {v.get('description', '')}\n"
+                if v.get("proof"):
+                    prompt += f"  Proof: {v['proof']}\n"
+                prompt += f"  Fix: {v.get('fix', '')}\n"
+            prompt += "\n"
+
+    # FINAL INSTRUCTIONS
+    prompt += "=== INSTRUCTIONS ===\n"
+    prompt += "Fix every issue listed above. Apply every copy change exactly as suggested. Patch every security vulnerability. Improve every metric.\n"
+    prompt += "Generate the full updated HTML, CSS, and JS integrating ALL performance, SEO, conversion, accessibility, and security improvements.\n"
+    prompt += "Optimize everything for speed, security, accessibility, and maximum conversion.\n"
+
+    return prompt
+
 
 def _build_audit_prompt(html: str, url: str, current_date: str) -> str:
     return f"""

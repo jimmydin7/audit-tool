@@ -639,6 +639,43 @@
 
 
 
+<!-- AI Fix Prompt -->
+{% if llm_prompt %}
+{% set prompt_lines = llm_prompt.split('\n') %}
+{% set total_lines = prompt_lines | length %}
+{% set half = (total_lines // 4) %}
+<section class="mb-10">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-[#fca5a5]"></i> AI Fix Prompt</h3>
+      {% if not limited_view %}
+      <button onclick="copyPrompt()" id="copy-prompt-btn" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="copy" class="w-4 h-4"></i> <span id="copy-prompt-text">Copy</span></button>
+      {% endif %}
+    </div>
+    <p class="text-sm text-gray-400 mb-5">Auto-generated prompt based on your audit results. Paste it into Claude, Cursor, or your favourite vibecoding tool to get a fully fixed version of your website.</p>
+
+    <div class="relative">
+      <pre id="llm-prompt-block" class="bg-[#1F1F1F] border border-[#444] p-4 fm text-[12px] text-gray-300 whitespace-pre-wrap overflow-x-auto max-h-[500px] overflow-y-auto leading-relaxed">{% for line in prompt_lines[:half] %}{{ line }}
+{% endfor %}{% if limited_view %}<span class="blurred-text select-none">{% for _ in prompt_lines[half:] %}Upgrade to unlock — Upgrade to unlock — Upgrade to unlock
+{% endfor %}</span>{% else %}{% for line in prompt_lines[half:] %}{{ line }}
+{% endfor %}{% endif %}</pre>
+
+      {% if limited_view %}
+      <!-- Upgrade overlay covering the bottom half -->
+      <div class="absolute bottom-0 left-0 right-0 h-[55%] bg-gradient-to-t from-[#2a2a2a] via-[#2a2a2a]/95 to-transparent flex flex-col items-center justify-end pb-8 pointer-events-auto">
+        <div class="text-center">
+          <i data-lucide="lock" class="w-8 h-8 text-[#fca5a5] mx-auto mb-3"></i>
+          <p class="text-white font-bold text-lg mb-1">Upgrade to Unlock Full Prompt</p>
+          <p class="text-gray-400 text-sm mb-4 max-w-sm">Get the complete AI fix prompt with all issues, copy changes, security fixes, and code patches.</p>
+          <a href="/billing/checkout" class="inline-block bg-[#fca5a5] text-black px-6 py-2.5 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Upgrade to Pro</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- Bottom CTA / Pricing -->
 {% if limited_view %}
 <section class="bg-[#2a2a2a] border-2 border-[#444] p-8 md:p-12 mb-10">
@@ -706,6 +743,7 @@
             <li class="text-red-400">&#10003; View all issues solutions</li>
             <li class="text-red-400">&#10003; View all issues code patches</li>
             <li class="text-red-400">&#10003; View all copy changed text</li>
+            <li class="text-red-400">&#10003; Full AI fix prompt</li>
           </ul>
 
           <a href="/billing/checkout" class="nf-shimmer mt-auto block text-center bg-[#fca5a5] text-black border-2 border-[#444] py-3 font-bold
@@ -806,6 +844,16 @@
       });
     };
   })();
+
+  function copyPrompt(){
+    var el=document.getElementById('llm-prompt-block');
+    if(!el)return;
+    navigator.clipboard.writeText(el.innerText).then(function(){
+      var t=document.getElementById('copy-prompt-text');
+      t.textContent='Copied!';
+      setTimeout(function(){t.textContent='Copy';},2000);
+    });
+  }
 
   function copyShareLink(){
     var url={{ (share_url or '') | tojson }};

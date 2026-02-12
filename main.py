@@ -4,7 +4,7 @@ from supabase import create_client
 import json
 import os
 from urllib.parse import urlparse
-from scraper.scraper import analyze
+from scraper.scraper import analyze, generate_llm_prompt
 import threading
 import uuid
 #import time
@@ -919,11 +919,14 @@ def audit_status(job_id):
     if (audit.get("metadata") or {}).get("model_limit"):
         return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
 
+    llm_prompt = generate_llm_prompt(audit)
+
     return render_template(
         "app/results.html",
         audit=audit,
         audit_json=audit_json,
-        limited_view=limited_view
+        limited_view=limited_view,
+        llm_prompt=llm_prompt
     )
 
 
@@ -949,7 +952,8 @@ def audit_detail(audit_id):
         return render_template("app/error.html", error="This site is too large for the free plan. Upgrade to Pro to scan larger websites.", upgrade=True)
     if (audit.get("metadata") or {}).get("model_limit"):
         return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
-    return render_template("app/results.html", audit=audit, audit_json=audit_json, share_url=share_url, limited_view=limited_view)
+    llm_prompt = generate_llm_prompt(audit)
+    return render_template("app/results.html", audit=audit, audit_json=audit_json, share_url=share_url, limited_view=limited_view, llm_prompt=llm_prompt)
 
 
 @app.route('/share/<audit_id>')
@@ -972,6 +976,7 @@ def share_audit(audit_id):
     if logged_out:
         audit = _sanitize_audit_for_public(audit)
         audit_json = json.dumps(audit, indent=2)
+    llm_prompt = generate_llm_prompt(audit)
     return render_template(
         "app/results.html",
         audit=audit,
@@ -981,7 +986,8 @@ def share_audit(audit_id):
         force_blur=logged_out,
         require_login=logged_out,
         obfuscate=False,
-        shared_audit_id=audit_id
+        shared_audit_id=audit_id,
+        llm_prompt=llm_prompt
     )
 
 
