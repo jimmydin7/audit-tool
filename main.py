@@ -414,7 +414,12 @@ def privacy():
 
 @app.route('/')
 def index():
-    return render_template('index.html', user=session.get('user'))
+    user = session.get('user')
+    plan = "free"
+    if user:
+        stats = _get_user_stats(user["id"])
+        plan = stats.get("plan", "free")
+    return render_template('index.html', user=user, plan=plan)
 
 
 def start_oauth(provider):
@@ -581,6 +586,9 @@ def billing_checkout():
     if not user:
         store_post_login_redirect(request.path)
         return redirect("/login")
+    stats = _get_user_stats(user["id"])
+    if stats.get("plan") == "paid":
+        return redirect("/app/dashboard?tab=billing")
     if not STRIPE_SECRET or not STRIPE_PRODUCT_ID:
         return render_template("app/error.html", error="Stripe is not configured.")
     try:

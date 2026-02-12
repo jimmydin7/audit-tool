@@ -547,10 +547,16 @@
             <li class="text-red-400">&#10003; View all copy changed text</li>
           </ul>
 
+          {% if plan == 'paid' %}
+          <div class="mt-auto block text-center bg-[#333] text-green-400 border-2 border-[#444] py-3 font-bold fm text-sm">
+           ✓ Already on Pro
+          </div>
+          {% else %}
           <a href="/billing/checkout" class="nf-shimmer mt-auto block text-center bg-[#fca5a5] text-black border-2 border-[#444] py-3 font-bold
                  brutalist-shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
            Upgrade Now →
           </a>
+          {% endif %}
         </div>
 
       </div>

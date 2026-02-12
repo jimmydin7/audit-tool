@@ -111,7 +111,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       {% if not obfuscate and audit.metadata.technology_stack.framework %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ audit.metadata.technology_stack.framework }}</span>{% endif %}
-      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (9.9 if obfuscate else dur) }}s load</span>
+      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (9.9 if obfuscate else dur) }}s scan</span>
       <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (3.7 if obfuscate else (pw.total_kb / 1024) | round(1)) }} MB</span>
       {% if not obfuscate %}{% for a in audit.metadata.technology_stack.analytics %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ a }}</span>{% endfor %}{% endif %}
     </div>
@@ -245,7 +245,7 @@
 <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
   {% set stats = [
     ('Issues Found', ns.total, ns.critical ~ ' critical'),
-    ('Page Speed', dur ~ 's', 'LCP: ' ~ (audit.performance.metrics.largest_contentful_paint.value_ms / 1000) | round(1) ~ 's'),
+    ('Scan Speed', dur ~ 's', 'Time to process audit'),
     ('Page Size', (pw.total_kb / 1024) | round(1) ~ ' MB', pw.images_kb ~ ' KB images'),
     ('CTA Count', audit.conversion.cta_analysis.total_ctas, audit.conversion.cta_analysis.overall_effectiveness),
     ('A11y Score', audit.accessibility.compliance_percentage ~ '%', audit.accessibility.summary)
