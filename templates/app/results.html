@@ -55,7 +55,8 @@
 <div class="paper-grid"></div>
 <div class="noise-overlay"></div>
 
-{% set domain = audit.url | replace('https://', '') | replace('http://', '') | replace('/', '') %}
+{% set domain = audit.url | replace('https://', '') | replace('http://', '') %}
+{% if domain.endswith('/') %}{% set domain = domain[:-1] %}{% endif %}
 {% set dur = (audit.scan_duration_ms / 1000) | round(1) %}
 {% set s = audit.scores %}
 {% set pw = audit.performance.page_weight %}
@@ -110,10 +111,8 @@
       <p class="text-gray-400 text-sm mt-1">{{ 'Sign in to view the full audit details.' if blurred else ('High-level audit summary is hidden until you sign in.' if obfuscate else s.overall.summary) }}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
-      {% if not obfuscate and audit.metadata.technology_stack.framework %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ audit.metadata.technology_stack.framework }}</span>{% endif %}
       <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (9.9 if obfuscate else dur) }}s scan</span>
       <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (3.7 if obfuscate else (pw.total_kb / 1024) | round(1)) }} MB</span>
-      {% if not obfuscate %}{% for a in audit.metadata.technology_stack.analytics %}<span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ a }}</span>{% endfor %}{% endif %}
     </div>
   </div>
 </header>
