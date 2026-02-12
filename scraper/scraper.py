@@ -642,54 +642,7 @@ def analyze(url, plan="free", on_fallback=None):
         audit["scan_duration_ms"] = elapsed_ms
         return audit
 
-    # Paid users go straight to gpt-4.1 (1M context) to avoid token-limit errors
-    if plan == "paid":
-        try:
-            api_key = os.environ.get("OPENAI_KEY")
-            client = OpenAI(api_key=api_key, http_client=httpx.Client())
-            current_date = datetime.utcnow().date().isoformat()
-            prompt = _build_audit_prompt(html_code, url, current_date)
-            parsed = _run_model_new(client, "gpt-4.1", prompt)
-            audit = _merge_schema(DEFAULT_AUDIT, parsed)
-            audit["url"] = url
-            if not audit.get("scanned_at"):
-                audit["scanned_at"] = datetime.utcnow().isoformat()
-            audit["_scan_cost"] = 1
-            audit["_model_used"] = "gpt-4.1"
-            return _with_duration(audit)
-        except Exception as e:
-            print("gpt-4.1 failed:", e)
-
-        if on_fallback:
-            on_fallback()
-
-        # Fallback to gpt-4.1-nano for paid users
-        try:
-            prompt = _build_audit_prompt(html_code, url, current_date)
-            parsed = _run_model_new(client, "gpt-4.1-nano", prompt)
-            audit = _merge_schema(DEFAULT_AUDIT, parsed)
-            audit["url"] = url
-            if not audit.get("scanned_at"):
-                audit["scanned_at"] = datetime.utcnow().isoformat()
-            audit["_scan_cost"] = 1
-            audit["_model_used"] = "gpt-4.1-nano"
-            return _with_duration(audit)
-        except Exception as e:
-            print("gpt-4.1-nano failed:", e)
-
-        # Paid user exhausted all model attempts
-        audit = _merge_schema(DEFAULT_AUDIT, {})
-        audit["url"] = url
-        audit["scanned_at"] = datetime.utcnow().isoformat()
-        audit["scores"]["overall"]["summary"] = "We were unable to process this website. The maximum model limit was reached. Please contact support."
-        audit["metadata"]["model_limit"] = True
-        audit["issues"]["items"] = []
-        audit["issues"]["total"] = 0
-        audit["_scan_cost"] = 0
-        audit["_model_used"] = "none (all failed)"
-        return _with_duration(audit)
-
-    # Free users use gpt-4o-mini (128K context)
+    # Both free and paid try gpt-4o-mini first
     try:
         audit = analyze_with_ai(html_code, url)
         audit["_scan_cost"] = 1
@@ -698,15 +651,48 @@ def analyze(url, plan="free", on_fallback=None):
     except Exception as e:
         print("gpt-4o-mini failed:", e)
 
-    # Free user hit the token limit — prompt upgrade
+    # Free users can't fallback — show upgrade prompt
+    if plan != "paid":
+        audit = _merge_schema(DEFAULT_AUDIT, {})
+        audit["url"] = url
+        audit["scanned_at"] = datetime.utcnow().isoformat()
+        audit["scores"]["overall"]["summary"] = "This site is too large for the free plan. Upgrade to Pro to scan larger sites."
+        audit["metadata"]["model_limit"] = True
+        audit["metadata"]["upgrade_required"] = True
+        audit["issues"]["items"] = []
+        audit["issues"]["total"] = 0
+        audit["_scan_cost"] = 0
+        audit["_model_used"] = "none (token limit)"
+        return _with_duration(audit)
+
+    # Paid users fallback to gpt-4.1-nano (larger context)
+    if on_fallback:
+        on_fallback()
+
+    try:
+        api_key = os.environ.get("OPENAI_KEY")
+        client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        current_date = datetime.utcnow().date().isoformat()
+        prompt = _build_audit_prompt(html_code, url, current_date)
+        parsed = _run_model_new(client, "gpt-4.1-nano", prompt)
+        audit = _merge_schema(DEFAULT_AUDIT, parsed)
+        audit["url"] = url
+        if not audit.get("scanned_at"):
+            audit["scanned_at"] = datetime.utcnow().isoformat()
+        audit["_scan_cost"] = 1
+        audit["_model_used"] = "gpt-4.1-nano"
+        return _with_duration(audit)
+    except Exception as e:
+        print("gpt-4.1-nano failed:", e)
+
+    # Paid user exhausted all model attempts
     audit = _merge_schema(DEFAULT_AUDIT, {})
     audit["url"] = url
     audit["scanned_at"] = datetime.utcnow().isoformat()
-    audit["scores"]["overall"]["summary"] = "This site is too large for the free plan. Upgrade to Pro to scan larger sites."
+    audit["scores"]["overall"]["summary"] = "We were unable to process this website. The maximum model limit was reached. Please contact support."
     audit["metadata"]["model_limit"] = True
-    audit["metadata"]["upgrade_required"] = True
     audit["issues"]["items"] = []
     audit["issues"]["total"] = 0
     audit["_scan_cost"] = 0
-    audit["_model_used"] = "none (token limit)"
+    audit["_model_used"] = "none (all failed)"
     return _with_duration(audit)
