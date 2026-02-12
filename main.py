@@ -147,7 +147,7 @@ def _format_domain(url):
     return url.replace("https://", "").replace("http://", "").split("/")[0] or "unknown"
 
 
-def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None, audit_id=None, scan_cost=None, duration_ms=None):
+def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None, audit_id=None, scan_cost=None, duration_ms=None, model_used=None, user_name=None):
     try:
         domain = _format_domain(url)
         title = "Audit Completed" if status == "completed" else "Audit Blocked"
@@ -168,6 +168,10 @@ def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None
             fields.append({"name": "Scan Cost", "value": str(scan_cost), "inline": True})
         if duration_ms is not None:
             fields.append({"name": "Duration", "value": f"{duration_ms} ms", "inline": True})
+        if model_used:
+            fields.append({"name": "Model", "value": model_used, "inline": True})
+        if user_name:
+            fields.append({"name": "User", "value": user_name, "inline": True})
 
         requests.post(DISCORD_SCAN_WEBHOOK, json={
             "embeds": [{
@@ -184,6 +188,7 @@ def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None
 def run_audit(job_id, url):
     try:
         user_id = AUDIT_JOBS[job_id].get("user_id")
+        user_name = AUDIT_JOBS[job_id].get("user_name")
         plan = "free"
         if user_id:
             stats = _get_user_stats(user_id)
@@ -192,6 +197,7 @@ def run_audit(job_id, url):
             AUDIT_JOBS[job_id]["fallback"] = True
 
         result = analyze(url, plan=plan, on_fallback=_on_fallback)
+        model_used = result.pop("_model_used", None)
         scan_cost = result.pop("_scan_cost", 1)
         upgrade_required = (result.get("metadata") or {}).get("upgrade_required", False)
         model_limit = (result.get("metadata") or {}).get("model_limit", False)
@@ -220,10 +226,10 @@ def run_audit(job_id, url):
         AUDIT_JOBS[job_id]["audit_id"] = audit_id
         if upgrade_required:
             status = "blocked"
-            reason = "upgrade_required"
+            reason = "free_tier_too_large"
         elif model_limit:
             status = "blocked"
-            reason = "model_limit"
+            reason = "paid_model_limit_exceeded"
         else:
             status = "completed"
             reason = None
@@ -235,7 +241,9 @@ def run_audit(job_id, url):
             plan=plan,
             audit_id=audit_id,
             scan_cost=scan_cost,
-            duration_ms=result.get("scan_duration_ms")
+            duration_ms=result.get("scan_duration_ms"),
+            model_used=model_used,
+            user_name=user_name
         )
     except Exception as e:
         AUDIT_JOBS[job_id]["status"] = "error"
@@ -244,7 +252,8 @@ def run_audit(job_id, url):
             status="error",
             reason=str(e)[:200],
             url=AUDIT_JOBS[job_id].get("url"),
-            user_id=AUDIT_JOBS[job_id].get("user_id")
+            user_id=AUDIT_JOBS[job_id].get("user_id"),
+            user_name=AUDIT_JOBS[job_id].get("user_name")
         )
 
 
@@ -831,7 +840,8 @@ def new_audit():
                 "result": None,
                 "error": None,
                 "url": url,
-                "user_id": user["id"]
+                "user_id": user["id"],
+                "user_name": f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or user.get("email") or "Unknown"
             }
         thread = threading.Thread(target=run_audit, args=(job_id, url))
         thread.daemon = True
@@ -879,7 +889,8 @@ def audit_results():
         "result": None,
         "error": None,
         "url": url,
-        "user_id": user["id"]
+        "user_id": user["id"],
+        "user_name": f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or user.get("email") or "Unknown"
     }
 
     thread = threading.Thread(target=run_audit, args=(job_id, url))
