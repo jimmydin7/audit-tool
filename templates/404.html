@@ -1,29 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>404 | FixMyLanding</title>
-<meta name="description" content="The page you were looking for could not be found.">
-<meta name="robots" content="noindex,follow">
-<meta property="og:type" content="website">
-<meta property="og:title" content="404 | FixMyLanding">
-<meta property="og:description" content="The page you were looking for could not be found.">
-<meta property="og:image" content="{{ url_for('static', filename='imgs/og-image.png') }}">
-<meta property="og:image:alt" content="FixMyLanding preview">
-<script defer data-website-id="dfid_5CENfXdlBU0wZKBoKOxd4" data-domain="fixmyland.ing" src="https://datafa.st/js/script.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono&family=Permanent+Marker&family=Reenie+Beanie&family=Bricolage+Grotesque&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/error_page.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>404 | FixMyLanding</title>
+  <meta name="description" content="The page you were looking for could not be found.">
+  <meta name="robots" content="noindex,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="404 | FixMyLanding">
+  <meta property="og:description" content="The page you were looking for could not be found.">
+  <meta property="og:image" content="{{ url_for('static', filename='imgs/og-image.png') }}">
+  <meta property="og:image:alt" content="FixMyLanding preview">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
+  <script defer data-website-id="dfid_5CENfXdlBU0wZKBoKOxd4" data-domain="fixmyland.ing" src="https://datafa.st/js/script.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Reenie+Beanie&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
-<body>
+<body class="relative min-h-screen flex flex-col items-center justify-center px-4" style="background:#1F1F1F; color:#e5e5e5; font-family:'Bricolage Grotesque',sans-serif;">
+
   <div class="paper-grid"></div>
-  <div class="container">
-    <h1 class="error-code">404</h1>
-    <h2 class="error-text">Oops.</h2>
-    <p class="error-subtext">We couldn't find what you are looking for.</p>
-    <a href="/" class="btn">Go Back</a>
-  </div>
-  <footer class="mt-12 text-center">
+  <div class="noise-overlay"></div>
+
+  <main class="relative z-10 text-center max-w-lg w-full">
+
+    <div class="inline-block bg-[#2a2a2a] border-2 border-[#444] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8 md:p-12 rotate-[-1deg]">
+
+      <p class="font-mono text-[10px] uppercase tracking-widest text-gray-500 mb-4">Error 404</p>
+
+      <h1 class="text-[6rem] md:text-[8rem] font-black leading-none text-white tracking-tighter mb-2">
+        4<span class="text-[#fca5a5]">0</span>4
+      </h1>
+
+      <div class="font-hand text-2xl md:text-3xl text-[#fca5a5] rotate-[2deg] mb-6">
+        this page doesn't exist!
+      </div>
+
+      <p class="text-sm md:text-base text-gray-400 font-medium mb-8 max-w-xs mx-auto">
+        The page you're looking for may have been moved, deleted, or never existed in the first place.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/"
+           class="bg-[#fca5a5] text-black border-2 border-[#444] px-6 py-3 font-bold text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+          ← Back to Home
+        </a>
+        <a href="/app/new"
+           class="bg-[#2a2a2a] text-white border-2 border-[#444] px-6 py-3 font-bold text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none hover:bg-[#333] transition-all">
+          Run an Audit
+        </a>
+      </div>
+    </div>
+
+    <!-- Hand-drawn arrow -->
+    <div class="hidden md:block absolute -bottom-6 right-8 rotate-[10deg]">
+      <span class="font-hand text-[#fca5a5] text-lg absolute -right-16 bottom-0">oops!</span>
+    </div>
+
+  </main>
+
+  <footer class="relative z-10 mt-16 mb-8">
     <div class="flex flex-col md:flex-row items-center justify-center gap-3 font-mono text-[10px] text-gray-500 uppercase">
       <div class="flex items-center gap-3">
         <a href="/terms" class="hover:text-white transition-colors">Terms</a>
@@ -35,5 +71,6 @@
       <span class="text-gray-600">&copy; 2026 FixMyLanding</span>
     </div>
   </footer>
+
 </body>
 </html>
