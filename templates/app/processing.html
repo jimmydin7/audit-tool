@@ -55,7 +55,13 @@
       <span>Scanning:</span>
       <span class="text-gray-300">{{ url }}</span>
     </div>
-    <div id="error" class="hidden mt-6 text-sm text-red-300 bg-red-500/10 border border-red-500/40 p-3"></div>
+    <div id="error" class="hidden mt-6 text-left">
+      <div class="text-sm text-red-300 bg-red-500/10 border border-red-500/40 p-4">
+        <p class="font-bold mb-1">Audit failed</p>
+        <p id="error-message" class="text-red-400/80"></p>
+        <a href="/app/new" class="inline-block mt-3 text-xs font-mono font-bold text-[#fca5a5] hover:text-white transition-colors">← Try another URL</a>
+      </div>
+    </div>
   </main>
 
   <script>
@@ -118,8 +124,9 @@
             } else if (data.status === 'error') {
               clearInterval(poll);
               clearInterval(timer);
-              errorEl.textContent = data.error || 'Audit failed. Please try again.';
+              document.getElementById('error-message').textContent = data.error || 'Something went wrong. Please try again.';
               errorEl.classList.remove('hidden');
+              document.querySelector('.spinner').style.display = 'none';
             }
           })
           .catch(function () {});
@@ -140,8 +147,9 @@
         })
         .catch(function () {
           clearInterval(timer);
-          errorEl.textContent = 'Audit failed. Please try again.';
+          document.getElementById('error-message').textContent = 'Audit failed. Please try again.';
           errorEl.classList.remove('hidden');
+          document.querySelector('.spinner').style.display = 'none';
         });
     }
   })();

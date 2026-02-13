@@ -318,9 +318,15 @@ def _extract_json(text: str) -> str:
             return content[start:end + 1]
     return content
 
+class ScrapeError(Exception):
+    """Raised when the target URL cannot be scraped."""
+    pass
+
+
 def scrape(url: str) -> str:
     import cloudscraper
     import time
+    import requests as req_lib
 
     scraper = cloudscraper.create_scraper(
         browser={"browser": "chrome", "platform": "windows", "desktop": True}
@@ -328,15 +334,34 @@ def scrape(url: str) -> str:
 
     max_retries = 3
     for attempt in range(max_retries):
-        response = scraper.get(url, timeout=20)
+        try:
+            response = scraper.get(url, timeout=20)
+        except req_lib.exceptions.ConnectionError:
+            raise ScrapeError(f"Could not connect to {url}. The site may not exist or is unreachable.")
+        except req_lib.exceptions.Timeout:
+            raise ScrapeError(f"Connection to {url} timed out. The site took too long to respond.")
+        except req_lib.exceptions.TooManyRedirects:
+            raise ScrapeError(f"Too many redirects when trying to reach {url}.")
+        except Exception as e:
+            raise ScrapeError(f"Failed to reach {url}: {str(e)}")
+
         if response.status_code == 429:
             retry_after = int(response.headers.get("Retry-After", 2 ** (attempt + 1)))
             time.sleep(retry_after)
             continue
-        response.raise_for_status()
+        if response.status_code == 404:
+            raise ScrapeError(f"Page not found (404). The URL {url} does not exist.")
+        if response.status_code == 403:
+            raise ScrapeError(f"Access denied (403). The site {url} is blocking our scanner.")
+        if response.status_code >= 500:
+            raise ScrapeError(f"The server at {url} returned a {response.status_code} error. It may be down.")
+        try:
+            response.raise_for_status()
+        except Exception:
+            raise ScrapeError(f"Failed to load {url} (HTTP {response.status_code}).")
         return response.text
 
-    raise Exception(f"Failed to fetch {url} after {max_retries} retries (429 Too Many Requests)")
+    raise ScrapeError(f"Failed to fetch {url} after {max_retries} retries. The site may be rate-limiting requests.")
 
 
 def _is_placeholder_result(data: dict) -> bool:

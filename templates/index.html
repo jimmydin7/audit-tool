@@ -65,6 +65,9 @@
         <a href="#pricing" class="px-3 py-2 font-mono text-xs font-bold uppercase text-gray-300 hover:bg-[#fca5a5] hover:text-black border-2 border-transparent hover:border-[#444] transition-all">
           Pricing
         </a>
+        <a href="#testimonials" class="px-3 py-2 font-mono text-xs font-bold uppercase text-gray-300 hover:bg-[#fca5a5] hover:text-black border-2 border-transparent hover:border-[#444] transition-all">
+          Reviews
+        </a>
         <a href="#faq" class="px-3 py-2 font-mono text-xs font-bold uppercase text-gray-300 hover:bg-[#fca5a5] hover:text-black border-2 border-transparent hover:border-[#444] transition-all">
           FAQ
         </a>
@@ -574,6 +577,131 @@
 
   <script>
   </script>
+
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0px;">
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials" class="py-16 md:py-24 px-4 md:px-12">
+    <div class="max-w-6xl mx-auto">
+
+      <div class="flex flex-col lg:flex-row gap-10 lg:gap-14">
+
+        <!-- Left column: heading + Rushil review -->
+        <div class="w-full lg:w-[35%] flex flex-col gap-8">
+          <div>
+            <h2 class="text-4xl md:text-5xl lg:text-6xl font-black leading-[0.95] text-white">
+              Don't just<br>take our<br>word for it.
+            </h2>
+            <p class="mt-4 text-lg md:text-xl font-hand text-gray-400">Here's what our users have to say!</p>
+          </div>
+
+          <!-- Rushil review -->
+          <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 rotate-[-1deg] hover:rotate-0 transition-transform">
+            <div class="flex gap-1 mb-4">
+              <span class="text-[#fca5a5] text-sm">★★★★★</span>
+            </div>
+            <p class="text-gray-300 font-medium italic leading-relaxed text-[15px]">
+              "Changed our landing page text to what was suggested and we saw a <span class="nf-highlight-marker">clear jump in conversions</span>. The audit report was incredibly detailed."
+            </p>
+            <div class="flex items-center gap-3 mt-5 pt-4 border-t border-[#444]">
+              <div class="w-11 h-11 border-2 border-[#444] rounded-full overflow-hidden flex-shrink-0">
+                <img src="https://ca.slack-edge.com/E09V59WQY1E-U020X4GCWSF-253b77f85aa8-192" alt="Rushil Chopra" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <p class="font-bold text-sm text-white">Rushil Chopra</p>
+                <p class="text-gray-500 text-xs">Founder @ Agathon · Silicon Valley</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column: video (left) + 2 reviews stacked (right) -->
+        <div class="w-full lg:w-[65%] flex flex-col md:flex-row gap-5">
+
+          <!-- Vertical video -->
+          <div class="w-full md:w-1/2 bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rotate-[0.5deg] hover:rotate-0 transition-transform overflow-hidden flex flex-col">
+            <div class="relative w-full flex-1" style="min-height: 420px;">
+              <video
+                class="absolute inset-0 w-full h-full object-cover"
+                src="{{ url_for('static', filename='vids/nik.mov') }}"
+                controls
+                playsinline
+                preload="metadata"
+              ></video>
+            </div>
+            <div class="p-4 flex items-center gap-3 border-t-2 border-[#444]">
+              <div class="w-10 h-10 border-2 border-[#444] rounded-full overflow-hidden flex-shrink-0">
+                <img src="https://pbs.twimg.com/profile_images/1949188480069718016/3YPy65Fu_400x400.jpg" alt="Nikolas Sapa" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <p class="font-bold text-sm text-white">Nikolas Sapa</p>
+                  <svg class="w-4 h-4 text-[#1d9bf0]" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.06 4.3l-3.44-3.44 1.41-1.41 2.03 2.03 4.53-4.53 1.41 1.41-5.94 5.94z"/></svg>
+                </div>
+                <p class="text-gray-500 text-xs">@NikolasSapa</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2 stacked review cards -->
+          <div class="w-full md:w-1/2 flex flex-col gap-5">
+
+            <!-- Tweet 1 (Oti'x) -->
+            <a href="https://x.com/de_la11332/status/2022290773694103990" target="_blank" rel="noopener"
+               class="block bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-5 flex flex-col justify-between flex-1 rotate-[-0.5deg] hover:rotate-0 transition-transform hover:border-[#555]" style="text-decoration:none">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 border-2 border-[#444] rounded-full overflow-hidden flex-shrink-0">
+                      <img src="https://pbs.twimg.com/profile_images/2013001668644790272/NQAHJBsj_400x400.png" alt="Oti'x" class="w-full h-full object-cover bg-[#333]">
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-1.5">
+                        <p class="font-bold text-sm text-white">Oti'x</p>
+                        <svg class="w-4 h-4 text-[#1d9bf0]" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.06 4.3l-3.44-3.44 1.41-1.41 2.03 2.03 4.53-4.53 1.41 1.41-5.94 5.94z"/></svg>
+                      </div>
+                      <p class="text-gray-500 text-xs">@de_la11332</p>
+                    </div>
+                  </div>
+                  <svg class="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </div>
+                <p class="text-gray-300 font-medium leading-relaxed">
+                  I want to give a shoutout to @jimdin79. His tool <span class="text-[#fca5a5] font-bold">fixmyland.ing</span> helped me boost my security and SEO. If y’all are serious about your website, <span class="nf-highlight-marker">I 100% recommend it.</span>
+                </p>
+              </div>
+            </a>
+
+            <a href="https://x.com/ffugenw">
+            <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-5 flex flex-col justify-between flex-1 rotate-[0.7deg] hover:rotate-0 transition-transform">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 border-2 border-[#444] rounded-full overflow-hidden flex-shrink-0">
+                      <img src="https://pbs.twimg.com/profile_images/2019527109358587905/ih2818Dy_400x400.jpg" alt="Alex" class="w-full h-full object-cover bg-[#333]">
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-1.5">
+                        <p class="font-bold text-sm text-white">Alex</p>
+                        <svg class="w-4 h-4 text-[#1d9bf0]" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.06 4.3l-3.44-3.44 1.41-1.41 2.03 2.03 4.53-4.53 1.41 1.41-5.94 5.94z"/></svg>
+                      </div>
+                      <p class="text-gray-500 text-xs">@ffugenw</p>
+                    </div>
+                  </div>
+                  <svg class="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </div>
+                <p class="text-gray-300 font-medium leading-relaxed">
+                  Ran on my site fully expecting a polite “looks fine” and instead got a very accurate list of things I really needed to look at. <span class="nf-highlight-marker">Very useful</span>, and honestly <span class="nf-highlight-marker">explained a few problems I’d already shipped without realising.</span>
+                </p>
+              </div>
+            </div>
+            </a>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
 
   <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0px;">
 

@@ -4,7 +4,7 @@ from supabase import create_client
 import json
 import os
 from urllib.parse import urlparse
-from scraper.scraper import analyze, generate_llm_prompt
+from scraper.scraper import analyze, generate_llm_prompt, ScrapeError
 import threading
 import uuid
 #import time
@@ -244,6 +244,17 @@ def run_audit(job_id, url):
             duration_ms=result.get("scan_duration_ms"),
             model_used=model_used,
             user_name=user_name
+        )
+    except ScrapeError as e:
+        AUDIT_JOBS[job_id]["status"] = "error"
+        AUDIT_JOBS[job_id]["error"] = str(e)
+        _send_scan_webhook(
+            status="error",
+            reason=f"scrape_failed: {str(e)[:180]}",
+            url=AUDIT_JOBS[job_id].get("url"),
+            user_id=AUDIT_JOBS[job_id].get("user_id"),
+            plan=plan if 'plan' in dir() else None,
+            user_name=AUDIT_JOBS[job_id].get("user_name")
         )
     except Exception as e:
         AUDIT_JOBS[job_id]["status"] = "error"
@@ -824,12 +835,16 @@ def new_audit():
         user_email = (user.get("email") or "").lower() if user else ""
         if user_email not in ADMIN_EMAILS:
             if stats["scans_this_month"] >= limit:
+                user_name_str = f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or user.get("email") or "Unknown"
+                plan_label = stats.get("plan") or "free"
+                limit_val = SCAN_LIMITS.get(plan_label, 1)
                 _send_scan_webhook(
                     status="blocked",
-                    reason="limit_reached",
+                    reason=f"limit_reached: already used {stats['scans_this_month']}/{limit_val} scans ({plan_label} plan)",
                     url=url,
                     user_id=user.get("id"),
-                    plan=stats.get("plan")
+                    plan=plan_label,
+                    user_name=user_name_str
                 )
                 return render_template('app/new.html', user=user, quota_exceeded=True)
 
@@ -865,12 +880,16 @@ def audit_results():
     user_email = (user.get("email") or "").lower() if user else ""
     if user_email not in ADMIN_EMAILS:
         if stats["scans_this_month"] >= limit:
+            user_name_str = f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or user.get("email") or "Unknown"
+            plan_label = stats.get("plan") or "free"
+            limit_val = SCAN_LIMITS.get(plan_label, 1)
             _send_scan_webhook(
                 status="blocked",
-                reason="limit_reached",
+                reason=f"limit_reached: already used {stats['scans_this_month']}/{limit_val} scans ({plan_label} plan)",
                 url=url,
                 user_id=user.get("id"),
-                plan=stats.get("plan")
+                plan=plan_label,
+                user_name=user_name_str
             )
             return render_template('app/new.html', user=user, quota_exceeded=True)
 
