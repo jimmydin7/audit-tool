@@ -532,6 +532,9 @@ def auth_callback():
         print("Auth callback error:", e)
         return render_template("auth/login.html", error="Failed to complete sign-in. Please try again.")
 
+@app.route('/tools/keywords')
+def keywords_tool():
+    return render_template('tools/keywords.html')
 
 @app.route('/signup')
 def signup():

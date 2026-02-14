@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Free Keyword Density Checker (Landing Page SEO Tool)</title>
+  <meta name="description" content="Free keyword density checker for landing pages. Analyze keyword frequency, word count, and SEO optimization instantly. No signup required.">
+  <meta name="robots" content="index,follow">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-[#181818] text-white font-sans">
+
+<!-- NAV -->
+<nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl z-50">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-6 py-3 flex justify-between items-center">
+    <a href="/" class="text-2xl font-black tracking-tight">
+      fixmy<span class="text-[#fca5a5]">land</span>.ing
+    </a>
+    <a href="/" class="bg-[#fca5a5] text-black px-4 py-2 font-mono text-xs font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+      Run Full Audit →
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="pt-40 pb-20 px-6 text-center max-w-4xl mx-auto">
+  <h1 class="text-5xl md:text-6xl font-black mb-6">
+    Free <span class="text-[#fca5a5]">Keyword Density Checker</span>
+  </h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    Analyze keyword frequency, word count, and on-page SEO optimization for your landing page copy.
+    No signup required.
+  </p>
+</section>
+
+<!-- TOOL -->
+<section class="px-6 pb-24 max-w-5xl mx-auto">
+
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+
+    <textarea id="textInput"
+      placeholder="Paste your landing page copy here..."
+      class="w-full h-56 bg-[#181818] border-2 border-[#444] p-4 text-white font-mono text-sm resize-none focus:outline-none focus:border-[#fca5a5]"></textarea>
+
+    <div class="mt-4 flex flex-col md:flex-row gap-4">
+      <input id="targetKeyword"
+        placeholder="Optional: Target keyword"
+        class="flex-1 bg-[#181818] border-2 border-[#444] p-3 text-white font-mono text-sm focus:outline-none focus:border-[#fca5a5]" />
+
+      <button onclick="analyzeText()"
+        class="bg-[#fca5a5] text-black px-6 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+        Analyze →
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" class="mt-12 hidden">
+    <div class="grid md:grid-cols-3 gap-6 mb-10">
+
+      <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 text-center">
+        <div class="text-3xl font-black" id="wordCount">0</div>
+        <div class="text-gray-400 text-sm font-mono">Total Words</div>
+      </div>
+
+      <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 text-center">
+        <div class="text-3xl font-black" id="uniqueCount">0</div>
+        <div class="text-gray-400 text-sm font-mono">Unique Words</div>
+      </div>
+
+      <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 text-center">
+        <div class="text-3xl font-black" id="keywordDensity">0%</div>
+        <div class="text-gray-400 text-sm font-mono">Target Density</div>
+      </div>
+
+    </div>
+
+    <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
+      <h2 class="text-xl font-black mb-4">Top Keywords</h2>
+      <div id="topWords" class="space-y-2 font-mono text-sm"></div>
+    </div>
+
+    <!-- HARD CTA -->
+    <div class="mt-16 bg-gradient-to-br from-[#fca5a5] to-[#f87171] border-4 border-[#444] p-8 text-black text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <h3 class="text-2xl font-black mb-3">Want to actually improve your website?</h3>
+      <p class="mb-6 font-medium">
+  Keyword density alone won’t fix your landing page.
+  Run a full AI-powered audit to see exactly what text to change to capture more attention, plus uncover hidden SEO, security, performance, and accessibility issues.
+</p>
+
+      <a href="/" class="bg-black text-white px-8 py-4 font-bold border-2 border-black hover:bg-white hover:text-black transition-all">
+        Run Full Landing Page Audit →
+      </a>
+    </div>
+
+  </div>
+
+</section>
+
+<script>
+function analyzeText() {
+  const text = document.getElementById("textInput").value.toLowerCase();
+  const target = document.getElementById("targetKeyword").value.toLowerCase().trim();
+  const words = text.match(/\b[a-z]{2,}\b/g);
+
+  if (!words) return;
+
+  const wordCount = words.length;
+  const frequency = {};
+
+  words.forEach(word => {
+    frequency[word] = (frequency[word] || 0) + 1;
+  });
+
+  const uniqueCount = Object.keys(frequency).length;
+
+  const sortedWords = Object.entries(frequency)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 25);
+
+  document.getElementById("wordCount").innerText = wordCount;
+  document.getElementById("uniqueCount").innerText = uniqueCount;
+
+  if (target && frequency[target]) {
+    const density = ((frequency[target] / wordCount) * 100).toFixed(2);
+    document.getElementById("keywordDensity").innerText = density + "%";
+  } else {
+    document.getElementById("keywordDensity").innerText = "0%";
+  }
+
+  const container = document.getElementById("topWords");
+  container.innerHTML = "";
+
+  sortedWords.forEach(([word, count]) => {
+    const density = ((count / wordCount) * 100).toFixed(2);
+    const div = document.createElement("div");
+    div.className = "flex justify-between border-b border-[#444] pb-1";
+    div.innerHTML = `<span>${word}</span><span>${count} (${density}%)</span>`;
+    container.appendChild(div);
+  });
+
+  document.getElementById("results").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
