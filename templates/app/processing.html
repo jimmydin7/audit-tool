@@ -116,6 +116,7 @@
             if (data.status === 'done') {
               clearInterval(poll);
               clearInterval(timer);
+              window?.datafast?.("scan_completed");
               if (data.audit_id) {
                 window.location.href = '/app/audits/' + encodeURIComponent(data.audit_id);
               } else {

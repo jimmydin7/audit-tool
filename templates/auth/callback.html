@@ -48,6 +48,7 @@
     if (error) {
       window.location.href = `/auth/callback?error=${encodeURIComponent(error)}&error_description=${encodeURIComponent(errorDesc || '')}`;
     } else if (accessToken) {
+      window?.datafast?.("signup");
       window.location.href = `/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken || '')}`;
     } else {
       setTimeout(() => {

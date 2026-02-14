@@ -7,4 +7,3 @@ cloudscraper
 openai
 
 stripe
-xhtml2pdf

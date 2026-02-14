@@ -169,6 +169,7 @@
 
       const form = document.getElementById('audit-form');
       form.addEventListener('submit', function () {
+        window?.datafast?.("scan_started");
         const input = document.getElementById('url-input');
         const value = input.value.trim();
         if (!value) return;
