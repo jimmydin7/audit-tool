@@ -187,16 +187,17 @@
   <!-- Category score grid -->
   <div class="score-box bg-[#2a2a2a] border-2 border-[#444] p-8 grid grid-cols-2 gap-4 fade-up fade-up-2">
     {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility'),('security','Security'),('domain','Domain')] %}
-    {% set cs = s[cat].score %}
+    {% set cat_stats = (s.get(cat) if s is mapping else None) or {} %}
+    {% set cs = cat_stats.get('score', 0) %}
     {% if cs >= 80 %}{% set cc = '#22c55e' %}{% elif cs >= 60 %}{% set cc = '#f59e0b' %}{% else %}{% set cc = '#ef4444' %}{% endif %}
     <div class="bg-[#1F1F1F] border border-[#444] p-4 flex flex-col justify-between min-h-[110px]">
       <div class="flex items-center justify-between">
         <span class="fm text-[10px] uppercase text-gray-400">{{ label }}</span>
-        <span class="fm text-[10px] uppercase" style="color:{{ cc }}">{{ s[cat].grade }}</span>
+        <span class="fm text-[10px] uppercase" style="color:{{ cc }}">{{ cat_stats.get('grade', 'N/A') }}</span>
       </div>
       <div class="flex items-end justify-between">
         <span class="text-3xl font-black text-white">{{ (72 if loop.index == 1 else 74) if obfuscate else cs }}</span>
-        <span class="text-[10px] text-gray-500 fm">{{ s[cat].passed }}&#10003; {{ s[cat].failed }}&#10007; {{ s[cat].warnings }}&#9888;</span>
+        <span class="text-[10px] text-gray-500 fm">{{ cat_stats.get('passed', 0) }}&#10003; {{ cat_stats.get('failed', 0) }}&#10007; {{ cat_stats.get('warnings', 0) }}&#9888;</span>
       </div>
     </div>
     {% endfor %}
