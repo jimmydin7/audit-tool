@@ -55,6 +55,7 @@ EXAMPLE_AUDIT = {
         "performance": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
         "accessibility": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
         "security": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
+        "domain": {"score": 0, "grade": "A-F"},
     },
     "issues": {
         "total": 1,
@@ -469,7 +470,7 @@ def generate_llm_prompt(audit_json):
     prompt += "=== CURRENT SCORES ===\n"
     prompt += f"Overall: {overall.get('score', 0)}/100 (Grade {overall.get('grade', 'N/A')})\n"
     prompt += f"Summary: {overall.get('summary', '')}\n"
-    for cat in ["seo", "conversion", "performance", "accessibility", "security"]:
+    for cat in ["seo", "conversion", "performance", "accessibility", "security", "domain"]:
         cat_scores = scores.get(cat, {})
         prompt += f"  {cat.upper()}: {cat_scores.get('score', 0)}/100 (Grade {cat_scores.get('grade', 'N/A')}) — {cat_scores.get('passed', 0)} passed, {cat_scores.get('failed', 0)} failed, {cat_scores.get('warnings', 0)} warnings\n"
     prompt += "\n"

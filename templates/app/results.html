@@ -186,7 +186,7 @@
 
   <!-- Category score grid -->
   <div class="score-box bg-[#2a2a2a] border-2 border-[#444] p-8 grid grid-cols-2 gap-4 fade-up fade-up-2">
-    {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility'),('security','Security')] %}
+    {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility'),('security','Security'),('domain','Domain')] %}
     {% set cs = s[cat].score %}
     {% if cs >= 80 %}{% set cc = '#22c55e' %}{% elif cs >= 60 %}{% set cc = '#f59e0b' %}{% else %}{% set cc = '#ef4444' %}{% endif %}
     <div class="bg-[#1F1F1F] border border-[#444] p-4 flex flex-col justify-between min-h-[110px]">
