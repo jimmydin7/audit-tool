@@ -213,9 +213,11 @@
       <h3 class="text-xl font-black text-white">Domain Rating</h3>
     </div>
     {% if audit.domain_rating is defined and audit.domain_rating %}
+      {% set words = audit.domain_rating.split(' ') %}
+      {% set half_words = (words | length // 2) %}
       {% if limited_view %}
       <div class="relative">
-        <p class="text-sm text-gray-300 leading-relaxed">upgrade to unlcok upgrade to unlcok upgrade to unlcok upgrade to unlcok</p>
+        <p class="text-sm text-gray-300 leading-relaxed">{{ words[:half_words] | join(' ') }} <span class="blurred-text select-none">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span></p>
         <div class="absolute bottom-0 left-0 right-0 h-[60%] bg-gradient-to-t from-[#2a2a2a] via-[#2a2a2a]/80 to-transparent flex flex-col items-center justify-end pb-4 pointer-events-auto">
           <div class="text-center">
             <i data-lucide="lock" class="w-5 h-5 text-[#fca5a5] mx-auto mb-2"></i>
