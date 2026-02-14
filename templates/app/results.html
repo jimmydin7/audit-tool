@@ -89,17 +89,6 @@
     {% if share_url %}
     <button onclick="copyShareLink()" id="share-btn" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="link" class="w-4 h-4"></i> <span id="share-btn-text">Share</span></button>
     {% endif %}
-    {% if not require_login %}
-    {% if limited_view %}
-    <button onclick="showExportUpgrade()" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export PDF</button>
-    {% else %}
-    {% if audit_id %}
-    <button onclick="window?.datafast?.('export_pdf'); window.print();" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export PDF</button>
-    {% else %}
-    <button onclick="window.print()" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export PDF</button>
-    {% endif %}
-    {% endif %}
-    {% endif %}
     {% if require_login %}
     <a href="/signup{% if shared_audit_id %}?shared={{ shared_audit_id }}{% endif %}" class="bg-[#fca5a5] text-black px-4 py-2 fm text-xs font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">SIGN UP TO VIEW</a>
     {% endif %}
@@ -747,7 +736,6 @@
             <li class="text-red-400">&#10003; SEO scoring & recommendations</li>
             <li class="text-red-400">&#10003; Performance & Core Web Vitals</li>
             <li class="text-red-400">&#10003; Accessibility compliance</li>
-            <li class="text-red-400">&#10003; Exportable PDF reports</li>
             <li class="text-red-400">&#10003; Priority 24/7 support</li>
             <li class="text-red-400">&#10003; Faster & Smarter AI Model</li>
             <li class="text-red-400">&#10003; Scan larger websites</li>
@@ -774,28 +762,11 @@
   <p class="text-gray-400 mb-6 max-w-lg mx-auto">{{ s.overall.summary }}</p>
   <div class="flex flex-col sm:flex-row gap-4 justify-center">
     <a href="/#scan" class="bg-[#fca5a5] text-black px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Run Another Audit</a>
-    <button onclick="window.print()" class="bg-[#333] text-white px-8 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Export Report</button>
   </div>
 </section>
 {% endif %}
 </div>
 </main>
-{% endif %}
-
-{% if limited_view %}
-<!-- Export upgrade modal -->
-<div id="export-upgrade-modal" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" style="display:none;">
-  <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8 md:p-10 max-w-md w-full mx-4 text-center relative">
-    <button onclick="closeExportUpgrade()" class="absolute top-3 right-3 text-gray-500 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
-    <div class="w-16 h-16 bg-[#333] border-2 border-[#444] rounded-full flex items-center justify-center mx-auto mb-5">
-      <i data-lucide="lock" class="w-8 h-8 text-[#fca5a5]"></i>
-    </div>
-    <h3 class="text-2xl font-black text-white mb-2">PDF Export is a Pro Feature</h3>
-    <p class="text-gray-400 text-sm mb-6">Upgrade to Pro to export your full audit report as a professional PDF — perfect for sharing with your team or clients.</p>
-    <a href="/billing/checkout" onclick="window?.datafast?.('upgrade_clicked')" class="block bg-[#fca5a5] text-black py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all mb-3">Upgrade to Pro — $5/mo</a>
-    <button onclick="closeExportUpgrade()" class="text-gray-500 hover:text-white text-xs fm transition-colors">Maybe later</button>
-  </div>
-</div>
 {% endif %}
 
 {% if limited_view %}
@@ -892,25 +863,6 @@
       setTimeout(function(){t.textContent='Share';},2000);
     });
   }
-
-  window.showExportUpgrade=function(){
-    window?.datafast?.("export_pdf_blocked");
-    var m=document.getElementById('export-upgrade-modal');
-    if(!m)return;
-    m.style.display='flex';
-    requestAnimationFrame(function(){
-      m.classList.remove('opacity-0','pointer-events-none');
-      m.classList.add('opacity-100');
-    });
-    lucide.createIcons();
-  };
-  window.closeExportUpgrade=function(){
-    var m=document.getElementById('export-upgrade-modal');
-    if(!m)return;
-    m.classList.remove('opacity-100');
-    m.classList.add('opacity-0','pointer-events-none');
-    setTimeout(function(){m.style.display='none';},300);
-  };
 </script>
 </body>
 </html>
