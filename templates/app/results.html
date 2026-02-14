@@ -188,16 +188,17 @@
   <div class="score-box bg-[#2a2a2a] border-2 border-[#444] p-8 grid grid-cols-2 gap-4 fade-up fade-up-2">
     {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility'),('security','Security'),('domain','Domain')] %}
     {% set cat_stats = (s.get(cat) if s is mapping else None) or {} %}
+    {% set missing_domain = (cat == 'domain' and not cat_stats) %}
     {% set cs = cat_stats.get('score', 0) %}
     {% if cs >= 80 %}{% set cc = '#22c55e' %}{% elif cs >= 60 %}{% set cc = '#f59e0b' %}{% else %}{% set cc = '#ef4444' %}{% endif %}
     <div class="bg-[#1F1F1F] border border-[#444] p-4 flex flex-col justify-between min-h-[110px]">
       <div class="flex items-center justify-between">
         <span class="fm text-[10px] uppercase text-gray-400">{{ label }}</span>
-        <span class="fm text-[10px] uppercase" style="color:{{ cc }}">{{ cat_stats.get('grade', 'N/A') }}</span>
+        <span class="fm text-[10px] uppercase" style="color:{{ cc }}">{{ '-' if missing_domain else cat_stats.get('grade', 'N/A') }}</span>
       </div>
       <div class="flex items-end justify-between">
-        <span class="text-3xl font-black text-white">{{ (72 if loop.index == 1 else 74) if obfuscate else cs }}</span>
-        <span class="text-[10px] text-gray-500 fm">{{ cat_stats.get('passed', 0) }}&#10003; {{ cat_stats.get('failed', 0) }}&#10007; {{ cat_stats.get('warnings', 0) }}&#9888;</span>
+        <span class="text-3xl font-black text-white">{{ (72 if loop.index == 1 else 74) if obfuscate else ('-' if missing_domain else cs) }}</span>
+        <span class="text-[10px] text-gray-500 fm">{{ '-&#10003; -&#10007; -&#9888;' | safe if missing_domain else (cat_stats.get('passed', 0) ~ '&#10003; ' ~ cat_stats.get('failed', 0) ~ '&#10007; ' ~ cat_stats.get('warnings', 0) ~ '&#9888;') | safe }}</span>
       </div>
     </div>
     {% endfor %}
@@ -212,11 +213,9 @@
       <h3 class="text-xl font-black text-white">Domain Rating</h3>
     </div>
     {% if audit.domain_rating is defined and audit.domain_rating %}
-      {% set words = audit.domain_rating.split(' ') %}
-      {% set half_words = (words | length // 2) %}
       {% if limited_view %}
       <div class="relative">
-        <p class="text-sm text-gray-300 leading-relaxed">{{ words[:half_words] | join(' ') }} <span class="blurred-text select-none">{{ words[half_words:] | join(' ') }}</span></p>
+        <p class="text-sm text-gray-300 leading-relaxed">upgrade to unlcok upgrade to unlcok upgrade to unlcok upgrade to unlcok</p>
         <div class="absolute bottom-0 left-0 right-0 h-[60%] bg-gradient-to-t from-[#2a2a2a] via-[#2a2a2a]/80 to-transparent flex flex-col items-center justify-end pb-4 pointer-events-auto">
           <div class="text-center">
             <i data-lucide="lock" class="w-5 h-5 text-[#fca5a5] mx-auto mb-2"></i>
