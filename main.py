@@ -103,6 +103,7 @@ def _sanitize_audit_for_public(audit):
             masked["metadata"]["technology_stack"]["framework"] = source["metadata"]["technology_stack"].get("framework")
             masked["metadata"]["technology_stack"]["analytics"] = source["metadata"]["technology_stack"].get("analytics") or []
     masked["scan_duration_ms"] = source.get("scan_duration_ms") or 0
+    masked["domain_rating"] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
     return masked
 
     

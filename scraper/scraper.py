@@ -6,6 +6,43 @@ from openai import OpenAI
 from datetime import datetime
 import requests
 
+
+DOMAIN_PROMPT = """
+You are a startup branding expert and domain investor.
+
+Your job is to evaluate the following domain name and write ONE concise but insightful paragraph (120–180 words) analyzing it.
+
+Domain: {{DOMAIN_NAME}}
+
+Evaluate it based on:
+
+1. Trust & Professionalism
+- Does the TLD (.com, .io, .xyz, etc.) feel credible?
+- Does it contain numbers, hyphens, or spam-like patterns?
+- Does it feel legitimate or sketchy?
+
+2. Memorability
+- Is it easy to pronounce?
+- Is it easy to spell after hearing it once?
+- Is it short and clean, or long and cluttered?
+
+3. Brand Strength
+- Does it sound modern, premium, playful, or corporate?
+- Does it feel like a real startup?
+- Could it scale into a big brand?
+
+4. SEO & Market Fit
+- Does it contain relevant keywords?
+- Is it niche-limiting?
+- Does it feel globally usable?
+
+Be honest but constructive. If there are weaknesses, clearly explain why and suggest how it could be improved (e.g., better TLD, shorter variation, removing hyphens, etc.).
+
+Write in a confident, professional tone as if advising a founder before launch.
+Do NOT use bullet points. Return only one well-written paragraph.
+
+"""
+
 EXAMPLE_AUDIT = {
     "scan_id": "scan_YYYYMMDD_random",
     "url": "https://example.com",
@@ -280,6 +317,7 @@ EXAMPLE_AUDIT = {
             }
         ],
     },
+    "domain_rating": "Example.com is a strong, universally recognized domain that benefits from a premium .com TLD, exceptional memorability, and clean branding. Its simplicity makes it easy to pronounce, spell, and recall, giving it strong potential for global scalability. However, as a reserved IANA domain, it lacks real-world commercial viability and keyword specificity, which would limit its SEO impact in a competitive market. For a real startup, a domain this generic would need heavy brand-building investment to stand out.",
     "metadata": {
         "scanner_version": "2.1.0",
         "page_type": "",
@@ -593,6 +631,11 @@ def generate_llm_prompt(audit_json):
     prompt += "Generate the full updated HTML, CSS, and JS integrating ALL performance, SEO, conversion, accessibility, and security improvements.\n"
     prompt += "Optimize everything for speed, security, accessibility, and maximum conversion.\n"
 
+    # DOMAIN RATING
+    domain_rating = audit_json.get("domain_rating")
+    if domain_rating:
+        prompt += f"\n=== DOMAIN RATING ===\n{domain_rating}\n"
+
     return prompt
 
 
@@ -628,6 +671,7 @@ RULES:
 - Be brutally honest
 - Never use em dashes on copy suggestions
 - Make copy_changes cover bigger parts of text as well (paragraphs) not only headlines, and make sure there are many suggestions for different parts of the website to increase conversion.
+- Include a "domain_rating" field: a single paragraph (120-180 words) evaluating the domain name based on trust/professionalism, memorability, brand strength, and SEO/market fit. Be honest but constructive, as if advising a founder before launch. Do NOT use bullet points.
 - Ensure security checks cover: CSP headers, XSS vectors, sensitive data exposure, dependency/script safety (SRI), clickjacking protection, insecure storage, form security, open redirects, mixed content, and debug artifacts.
 - Include security issues in the issues.items array with category "security".
 - Be thorough about security: check for exposed API keys, tokens, env variables in HTML source, inline scripts with dynamic values, missing integrity attributes on CDN scripts, localStorage usage for auth, console.log in production, source maps, and open redirect vectors.

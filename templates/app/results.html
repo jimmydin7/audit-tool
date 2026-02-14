@@ -203,6 +203,38 @@
   </div>
 </section>
 
+<!-- Domain Rating -->
+<section class="mb-10 fade-up fade-up-3">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8">
+    <div class="flex items-center gap-2 mb-4">
+      <i data-lucide="globe" class="w-5 h-5 text-[#fca5a5]"></i>
+      <h3 class="text-xl font-black text-white">Domain Rating</h3>
+    </div>
+    {% if audit.domain_rating is defined and audit.domain_rating %}
+      {% set words = audit.domain_rating.split(' ') %}
+      {% set half_words = (words | length // 2) %}
+      {% if limited_view %}
+      <div class="relative">
+        <p class="text-sm text-gray-300 leading-relaxed">{{ words[:half_words] | join(' ') }} <span class="blurred-text select-none">{{ words[half_words:] | join(' ') }}</span></p>
+        <div class="absolute bottom-0 left-0 right-0 h-[60%] bg-gradient-to-t from-[#2a2a2a] via-[#2a2a2a]/80 to-transparent flex flex-col items-center justify-end pb-4 pointer-events-auto">
+          <div class="text-center">
+            <i data-lucide="lock" class="w-5 h-5 text-[#fca5a5] mx-auto mb-2"></i>
+            <p class="text-white font-bold text-sm mb-1">Upgrade to Unlock</p>
+            <a href="/billing/checkout" onclick="window?.datafast?.('upgrade_clicked')" class="inline-block bg-[#fca5a5] text-black px-4 py-1.5 text-xs font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">Upgrade to Pro</a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-sm text-gray-300 leading-relaxed">{{ audit.domain_rating }}</p>
+      {% endif %}
+    {% else %}
+    <div class="bg-[#1F1F1F] border border-[#444] p-4">
+      <p class="text-sm text-gray-500 italic">This scan was run before we introduced this feature.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
 <!-- Copy Changes -->
 <section class="mb-10">
   <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8">
