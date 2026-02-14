@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Free Meta Tag Viewer & Pixel Checker</title>
+  <meta name="description" content="Free meta tag viewer. Check title tags, meta descriptions, Open Graph data, canonical URLs, and pixel width preview.">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#181818] text-white font-sans">
+
+<!-- NAV -->
+<nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl z-50">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-6 py-3 flex justify-between items-center">
+    <a href="/" class="text-2xl font-black">
+      fixmy<span class="text-[#fca5a5]">land</span>.ing
+    </a>
+    <a href="/" class="bg-[#fca5a5] text-black px-4 py-2 font-mono text-xs font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+      Run Full Audit →
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="pt-40 pb-20 px-6 text-center max-w-4xl mx-auto">
+  <h1 class="text-5xl md:text-6xl font-black mb-6">
+    Free <span class="text-[#fca5a5]">Meta Tag Viewer</span>
+  </h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    Analyze title tags, meta descriptions, Open Graph data, canonical URLs, and preview how your page may appear in search results.
+  </p>
+</section>
+
+<!-- TOOL -->
+<section class="px-6 pb-24 max-w-5xl mx-auto">
+
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+
+    <textarea id="htmlInput"
+      placeholder="Paste full page HTML here..."
+      class="w-full h-56 bg-[#181818] border-2 border-[#444] p-4 font-mono text-sm resize-none focus:outline-none focus:border-[#fca5a5]"></textarea>
+
+    <button onclick="analyzeMeta()"
+      class="mt-4 bg-[#fca5a5] text-black px-6 py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+      Analyze →
+    </button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" class="mt-12 hidden space-y-8"></div>
+
+  <!-- CTA -->
+  <div class="mt-16 bg-gradient-to-br from-[#fca5a5] to-[#f87171] border-4 border-[#444] p-8 text-black text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+    <h3 class="text-2xl font-black mb-3">Meta tags are just one signal.</h3>
+    <p class="mb-6 font-medium">
+      Run a full AI-powered landing page audit to uncover SEO, performance, security, accessibility, and conversion issues.
+    </p>
+    <a href="/" class="bg-black text-white px-8 py-4 font-bold border-2 border-black hover:bg-white hover:text-black transition-all">
+      Run Full Landing Page Audit →
+    </a>
+  </div>
+
+</section>
+
+<script>
+function getMeta(content, name) {
+  const regex = new RegExp('<meta[^>]+name=["\\\']' + name + '["\\\'][^>]+content=["\\\']([^"\\\']+)["\\\']', 'i');
+  const match = content.match(regex);
+  return match ? match[1] : "Not Found";
+}
+
+function getProperty(content, property) {
+  const regex = new RegExp('<meta[^>]+property=["\\\']' + property + '["\\\'][^>]+content=["\\\']([^"\\\']+)["\\\']', 'i');
+  const match = content.match(regex);
+  return match ? match[1] : "Not Found";
+}
+
+function getTitle(content) {
+  const match = content.match(/<title>(.*?)<\/title>/i);
+  return match ? match[1] : "Not Found";
+}
+
+function getCanonical(content) {
+  const match = content.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i);
+  return match ? match[1] : "Not Found";
+}
+
+function analyzeMeta() {
+  const html = document.getElementById("htmlInput").value;
+
+  const title = getTitle(html);
+  const desc = getMeta(html, "description");
+  const ogTitle = getProperty(html, "og:title");
+  const ogDesc = getProperty(html, "og:description");
+  const canonical = getCanonical(html);
+
+  const resultDiv = document.getElementById("results");
+
+  resultDiv.innerHTML = `
+    <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
+      <h2 class="font-black text-xl mb-4">Meta Overview</h2>
+      <p><strong>Title:</strong> ${title}</p>
+      <p><strong>Description:</strong> ${desc}</p>
+      <p><strong>Canonical:</strong> ${canonical}</p>
+      <p><strong>OG Title:</strong> ${ogTitle}</p>
+      <p><strong>OG Description:</strong> ${ogDesc}</p>
+    </div>
+  `;
+
+  resultDiv.classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>

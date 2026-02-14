@@ -376,6 +376,7 @@ def get_monthly_price_id():
     return prices.data[0].id
 
 
+
 def refresh_subscription_status(user_id):
     if not STRIPE_SECRET:
         return
@@ -535,6 +536,14 @@ def auth_callback():
 @app.route('/tools/keywords')
 def keywords_tool():
     return render_template('tools/keywords.html')
+
+@app.route('/tools/link_counter')
+def links_tool():
+    return render_template('tools/linkcounter.html')
+
+@app.route('/tools/meta_tag_viewer')
+def meta_tag_view():
+    return render_template('tools/meta_tag_viewer.html')
 
 @app.route('/signup')
 def signup():
