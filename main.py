@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, url_for, session, jsonify
+from flask import Flask, render_template, redirect, request, url_for, session, jsonify, send_file
 from dotenv import load_dotenv
 from supabase import create_client
 import json
@@ -12,6 +12,8 @@ import uuid
 from datetime import datetime, timezone
 import stripe
 import requests
+from io import BytesIO
+from xhtml2pdf import pisa
 
 AUDIT_JOBS = {}
 #RATE_LIMITS = {}
@@ -956,7 +958,8 @@ def audit_status(job_id):
         audit=audit,
         audit_json=audit_json,
         limited_view=limited_view,
-        llm_prompt=llm_prompt
+        llm_prompt=llm_prompt,
+        audit_id=job.get("audit_id")
     )
 
 
@@ -983,7 +986,50 @@ def audit_detail(audit_id):
     if (audit.get("metadata") or {}).get("model_limit"):
         return render_template("app/error.html", error="This site is too large for the current model capacity. Please try a smaller page or check back later.")
     llm_prompt = generate_llm_prompt(audit)
-    return render_template("app/results.html", audit=audit, audit_json=audit_json, share_url=share_url, limited_view=limited_view, llm_prompt=llm_prompt)
+    return render_template("app/results.html", audit=audit, audit_json=audit_json, share_url=share_url, limited_view=limited_view, llm_prompt=llm_prompt, audit_id=audit_id)
+
+
+@app.route('/app/audits/<audit_id>/pdf')
+def audit_pdf(audit_id):
+    user = session.get("user")
+    if not user:
+        return redirect('/login')
+    stats = _get_user_stats(user["id"])
+    if stats.get("plan") != "paid":
+        return redirect(url_for('audit_detail', audit_id=audit_id))
+    try:
+        resp = supabase.table("audits").select("id,url,result,created_at").eq("id", audit_id).eq("user_id", user["id"]).single().execute()
+        audit_row = resp.data
+    except Exception as e:
+        print("Failed to load audit for PDF:", e)
+        return "Audit not found", 404
+
+    audit = audit_row.get("result")
+    audit["created_at"] = audit_row.get("created_at")
+    domain = audit.get("url", "").replace("https://", "").replace("http://", "").split("/")[0] or "unknown"
+
+    llm_prompt = generate_llm_prompt(audit)
+    html = render_template(
+        "app/pdf_report.html",
+        audit=audit,
+        domain=domain,
+        generated_at=datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC"),
+        llm_prompt=llm_prompt
+    )
+
+    pdf_buffer = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=pdf_buffer)
+    if pisa_status.err:
+        return "Failed to generate PDF", 500
+
+    pdf_buffer.seek(0)
+    safe_domain = domain.replace(".", "-")
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"fixmylanding-audit-{safe_domain}.pdf"
+    )
 
 
 @app.route('/share/<audit_id>')

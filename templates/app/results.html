@@ -49,6 +49,7 @@
     .no-blue-outline *:focus { outline: none; box-shadow: none; }
     .score-box { outline: none; box-shadow: none; }
     .blurred-text { filter: blur(6px); user-select: none; pointer-events: none; }
+
   </style>
 </head>
 <body class="min-h-screen relative">
@@ -89,7 +90,15 @@
     <button onclick="copyShareLink()" id="share-btn" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="link" class="w-4 h-4"></i> <span id="share-btn-text">Share</span></button>
     {% endif %}
     {% if not require_login %}
+    {% if limited_view %}
+    <button onclick="showExportUpgrade()" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export PDF</button>
+    {% else %}
+    {% if audit_id %}
+    <a href="/app/audits/{{ audit_id }}/pdf" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export PDF</a>
+    {% else %}
     <button onclick="window.print()" class="hidden md:flex items-center gap-2 text-gray-400 hover:text-white text-sm fm transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export PDF</button>
+    {% endif %}
+    {% endif %}
     {% endif %}
     {% if require_login %}
     <a href="/signup{% if shared_audit_id %}?shared={{ shared_audit_id }}{% endif %}" class="bg-[#fca5a5] text-black px-4 py-2 fm text-xs font-bold border-2 border-[#444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">SIGN UP TO VIEW</a>
@@ -685,34 +694,36 @@
     <section id="pricing" class="py-16 md:py-24 px-4 md:px-12 border-y border-[#333]">
     <div class="max-w-5xl mx-auto">
 
-      <h2 class="text-3xl md:text-4xl font-black mb-6 text-white">Pricing</h2>
-
-      <div class="flex items-center gap-3 mb-10">
-        <span class="font-mono text-sm font-bold text-gray-300">Monthly</span>
-      </div>
 
       <div class="grid md:grid-cols-2 gap-8 items-start">
 
-        <div class="flex flex-col justify-center">
-          <h3 class="text-3xl md:text-4xl font-black mb-4 text-white">One Simple Plan.<br>Simple Pricing.<br>All Features.</h3>
-          <p class="text-gray-400 font-medium mb-8 text-lg">
-            No confusing tiers. No hidden limits. Just everything you need to audit and optimize your landing pages.
-          </p>
+        <div class="flex flex-col justify-center items-center">
+          <h3 class="text-3xl md:text-4xl font-black mb-6 text-white text-center">One Simple Plan.<br>Simple Pricing.<br>All Features.</h3>
 
-          <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
-            <p class="text-gray-300 font-medium italic mb-4">
-              "Changed our landing page text to what was suggested and we saw an 8% conversion boost"
-            </p>
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center font-bold text-black text-sm">
-                <img src="https://ca.slack-edge.com/E09V59WQY1E-U020X4GCWSF-253b77f85aa8-192" alt="">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden w-full max-w-[240px]">
+            <video
+              class="w-full"
+              style="aspect-ratio: 9/16;"
+              src="{{ url_for('static', filename='vids/rushilreview.mp4') }}"
+              controls
+              playsinline
+              preload="metadata"
+            ></video>
+            <div class="p-3 flex items-center gap-3 border-t-2 border-[#444]">
+              <div class="w-8 h-8 border-2 border-[#444] rounded-full overflow-hidden flex-shrink-0">
+                <img src="https://ca.slack-edge.com/E09V59WQY1E-U020X4GCWSF-253b77f85aa8-192" alt="Rushil Chopra" class="w-full h-full object-cover">
               </div>
               <div>
-                <p class="font-bold text-sm text-white">Rushil Chopra</p>
-                <p class="text-gray-500 text-xs">Founder, Agathon, SF</p>
+                <p class="font-bold text-xs text-white">Rushil Chopra</p>
+                <p class="text-gray-500 text-[10px]">Founder @ Agathon · Silicon Valley</p>
               </div>
             </div>
           </div>
+          <br>
+          <p class="text-gray-400 text-xs mt-3 text-center">
+            <i data-lucide="arrow-up" class="w-3 h-3 inline-block mb-0.5 text-gray-500"></i>
+            feedback from an AI startup founder using <span class="font-black text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span></span>
+          </p>
         </div>
 
         <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
@@ -769,6 +780,22 @@
 {% endif %}
 </div>
 </main>
+{% endif %}
+
+{% if limited_view %}
+<!-- Export upgrade modal -->
+<div id="export-upgrade-modal" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" style="display:none;">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8 md:p-10 max-w-md w-full mx-4 text-center relative">
+    <button onclick="closeExportUpgrade()" class="absolute top-3 right-3 text-gray-500 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <div class="w-16 h-16 bg-[#333] border-2 border-[#444] rounded-full flex items-center justify-center mx-auto mb-5">
+      <i data-lucide="lock" class="w-8 h-8 text-[#fca5a5]"></i>
+    </div>
+    <h3 class="text-2xl font-black text-white mb-2">PDF Export is a Pro Feature</h3>
+    <p class="text-gray-400 text-sm mb-6">Upgrade to Pro to export your full audit report as a professional PDF — perfect for sharing with your team or clients.</p>
+    <a href="/billing/checkout" class="block bg-[#fca5a5] text-black py-3 font-bold border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all mb-3">Upgrade to Pro — $5/mo</a>
+    <button onclick="closeExportUpgrade()" class="text-gray-500 hover:text-white text-xs fm transition-colors">Maybe later</button>
+  </div>
+</div>
 {% endif %}
 
 {% if limited_view %}
@@ -864,6 +891,24 @@
       setTimeout(function(){t.textContent='Share';},2000);
     });
   }
+
+  window.showExportUpgrade=function(){
+    var m=document.getElementById('export-upgrade-modal');
+    if(!m)return;
+    m.style.display='flex';
+    requestAnimationFrame(function(){
+      m.classList.remove('opacity-0','pointer-events-none');
+      m.classList.add('opacity-100');
+    });
+    lucide.createIcons();
+  };
+  window.closeExportUpgrade=function(){
+    var m=document.getElementById('export-upgrade-modal');
+    if(!m)return;
+    m.classList.remove('opacity-100');
+    m.classList.add('opacity-0','pointer-events-none');
+    setTimeout(function(){m.style.display='none';},300);
+  };
 </script>
 </body>
 </html>

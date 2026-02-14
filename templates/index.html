@@ -238,6 +238,15 @@
                   <span class="text-sm font-bold text-[#fca5a5]">74</span>
                 </div>
               </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-300">Security</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-24 h-2 bg-[#333] rounded-full overflow-hidden">
+                    <div class="h-full bg-[#fca5a5] rounded-full" style="width:89%"></div>
+                  </div>
+                  <span class="text-sm font-bold text-[#fca5a5]">89</span>
+                </div>
+              </div>
             </div>
 
             <div class="text-center font-bold bg-[#fca5a5] text-black border-2 border-[#444] py-1">
@@ -506,26 +515,49 @@
 
       <div class="grid md:grid-cols-2 gap-8 items-start">
 
-        <div class="flex flex-col justify-center">
-          <h3 class="text-3xl md:text-4xl font-black mb-4 text-white">One Simple Plan.<br>Simple Pricing.<br>All Features.</h3>
-          <p class="text-gray-400 font-medium mb-8 text-lg">
-            No confusing tiers. No hidden limits. Just everything you need to audit and optimize your landing pages.
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+               flex flex-col relative">
+
+          <span class="inline-block bg-[#333] text-gray-300 px-3 py-1 border border-[#444] font-mono text-xs font-bold mb-4">FREE</span>
+          <p class="text-gray-400 font-medium mb-6">
+            Get started with a free audit. No card required.
           </p>
 
-          <div class="bg-[#2a2a2a] border-2 border-[#444] p-6">
-            <p class="text-gray-300 font-medium italic mb-4">
-              "Changed our landing page text to what was suggested and we saw an 8% conversion boost"
-            </p>
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center font-bold text-black text-sm">
-                <img src="https://ca.slack-edge.com/E09V59WQY1E-U020X4GCWSF-253b77f85aa8-192" alt="">
-              </div>
-              <div>
-                <p class="font-bold text-sm text-white">Rushil Chopra</p>
-                <p class="text-gray-500 text-xs">Founder, Agathon, SF</p>
-              </div>
-            </div>
+          <div class="text-4xl font-black mb-6 text-white">
+            <span>$0</span>
+            <span class="text-base font-medium text-gray-400"> / forever</span>
           </div>
+
+          <ul class="space-y-3 text-sm font-medium mb-8">
+            <li class="text-gray-300">&#10003; 1 full audit per month</li>
+            <li class="text-gray-300">&#10003; Conversion analysis</li>
+            <li class="text-gray-300">&#10003; SEO scoring & recommendations</li>
+            <li class="text-gray-300">&#10003; Performance & Core Web Vitals</li>
+            <li class="text-gray-300">&#10003; Accessibility compliance</li>
+            <li class="text-gray-300">&#10003; Security vulnerability scanning</li>
+            <li class="text-gray-300">&#10003; View first 3 copy suggestions</li>
+            <li class="text-gray-300">&#10003; View first issue solution</li>
+            <li class="text-gray-500 line-through">&#10007; Exportable PDF reports</li>
+            <li class="text-gray-500 line-through">&#10007; Full AI fix prompt</li>
+            <li class="text-gray-500 line-through">&#10007; View all issue solutions</li>
+            <li class="text-gray-500 line-through">&#10007; View all code patches</li>
+            <li class="text-gray-500 line-through">&#10007; Faster & Smarter AI Model</li>
+          </ul>
+
+          {% if plan == 'paid' %}
+          <div class="mt-auto block text-center bg-[#333] text-gray-500 border-2 border-[#444] py-3 font-bold font-mono text-sm cursor-not-allowed">
+           You're on Pro
+          </div>
+          {% elif plan == 'free' and user %}
+          <div class="mt-auto block text-center bg-[#333] text-green-400 border-2 border-[#444] py-3 font-bold font-mono text-sm">
+           ✓ Current Plan
+          </div>
+          {% else %}
+          <a href="/app/dashboard" class="mt-auto block text-center bg-white text-black border-2 border-[#444] py-3 font-bold
+                 brutalist-shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+           Get Started →
+          </a>
+          {% endif %}
         </div>
 
         <div class="bg-[#2a2a2a] border-2 border-[#444] p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
@@ -560,8 +592,8 @@
           </ul>
 
           {% if plan == 'paid' %}
-          <div class="mt-auto block text-center bg-[#333] text-green-400 border-2 border-[#444] py-3 font-bold fm text-sm">
-           ✓ Already on Pro
+          <div class="mt-auto block text-center bg-[#333] text-green-400 border-2 border-[#444] py-3 font-bold font-mono text-sm">
+           ✓ Current Plan
           </div>
           {% else %}
           <a href="/billing/checkout" class="nf-shimmer mt-auto block text-center bg-[#fca5a5] text-black border-2 border-[#444] py-3 font-bold

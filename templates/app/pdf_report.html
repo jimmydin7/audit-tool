@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page {
+  size: A4;
+  margin: 1.5cm 1.2cm;
+  @frame footer {
+    -pdf-frame-content: page-footer;
+    bottom: 0;
+    margin-left: 1.2cm;
+    margin-right: 1.2cm;
+    height: 1cm;
+  }
+}
+body { font-family: Helvetica; font-size: 9px; color: #1a1a1a; line-height: 1.4; background: #fff; }
+h2 { font-size: 16px; font-weight: bold; color: #111; border-bottom: 2px solid #e74c3c; padding-bottom: 4px; margin: 0 0 8px 0; }
+h3 { font-size: 11px; font-weight: bold; color: #222; margin: 6px 0 3px 0; }
+hr { border: none; border-top: 1px solid #eee; margin: 8px 0; }
+table { width: 100%; border-collapse: collapse; }
+th { background-color: #f5f5f5; font-weight: bold; font-size: 8px; text-transform: uppercase; text-align: left; padding: 4px 6px; border: 1px solid #ddd; }
+td { padding: 4px 6px; border: 1px solid #ddd; font-size: 9px; vertical-align: top; }
+.section-break { page-break-before: always; }
+.no-break { page-break-inside: avoid; }
+.cover-label { font-size: 10px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 3px; margin: 0; }
+.cover-domain { font-size: 26px; font-weight: bold; color: #111; margin: 4px 0; }
+.cover-meta { font-size: 9px; color: #666; margin-bottom: 12px; }
+.score-big { font-size: 48px; font-weight: bold; color: #111; }
+.score-sub { font-size: 11px; color: #888; }
+.grade-badge { background-color: #e74c3c; color: #fff; padding: 1px 6px; font-weight: bold; font-size: 9px; }
+.grade-green { background-color: #16a34a; color: #fff; padding: 1px 6px; font-weight: bold; font-size: 9px; }
+.grade-yellow { background-color: #d97706; color: #fff; padding: 1px 6px; font-weight: bold; font-size: 9px; }
+.cat-score { font-size: 16px; font-weight: bold; color: #111; }
+.summary-text { font-size: 9px; color: #444; margin: 4px 0 10px 0; }
+.stat-label { font-size: 7px; color: #888; text-transform: uppercase; font-weight: bold; }
+.stat-value { font-size: 13px; font-weight: bold; color: #111; }
+.sev-critical { color: #dc2626; font-weight: bold; }
+.sev-high { color: #ea580c; font-weight: bold; }
+.sev-medium { color: #d97706; font-weight: bold; }
+.sev-low { color: #2563eb; font-weight: bold; }
+.risk-low { color: #16a34a; font-weight: bold; }
+.risk-medium { color: #d97706; font-weight: bold; }
+.risk-high { color: #dc2626; font-weight: bold; }
+.risk-critical { color: #dc2626; font-weight: bold; }
+.status-passed { color: #16a34a; font-weight: bold; font-size: 8px; }
+.status-warning { color: #d97706; font-weight: bold; font-size: 8px; }
+.status-failed { color: #dc2626; font-weight: bold; font-size: 8px; }
+.code-block { background-color: #f5f5f5; padding: 3px 5px; font-family: Courier; font-size: 7px; }
+.issue-card { margin-bottom: 6px; padding: 5px 6px; border: 1px solid #ddd; }
+.prompt-block { background-color: #f5f5f5; padding: 6px 8px; font-family: Courier; font-size: 7px; border: 1px solid #ddd; line-height: 1.3; }
+.footer-text { font-size: 7px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 3px; }
+.accent { color: #e74c3c; }
+.light { color: #888; }
+.tiny { font-size: 7px; color: #999; }
+</style>
+</head>
+<body>
+
+{% set s = audit.scores | default({}) %}
+{% set overall = s.overall | default({}) %}
+{% set pw = (audit.performance | default({})).page_weight | default({}) %}
+{% set safe_total_kb = pw.total_kb if pw.total_kb else 1 %}
+{% set dur = ((audit.scan_duration_ms | default(0)) / 1000) | round(1) %}
+
+{% set ns = namespace(total=0, critical=0, high=0, medium=0, low=0, cats={}) %}
+{% for item in (audit.issues | default({})).get('items', []) if item is mapping %}
+  {% set ns.total = ns.total + 1 %}
+  {% if item.severity == 'critical' %}{% set ns.critical = ns.critical + 1 %}{% endif %}
+  {% if item.severity == 'high' %}{% set ns.high = ns.high + 1 %}{% endif %}
+  {% if item.severity == 'medium' %}{% set ns.medium = ns.medium + 1 %}{% endif %}
+  {% if item.severity == 'low' %}{% set ns.low = ns.low + 1 %}{% endif %}
+  {% if item.category %}
+    {% set ns.cats = ns.cats.update({item.category: (ns.cats.get(item.category, 0) + 1)}) or ns.cats %}
+  {% else %}
+    {% set ns.cats = ns.cats.update({'other': (ns.cats.get('other', 0) + 1)}) or ns.cats %}
+  {% endif %}
+{% endfor %}
+
+{% macro grade_badge(score) %}{% if score >= 80 %}<span class="grade-green">{{ score }}</span>{% elif score >= 60 %}<span class="grade-yellow">{{ score }}</span>{% else %}<span class="grade-badge">{{ score }}</span>{% endif %}{% endmacro %}
+
+<!-- ==================== PAGE 1: COVER ==================== -->
+
+<div style="text-align: center; margin-top: 30px;">
+  <p class="cover-label">&#9632; AUDIT REPORT</p>
+  <p class="cover-domain">{{ domain | default('Unknown') }}</p>
+  <p class="cover-meta">
+    {{ generated_at | default('N/A') }}
+    &nbsp;&bull;&nbsp; {{ dur }}s scan
+    &nbsp;&bull;&nbsp; Grade: <span class="grade-badge">{{ overall.grade | default('N/A') }}</span>
+  </p>
+</div>
+
+<div style="text-align: center; margin: 24px 0 8px 0;">
+  <span class="score-big">{{ overall.score | default(0) }}</span><span class="score-sub"> / 100</span>
+  <br><span class="score-sub">Overall Score</span>
+</div>
+
+<p class="summary-text" style="text-align: center; max-width: 420px; margin-left: auto; margin-right: auto;">{{ overall.summary | default('No summary available.') }}</p>
+
+<hr>
+
+<!-- Category scores -->
+<table>
+  <tr>
+    <th>Category</th>
+    <th style="text-align:center;">Score</th>
+    <th style="text-align:center;">Grade</th>
+    <th style="text-align:center;">&#10003;</th>
+    <th style="text-align:center;">&#10007;</th>
+    <th style="text-align:center;">&#9888;</th>
+    <th>Summary</th>
+  </tr>
+  {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility'),('security','Security')] %}
+  {% set cs = s.get(cat, {}) %}
+  <tr>
+    <td><strong>{{ label }}</strong></td>
+    <td style="text-align:center;"><span class="cat-score">{{ cs.score | default(0) }}</span></td>
+    <td style="text-align:center;">{{ grade_badge(cs.score | default(0)) }}</td>
+    <td style="text-align:center;">{{ cs.passed | default(0) }}</td>
+    <td style="text-align:center;">{{ cs.failed | default(0) }}</td>
+    <td style="text-align:center;">{{ cs.warnings | default(0) }}</td>
+    <td class="tiny">{{ cs.summary | default('') | truncate(80) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<hr>
+
+<!-- Quick stats + issue breakdown -->
+<table>
+  <tr>
+    <th>Issues Found</th>
+    <th>Page Size</th>
+    <th>CTAs</th>
+    <th>A11y</th>
+    <th style="text-align:center;">Critical</th>
+    <th style="text-align:center;">High</th>
+    <th style="text-align:center;">Medium</th>
+    <th style="text-align:center;">Low</th>
+  </tr>
+  <tr>
+    <td><span class="stat-value">{{ ns.total }}</span></td>
+    <td><span class="stat-value">{{ ((pw.total_kb | default(0)) / 1024) | round(1) }} MB</span></td>
+    <td><span class="stat-value">{{ (audit.conversion | default({})).get('cta_analysis', {}).get('total_ctas', 0) }}</span></td>
+    <td><span class="stat-value">{{ (audit.accessibility | default({})).compliance_percentage | default(0) }}%</span></td>
+    <td style="text-align:center;"><span class="sev-critical">{{ ns.critical }}</span></td>
+    <td style="text-align:center;"><span class="sev-high">{{ ns.high }}</span></td>
+    <td style="text-align:center;"><span class="sev-medium">{{ ns.medium }}</span></td>
+    <td style="text-align:center;"><span class="sev-low">{{ ns.low }}</span></td>
+  </tr>
+</table>
+
+<!-- Issue distribution by category -->
+{% if ns.cats %}
+<p style="margin-top: 6px; font-size: 8px; color: #666;">
+  <strong>By category:</strong>
+  {% for cat, count in ns.cats.items() %}
+  {{ cat | capitalize }}: {{ count }}{% if not loop.last %} &bull; {% endif %}
+  {% endfor %}
+</p>
+{% endif %}
+
+
+<!-- ==================== PAGE 2: COPY CHANGES ==================== -->
+
+<div class="section-break">
+  <h2>Copy Changes</h2>
+  <p class="summary-text">Targeted text swaps to improve clarity and conversion.</p>
+
+  {% set changes = (audit.conversion | default({})).copy_changes | default([]) %}
+  {% if changes %}
+  <table>
+    <tr>
+      <th style="width:12%;">Location</th>
+      <th style="width:30%;">Current</th>
+      <th style="width:30%;">Suggested</th>
+      <th style="width:10%;">Impact</th>
+      <th style="width:18%;">Reasoning</th>
+    </tr>
+    {% for change in changes if change is mapping %}
+    <tr class="no-break">
+      <td><strong>{{ change.location | default('—') }}</strong></td>
+      <td>"{{ change.original_text | default('') }}"</td>
+      <td class="accent"><strong>"{{ change.suggested_text | default('') }}"</strong></td>
+      <td>{{ change.expected_impact | default('—') }}</td>
+      <td class="tiny">{{ change.reasoning | default('') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>No copy changes suggested.</p>
+  {% endif %}
+
+  <!-- CTA Analysis -->
+  {% set cta = (audit.conversion | default({})).get('cta_analysis', {}) %}
+  {% if cta %}
+  <hr>
+  <h3>CTA Analysis</h3>
+  <p style="font-size: 9px;">
+    Total CTAs: <strong>{{ cta.total_ctas | default(0) }}</strong>
+    &nbsp;&bull;&nbsp; Effectiveness: <strong>{{ cta.overall_effectiveness | default('N/A') }}</strong>
+  </p>
+  {% endif %}
+</div>
+
+
+<!-- ==================== PAGE 3: ALL ISSUES ==================== -->
+
+<div class="section-break">
+  <h2>All Issues ({{ ns.total }})</h2>
+  <p class="summary-text">
+    <span class="sev-critical">{{ ns.critical }} critical</span> &bull;
+    <span class="sev-high">{{ ns.high }} high</span> &bull;
+    <span class="sev-medium">{{ ns.medium }} medium</span> &bull;
+    <span class="sev-low">{{ ns.low }} low</span>
+  </p>
+
+  {% for item in (audit.issues | default({})).get('items', []) if item is mapping %}
+  <div class="issue-card no-break">
+    <p>
+      {% if item.severity == 'critical' %}<span class="sev-critical">&#9679; CRITICAL</span>
+      {% elif item.severity == 'high' %}<span class="sev-high">&#9679; HIGH</span>
+      {% elif item.severity == 'medium' %}<span class="sev-medium">&#9679; MEDIUM</span>
+      {% elif item.severity == 'low' %}<span class="sev-low">&#9679; LOW</span>
+      {% endif %}
+      &nbsp;&nbsp;<strong>{{ item.name | default('—') }}</strong>
+      <span class="light"> — {{ item.category | default('') | capitalize }}</span>
+    </p>
+    <p class="tiny" style="margin: 2px 0;">{{ item.description | default('') }}</p>
+    {% if item.impact %}<p class="tiny"><em>Impact: {{ item.impact }}</em></p>{% endif %}
+    {% if item.solution %}<p style="color: #e74c3c; font-size: 8px; margin: 2px 0;"><strong>Fix:</strong> {{ item.solution }}</p>{% endif %}
+    {% if item.code_example %}<div class="code-block">{{ item.code_example }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+
+<!-- ==================== PAGE 4: SEO ==================== -->
+
+<div class="section-break">
+  <h2>SEO Analysis</h2>
+
+  {% set seo = s.get('seo', {}) %}
+  <p>{{ grade_badge(seo.score | default(0)) }} &nbsp; <strong>{{ seo.score | default(0) }}/100</strong></p>
+  <p class="summary-text">{{ seo.summary | default('') }}</p>
+
+  {% set seo_data = audit.seo | default({}) %}
+  {% if seo_data.elements is defined %}
+  <table>
+    <tr>
+      <th style="width:18%;">Element</th>
+      <th style="width:8%;">Status</th>
+      <th style="width:34%;">Value</th>
+      <th style="width:40%;">Recommendation</th>
+    </tr>
+    {% for key, el in (seo_data.elements | default({})).items() if el is mapping %}
+    <tr class="no-break">
+      <td><strong>{{ key | replace('_', ' ') | title }}</strong></td>
+      <td>{% if el.status == 'passed' %}<span class="status-passed">PASS</span>{% elif el.status == 'warning' %}<span class="status-warning">WARN</span>{% else %}<span class="status-failed">FAIL</span>{% endif %}</td>
+      <td class="tiny">{% if el.value is not none and el.value != true %}{{ el.value | truncate(120) }}{% elif el.value == true %}Enabled{% endif %}{% if el.get('length') %} ({{ el.length }} chars){% endif %}</td>
+      <td class="tiny">{{ el.recommendation | default('—') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+
+
+<!-- ==================== PAGE 5: PERFORMANCE ==================== -->
+
+<div class="section-break">
+  <h2>Performance Audit</h2>
+
+  {% set perf = s.get('performance', {}) %}
+  <p>{{ grade_badge(perf.score | default(0)) }} &nbsp; <strong>{{ perf.score | default(0) }}/100</strong></p>
+  <p class="summary-text">{{ (audit.performance | default({})).summary | default('') }}</p>
+
+  <h3>Resource Breakdown</h3>
+  <table>
+    <tr>
+      <th>Resource</th>
+      <th style="text-align:right;">Size</th>
+      <th style="text-align:right;">%</th>
+    </tr>
+    {% set resources = [('Images', pw.images_kb | default(0)), ('JavaScript', pw.js_kb | default(0)), ('CSS', pw.css_kb | default(0)), ('Fonts', pw.fonts_kb | default(0)), ('HTML', pw.html_kb | default(0))] %}
+    {% for name, kb in resources %}
+    <tr>
+      <td>{{ name }}</td>
+      <td style="text-align:right;">{{ kb }} KB</td>
+      <td style="text-align:right;">{{ (kb / safe_total_kb * 100) | int }}%</td>
+    </tr>
+    {% endfor %}
+    <tr style="background-color: #f5f5f5;">
+      <td><strong>Total</strong></td>
+      <td style="text-align:right;"><strong>{{ pw.total_kb | default(0) }} KB</strong></td>
+      <td style="text-align:right;"><strong>100%</strong></td>
+    </tr>
+  </table>
+
+  <!-- Performance-specific issues -->
+  {% set perf_issues = [] %}
+  {% for item in (audit.issues | default({})).get('items', []) if item is mapping and item.category == 'performance' %}
+  {% if true %}
+  <div class="issue-card no-break" style="margin-top: 4px;">
+    <p>
+      {% if item.severity == 'critical' %}<span class="sev-critical">&#9679;</span>{% elif item.severity == 'high' %}<span class="sev-high">&#9679;</span>{% elif item.severity == 'medium' %}<span class="sev-medium">&#9679;</span>{% else %}<span class="sev-low">&#9679;</span>{% endif %}
+      &nbsp;<strong>{{ item.name | default('') }}</strong>
+    </p>
+    <p class="tiny">{{ item.description | default('') }}</p>
+    {% if item.solution %}<p style="color: #e74c3c; font-size: 8px;"><strong>Fix:</strong> {{ item.solution }}</p>{% endif %}
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+
+
+<!-- ==================== PAGE 6: ACCESSIBILITY ==================== -->
+
+<div class="section-break">
+  <h2>Accessibility Audit</h2>
+
+  {% set a11y_score = s.get('accessibility', {}) %}
+  {% set a11y = audit.accessibility | default({}) %}
+  <p>{{ grade_badge(a11y_score.score | default(0)) }} &nbsp; <strong>{{ a11y_score.score | default(0) }}/100</strong> &nbsp; Compliance: <strong>{{ a11y.compliance_percentage | default(0) }}%</strong></p>
+  <p class="summary-text">{{ a11y.summary | default('') }}</p>
+
+  <table>
+    <tr>
+      <th>Area</th>
+      <th style="text-align:center;">Score</th>
+      <th>Status</th>
+      <th>Issues</th>
+    </tr>
+    {% for area, label in [('keyboard_navigation','Keyboard Navigation'),('screen_reader','Screen Reader'),('color_contrast','Color Contrast')] %}
+    {% set a = a11y.get(area, {}) %}
+    <tr class="no-break">
+      <td><strong>{{ label }}</strong></td>
+      <td style="text-align:center;">{{ a.score | default(0) }}/100</td>
+      <td>{% if a.status == 'passed' %}<span class="status-passed">PASS</span>{% elif a.status == 'needs_improvement' %}<span class="status-warning">NEEDS WORK</span>{% else %}<span class="status-failed">{{ (a.status | default('—')) | upper }}</span>{% endif %}</td>
+      <td class="tiny">{% for issue in a.issues | default([]) %}&bull; {{ issue }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% if not a.issues | default([]) %}All checks passed{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <hr>
+  <h3>Accessibility Issues</h3>
+  {% for item in (audit.issues | default({})).get('items', []) if item is mapping and item.category == 'accessibility' %}
+  <div class="issue-card no-break">
+    <p>
+      {% if item.severity == 'critical' %}<span class="sev-critical">&#9679; CRITICAL</span>{% elif item.severity == 'high' %}<span class="sev-high">&#9679; HIGH</span>{% elif item.severity == 'medium' %}<span class="sev-medium">&#9679; MEDIUM</span>{% else %}<span class="sev-low">&#9679; LOW</span>{% endif %}
+      &nbsp;&nbsp;<strong>{{ item.name | default('—') }}</strong>
+    </p>
+    <p class="tiny">{{ item.description | default('') }}</p>
+    {% if item.solution %}<p style="color: #e74c3c; font-size: 8px;"><strong>Fix:</strong> {{ item.solution }}</p>{% endif %}
+    {% if item.code_example %}<div class="code-block">{{ item.code_example }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+
+<!-- ==================== PAGE 7: SECURITY ==================== -->
+
+<div class="section-break">
+  <h2>Security Audit</h2>
+
+  {% set sec_score = s.get('security', {}) %}
+  {% set sec = audit.security | default({}) %}
+  {% set risk = sec.overall_risk | default('unknown') %}
+  <p>{{ grade_badge(sec_score.score | default(0)) }} &nbsp; <strong>{{ sec_score.score | default(0) }}/100</strong> &nbsp; Risk: <strong class="risk-{{ risk }}">{{ risk | upper }}</strong></p>
+  <p class="summary-text">{{ sec.summary | default('') }}</p>
+
+  {% set checks = sec.checks | default({}) %}
+  {% if checks %}
+  <h3>Security Checks</h3>
+  <table>
+    <tr>
+      <th style="width:20%;">Check</th>
+      <th style="width:8%;">Status</th>
+      <th style="width:35%;">Description</th>
+      <th style="width:37%;">Recommendation</th>
+    </tr>
+    {% for check_id, check in checks.items() %}
+    <tr class="no-break">
+      <td><strong>{{ check_id | replace('_', ' ') | title }}</strong></td>
+      <td>{% if check.status == 'passed' %}<span class="status-passed">PASS</span>{% elif check.status == 'warning' %}<span class="status-warning">WARN</span>{% else %}<span class="status-failed">FAIL</span>{% endif %}</td>
+      <td class="tiny">{{ check.description | default('') }}</td>
+      <td class="tiny">{{ check.recommendation | default('—') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% set vulns = sec.vulnerabilities | default([]) %}
+  {% if vulns %}
+  <hr>
+  <h3>Vulnerabilities ({{ vulns | length }})</h3>
+  {% for vuln in vulns %}
+  <div class="issue-card no-break">
+    <p>
+      {% if vuln.severity == 'critical' %}<span class="sev-critical">&#9679; CRITICAL</span>{% elif vuln.severity == 'high' %}<span class="sev-high">&#9679; HIGH</span>{% elif vuln.severity == 'medium' %}<span class="sev-medium">&#9679; MEDIUM</span>{% else %}<span class="sev-low">&#9679; LOW</span>{% endif %}
+      &nbsp;&nbsp;<strong>{{ (vuln.type | default('—')) | upper }}</strong>
+      <span class="light"> — {{ vuln.location | default('') }}</span>
+    </p>
+    <p class="tiny">{{ vuln.description | default('') }}</p>
+    {% if vuln.proof %}<div class="code-block">{{ vuln.proof }}</div>{% endif %}
+    {% if vuln.fix %}<p style="color: #e74c3c; font-size: 8px;"><strong>Fix:</strong> {{ vuln.fix }}</p>{% endif %}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- Security-category issues -->
+  <hr>
+  <h3>Security Issues</h3>
+  {% for item in (audit.issues | default({})).get('items', []) if item is mapping and item.category == 'security' %}
+  <div class="issue-card no-break">
+    <p>
+      {% if item.severity == 'critical' %}<span class="sev-critical">&#9679;</span>{% elif item.severity == 'high' %}<span class="sev-high">&#9679;</span>{% elif item.severity == 'medium' %}<span class="sev-medium">&#9679;</span>{% else %}<span class="sev-low">&#9679;</span>{% endif %}
+      &nbsp;<strong>{{ item.name | default('') }}</strong>
+    </p>
+    <p class="tiny">{{ item.description | default('') }}</p>
+    {% if item.solution %}<p style="color: #e74c3c; font-size: 8px;"><strong>Fix:</strong> {{ item.solution }}</p>{% endif %}
+    {% if item.code_example %}<div class="code-block">{{ item.code_example }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+
+<!-- ==================== PAGE 8: AI FIX PROMPT ==================== -->
+
+{% if llm_prompt %}
+<div class="section-break">
+  <h2>AI Fix Prompt</h2>
+  <p class="summary-text">Auto-generated prompt based on your audit results. Paste into Claude, ChatGPT, Cursor, or your favourite AI coding tool to get fixes applied.</p>
+
+  <div class="prompt-block">{{ llm_prompt | e }}</div>
+</div>
+{% endif %}
+
+
+<!-- ==================== FOOTER ==================== -->
+
+<div id="page-footer">
+  <p class="footer-text">Generated by fixmyland.ing &nbsp;&bull;&nbsp; {{ domain | default('') }} &nbsp;&bull;&nbsp; Page <pdf:pagenumber/> of <pdf:pagecount/></p>
+</div>
+
+</body>
+</html>
