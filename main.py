@@ -166,6 +166,7 @@ def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None
             fields.append({"name": "User ID", "value": user_id, "inline": True})
         if audit_id:
             fields.append({"name": "Audit ID", "value": audit_id, "inline": True})
+            fields.append({"name": "Audit Link", "value": "https://fixmyland.ing/share/" + audit_id, "inline": True})
         if scan_cost is not None:
             fields.append({"name": "Scan Cost", "value": str(scan_cost), "inline": True})
         if duration_ms is not None:
