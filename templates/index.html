@@ -367,80 +367,761 @@
 
   <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
 
-  <section id="features" class="relative py-16 md:py-24 px-4 md:px-12 overflow-hidden">
-    <div class="max-w-6xl mx-auto">
+  <!-- ============================================ -->
+  <!-- FEATURES MEGA SECTION                        -->
+  <!-- ============================================ -->
+  <section id="features" class="relative overflow-hidden">
 
-      <div class="text-center mb-12">
-        <span class="inline-block bg-[#fca5a5] text-black px-4 py-1 font-mono text-xs font-bold mb-4">WHY FIXMYLANDING?</span>
-        <h2 class="text-3xl md:text-5xl font-black mb-4 text-white">Everything You Need to Optimize</h2>
-        <p class="text-gray-400 font-medium text-lg max-w-2xl mx-auto">
-          A complete toolkit for landing page analysis. Find every issue that's costing you conversions.
-        </p>
+    <!-- ─── FEATURE 1: SCORING & ANALYSIS ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="bar-chart-3" class="w-3 h-3 inline-block mb-0.5"></i> Instant Scoring
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              Full-page audit<br>in seconds
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              Drop in any URL and get scored across conversion, SEO, performance, accessibility, security, and domain rating. Every category gets a 0–100 score and letter grade so you know exactly where you stand.
+            </p>
+          </div>
+
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 md:p-8">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center gap-3">
+                <img src="https://www.google.com/s2/favicons?domain=notefy.pro&sz=64" class="w-7 h-7" alt="">
+                <span class="font-mono text-xs text-gray-400">notefy.pro</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="bg-[#333] text-gray-400 px-2 py-0.5 font-mono text-[10px] border border-[#444]">12.4s scan</span>
+                <span class="bg-[#333] text-gray-400 px-2 py-0.5 font-mono text-[10px] border border-[#444]">2.4 MB</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-[#1F1F1F] border-2 border-[#444] p-6 flex flex-col items-center justify-center">
+                <p class="font-mono text-[10px] text-gray-500 uppercase mb-4">Overall Score</p>
+                <div class="relative w-32 h-32">
+                  <svg viewBox="0 0 120 120" class="w-full h-full"><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke="#333"/><circle cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke="#22c55e" stroke-dasharray="326.73" stroke-dashoffset="52.3" stroke-linecap="round" transform="rotate(-90 60 60)"/></svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-4xl font-black text-white">84</span><span class="text-xs text-gray-500 font-mono">/100</span></div>
+                </div>
+                <p class="mt-3 font-mono text-xs text-gray-500">Grade: <span class="text-white font-bold">B</span></p>
+              </div>
+              <div class="bg-[#2a2a2a] border-2 border-[#444] grid grid-cols-2 gap-0">
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between"><span class="font-mono text-[10px] uppercase text-gray-400">SEO</span><span class="font-mono text-[10px] uppercase text-green-400">A</span></div>
+                  <div class="flex items-end justify-between mt-2"><span class="text-2xl font-black text-white">92</span><span class="text-[10px] text-gray-500 font-mono">8&#10003; 1&#10007;</span></div>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between"><span class="font-mono text-[10px] uppercase text-gray-400">Conversion</span><span class="font-mono text-[10px] uppercase text-green-400">B</span></div>
+                  <div class="flex items-end justify-between mt-2"><span class="text-2xl font-black text-white">87</span><span class="text-[10px] text-gray-500 font-mono">5&#10003; 2&#10007;</span></div>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between"><span class="font-mono text-[10px] uppercase text-gray-400">Performance</span><span class="font-mono text-[10px] uppercase text-green-400">B</span></div>
+                  <div class="flex items-end justify-between mt-2"><span class="text-2xl font-black text-white">81</span><span class="text-[10px] text-gray-500 font-mono">4&#10003; 3&#10007;</span></div>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between"><span class="font-mono text-[10px] uppercase text-gray-400">Accessibility</span><span class="font-mono text-[10px] uppercase text-yellow-400">C</span></div>
+                  <div class="flex items-end justify-between mt-2"><span class="text-2xl font-black text-white">74</span><span class="text-[10px] text-gray-500 font-mono">6&#10003; 4&#10007;</span></div>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between"><span class="font-mono text-[10px] uppercase text-gray-400">Security</span><span class="font-mono text-[10px] uppercase text-green-400">B</span></div>
+                  <div class="flex items-end justify-between mt-2"><span class="text-2xl font-black text-white">89</span><span class="text-[10px] text-gray-500 font-mono">5&#10003; 1&#10007;</span></div>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between"><span class="font-mono text-[10px] uppercase text-gray-400">Domain</span><span class="font-mono text-[10px] uppercase text-green-400">B</span></div>
+                  <div class="flex items-end justify-between mt-2"><span class="text-2xl font-black text-white">85</span><span class="text-[10px] text-gray-500 font-mono">3&#10003; 1&#10007;</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">6 Categories Scored</h4>
+            <p class="text-sm text-gray-400">Conversion, SEO, Performance, Accessibility, Security, and Domain Rating. Each with a 0–100 score and letter grade.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Any URL, Instantly</h4>
+            <p class="text-sm text-gray-400">Paste any publicly accessible URL. No setup, no code snippet, no waiting. Fast results.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Sharable Reports</h4>
+            <p class="text-sm text-gray-400">Every audit generates a unique link you can share with your team, clients, or stakeholders.</p>
+          </div>
+        </div>
       </div>
-
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
-            <i data-lucide="target" class="w-6 h-6 text-black"></i>
-          </div>
-          <h3 class="text-xl font-black mb-2 text-white">Conversion Analysis</h3>
-          <p class="text-gray-400 text-sm font-medium">
-            Evaluate CTAs, headlines, form placement, trust signals, and every element that impacts your conversion rate.
-          </p>
-        </div>
-
-        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
-            <i data-lucide="search" class="w-6 h-6 text-black"></i>
-          </div>
-          <h3 class="text-xl font-black mb-2 text-white">SEO Score</h3>
-          <p class="text-gray-400 text-sm font-medium">
-            Check meta tags, heading structure, keyword usage, schema markup, and on-page SEO fundamentals.
-          </p>
-        </div>
-
-        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
-            <i data-lucide="gauge" class="w-6 h-6 text-black"></i>
-          </div>
-          <h3 class="text-xl font-black mb-2 text-white">Performance Metrics</h3>
-          <p class="text-gray-400 text-sm font-medium">
-            Measure load times, Core Web Vitals, image optimization, and resource efficiency.
-          </p>
-        </div>
-
-        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
-            <i data-lucide="accessibility" class="w-6 h-6 text-black"></i>
-          </div>
-          <h3 class="text-xl font-black mb-2 text-white">Accessibility Check</h3>
-          <p class="text-gray-400 text-sm font-medium">
-            WCAG compliance testing, color contrast, alt text, keyboard navigation, and screen reader compatibility.
-          </p>
-        </div>
-
-        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
-            <i data-lucide="smartphone" class="w-6 h-6 text-black"></i>
-          </div>
-          <h3 class="text-xl font-black mb-2 text-white">Mobile Testing</h3>
-          <p class="text-gray-400 text-sm font-medium">
-            Responsive design checks, touch targets, viewport settings, and mobile-specific UX evaluation.
-          </p>
-        </div>
-
-        <div class="nf-icon-bounce bg-[#2a2a2a] border-2 border-[#444] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-          <div class="w-12 h-12 bg-[#fca5a5] border-2 border-[#444] rounded-full flex items-center justify-center mb-4">
-            <i data-lucide="shield-alert" class="w-6 h-6 text-black"></i>
-          </div>
-          <h3 class="text-xl font-black mb-2 text-white">Security testing</h3>
-          <p class="text-gray-400 text-sm font-medium">
-            Check for hardcoded API keys, environmental variables, XSS vulnerabilities and more.
-          </p>
-        </div>
-      </div>
-
     </div>
+
+    <div class="max-w-6xl mx-auto">
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+</div>
+
+
+    <!-- ─── FEATURE 2: COPY CHANGES ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="pen-line" class="w-3 h-3 inline-block mb-0.5"></i> Copy Changes
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              Rewrite your copy<br>to convert more
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              AI-generated headline, CTA, and body text rewrites designed to improve clarity and conversion intent. See the original vs. suggested side by side with expected impact ratings.
+            </p>
+          </div>
+
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 md:p-8">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <h3 class="text-lg font-black text-white mb-2">Copy Changes to Increase Customers</h3>
+            <p class="text-sm text-gray-400 mb-5">Targeted text swaps to improve clarity and conversion intent.</p>
+            <div class="space-y-4">
+              <div class="bg-[#1F1F1F] border border-[#444] p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-mono text-[10px] uppercase text-gray-500">Headline</span>
+                  <span class="font-mono text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30">+18% conv.</span>
+                </div>
+                <div class="space-y-3">
+                  <div class="border border-[#333] p-3">
+                    <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">Current</p>
+                    <p class="text-sm text-gray-300">"Welcome to Our Platform"</p>
+                  </div>
+                  <div class="border border-[#fca5a5]/30 p-3">
+                    <p class="font-mono text-[10px] uppercase text-[#fca5a5] mb-1">Suggested</p>
+                    <p class="text-sm text-[#fca5a5]">"Ship 2x Faster: The Dev Tool Teams Actually Love"</p>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-3">More specific value prop creates urgency and social proof.</p>
+              </div>
+              <div class="bg-[#1F1F1F] border border-[#444] p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-mono text-[10px] uppercase text-gray-500">CTA Button</span>
+                  <span class="font-mono text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30">+25% clicks</span>
+                </div>
+                <div class="space-y-3">
+                  <div class="border border-[#333] p-3">
+                    <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">Current</p>
+                    <p class="text-sm text-gray-300">"Submit"</p>
+                  </div>
+                  <div class="border border-[#fca5a5]/30 p-3">
+                    <p class="font-mono text-[10px] uppercase text-[#fca5a5] mb-1">Suggested</p>
+                    <p class="text-sm text-[#fca5a5]">"Start Free Trial →"</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">AI Copy Rewrites</h4>
+            <p class="text-sm text-gray-400">Get conversion-optimized headlines, CTAs, and body copy suggestions generated by AI specifically for your page.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Expected Impact</h4>
+            <p class="text-sm text-gray-400">Each suggestion shows estimated conversion lift so you can prioritize which changes move the needle most.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Before & After</h4>
+            <p class="text-sm text-gray-400">Side-by-side comparison of your current copy vs. the suggested rewrite with reasoning for every change.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto">
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+</div>
+
+
+    <!-- ─── FEATURE 3: ISSUES & FIXES ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <!-- Left: Text -->
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="list-checks" class="w-3 h-3 inline-block mb-0.5"></i> Issues & Fixes
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              Every issue,<br>ranked by impact
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              We don't just tell you what's wrong. Every issue is ranked by severity with the exact fix. Code snippets, copy rewrites, and design suggestions you can act on immediately.
+            </p>
+          </div>
+
+          <!-- Right: Mockup — Issues Table (matches results.html All Issues section) -->
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <!-- Filter bar -->
+            <div class="px-5 py-3 border-b-2 border-[#444] flex items-center justify-between">
+              <span class="text-sm font-black text-white">All Issues (12)</span>
+              <div class="flex gap-1.5">
+                <span class="font-mono text-[10px] px-2 py-1 bg-[#fca5a5] text-black border border-[#444] font-bold">All</span>
+                <span class="font-mono text-[10px] px-2 py-1 bg-[#2a2a2a] text-red-400 border border-[#444]">Critical (2)</span>
+                <span class="font-mono text-[10px] px-2 py-1 bg-[#2a2a2a] text-orange-400 border border-[#444]">High (3)</span>
+                <span class="font-mono text-[10px] px-2 py-1 bg-[#2a2a2a] text-yellow-400 border border-[#444]">Medium (4)</span>
+              </div>
+            </div>
+            <!-- Table header -->
+            <div class="grid grid-cols-12 gap-4 px-5 py-2 border-b border-[#333] text-gray-500">
+              <div class="col-span-1 font-mono text-[10px] uppercase"></div>
+              <div class="col-span-5 font-mono text-[10px] uppercase">Issue</div>
+              <div class="col-span-3 font-mono text-[10px] uppercase">Category</div>
+              <div class="col-span-3 font-mono text-[10px] uppercase">Severity</div>
+            </div>
+            <!-- Issue rows -->
+            <div class="divide-y divide-[#333]">
+              <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center hover:bg-[rgba(252,165,165,0.04)]">
+                <div class="col-span-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span></div>
+                <div class="col-span-5"><p class="text-sm text-gray-200">Missing H1 heading tag</p></div>
+                <div class="col-span-3"><span class="font-mono text-xs text-gray-500">Seo</span></div>
+                <div class="col-span-3"><span class="font-mono text-[10px] text-red-400 uppercase font-bold">Critical</span></div>
+              </div>
+              <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center hover:bg-[rgba(252,165,165,0.04)]">
+                <div class="col-span-1"><span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span></div>
+                <div class="col-span-5"><p class="text-sm text-gray-200">CTA has low contrast ratio (2.1:1)</p></div>
+                <div class="col-span-3"><span class="font-mono text-xs text-gray-500">Conversion</span></div>
+                <div class="col-span-3"><span class="font-mono text-[10px] text-orange-400 uppercase font-bold">High</span></div>
+              </div>
+              <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center hover:bg-[rgba(252,165,165,0.04)]">
+                <div class="col-span-1"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block"></span></div>
+                <div class="col-span-5"><p class="text-sm text-gray-200">Images missing alt attributes (4)</p></div>
+                <div class="col-span-3"><span class="font-mono text-xs text-gray-500">Accessibility</span></div>
+                <div class="col-span-3"><span class="font-mono text-[10px] text-yellow-400 uppercase font-bold">Medium</span></div>
+              </div>
+              <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center hover:bg-[rgba(252,165,165,0.04)]">
+                <div class="col-span-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span></div>
+                <div class="col-span-5"><p class="text-sm text-gray-200">Add schema markup for FAQ</p></div>
+                <div class="col-span-3"><span class="font-mono text-xs text-gray-500">Seo</span></div>
+                <div class="col-span-3"><span class="font-mono text-[10px] text-blue-400 uppercase font-bold">Low</span></div>
+              </div>
+            </div>
+            <!-- Expanded fix (like results page issue detail) -->
+            <div class="border-t-2 border-[#444] px-5 py-4">
+              <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                <p class="font-mono text-[10px] text-gray-500 mb-1">Fix:</p>
+                <p class="text-xs text-[#fca5a5]">Replace the &lt;div&gt; with an &lt;h1&gt; tag to provide proper document hierarchy.</p>
+                <code class="block mt-2 font-mono text-[11px] text-gray-300 bg-[#2a2a2a] p-2 border border-[#444] whitespace-pre-wrap"><span class="text-red-400">- &lt;div class="title"&gt;Welcome&lt;/div&gt;</span>
+<span class="text-green-400">+ &lt;h1 class="title"&gt;Welcome&lt;/h1&gt;</span></code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom 3-column highlights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Priority Ranked</h4>
+            <p class="text-sm text-gray-400">Issues are sorted by severity (critical, high, medium, low) so you always know what to fix first.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Code-Level Patches</h4>
+            <p class="text-sm text-gray-400">Get actual code diffs and copy rewrites, not vague advice. Paste the fix directly into your codebase.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">50+ Best Practices</h4>
+            <p class="text-sm text-gray-400">Every page is checked against over 50 conversion, SEO, and accessibility rules based on industry standards.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto">
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+</div>
+
+
+    <!-- ─── FEATURE 4: PERFORMANCE ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <!-- Left: Text -->
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="gauge" class="w-3 h-3 inline-block mb-0.5"></i> Performance Audit
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              Know exactly<br>what's slowing you down
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              Full resource breakdown showing where every byte goes. Images, JavaScript, CSS, fonts, HTML. See exactly what to cut to make your page faster.
+            </p>
+          </div>
+
+          <!-- Right: Mockup — Performance (matches results.html Resource Breakdown) -->
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <div class="px-5 py-3 border-b border-[#444]"><span class="font-mono text-xs uppercase text-gray-400">Resource Breakdown</span></div>
+            <div class="p-5 space-y-4">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-300">Images</span>
+                  <span class="font-mono text-xs text-gray-500">892 KB (37%)</span>
+                </div>
+                <div class="w-full h-3 bg-[#333] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#fca5a5]" style="width:37%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-300">JavaScript</span>
+                  <span class="font-mono text-xs text-gray-500">645 KB (27%)</span>
+                </div>
+                <div class="w-full h-3 bg-[#333] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#fca5a5]" style="width:27%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-300">CSS</span>
+                  <span class="font-mono text-xs text-gray-500">312 KB (13%)</span>
+                </div>
+                <div class="w-full h-3 bg-[#333] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#fca5a5]" style="width:13%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-300">Fonts</span>
+                  <span class="font-mono text-xs text-gray-500">287 KB (12%)</span>
+                </div>
+                <div class="w-full h-3 bg-[#333] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#fca5a5]" style="width:12%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-300">HTML</span>
+                  <span class="font-mono text-xs text-gray-500">264 KB (11%)</span>
+                </div>
+                <div class="w-full h-3 bg-[#333] rounded-full overflow-hidden"><div class="h-full rounded-full bg-[#fca5a5]" style="width:11%"></div></div>
+              </div>
+            </div>
+            <!-- Quick stats row below (matches Quick Stats section) -->
+            <div class="grid grid-cols-3 border-t-2 border-[#444]">
+              <div class="p-4 border-r border-[#333]">
+                <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">Page Size</p>
+                <p class="text-xl font-black text-white">2.4 MB</p>
+              </div>
+              <div class="p-4 border-r border-[#333]">
+                <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">Scan Speed</p>
+                <p class="text-xl font-black text-white">12.4s</p>
+              </div>
+              <div class="p-4">
+                <p class="font-mono text-[10px] uppercase text-gray-500 mb-1">Issues</p>
+                <p class="text-xl font-black text-white">12</p>
+                <p class="text-xs text-gray-500 mt-0.5">2 critical</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom 3-column highlights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Page Weight Breakdown</h4>
+            <p class="text-sm text-gray-400">Visualize where your bytes go. JavaScript, images, CSS, fonts and find exactly what to cut.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Performance Issues</h4>
+            <p class="text-sm text-gray-400">Every performance problem listed with description, code example, and the exact fix to apply.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Quick Stats</h4>
+            <p class="text-sm text-gray-400">Page size, scan speed, issues found, CTA count, and accessibility score. All at a glance.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto">
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+</div>
+
+    <!-- ─── FEATURE 5a: SECURITY ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <!-- Left: Text -->
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="shield-check" class="w-3 h-3 inline-block mb-0.5"></i> Security
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              Catch vulnerabilities<br>before attackers do
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              Detect exposed API keys, XSS vulnerabilities, missing security headers, and CORS misconfigurations. Every issue listed with severity level and the exact fix to apply.
+            </p>
+          </div>
+
+          <!-- Right: Mockup — Security checks -->
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <div class="p-5">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="shield-alert" class="w-5 h-5 text-[#fca5a5]"></i>
+                <h3 class="text-lg font-black text-white">Security Audit</h3>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-300 font-medium">HTTPS</span>
+                    <span class="font-mono text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30 uppercase font-bold">Passed</span>
+                  </div>
+                  <p class="text-xs text-gray-500">SSL certificate valid</p>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-300 font-medium">CSP Header</span>
+                    <span class="font-mono text-[10px] px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 uppercase font-bold">Failed</span>
+                  </div>
+                  <p class="text-xs text-[#fca5a5]">Add Content-Security-Policy</p>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-300 font-medium">API Keys</span>
+                    <span class="font-mono text-[10px] px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 uppercase font-bold">Failed</span>
+                  </div>
+                  <p class="text-xs text-[#fca5a5]">Exposed key found in source</p>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-300 font-medium">XSS Protection</span>
+                    <span class="font-mono text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30 uppercase font-bold">Passed</span>
+                  </div>
+                  <p class="text-xs text-gray-500">No XSS vulnerabilities</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom 3-column highlights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Secret Detection</h4>
+            <p class="text-sm text-gray-400">Scans your page source for exposed API keys, tokens, environment variables, and hardcoded secrets.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Header Analysis</h4>
+            <p class="text-sm text-gray-400">Checks for Content Security Policy, X-Frame-Options, HSTS, and other critical security headers.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Vulnerability Scanning</h4>
+            <p class="text-sm text-gray-400">XSS, CORS issues, and missing protections. Each vulnerability listed with severity and the fix to apply.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto">
+      <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+    </div>
+
+    <!-- ─── FEATURE 5b: ACCESSIBILITY ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <!-- Left: Text -->
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="accessibility" class="w-3 h-3 inline-block mb-0.5"></i> Accessibility
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              Built for<br>everyone
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              Full WCAG compliance checks covering color contrast, keyboard navigation, screen reader support, and ARIA landmarks. See exactly where your page falls short and how to fix it.
+            </p>
+          </div>
+
+          <!-- Right: Mockup — Accessibility scores -->
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <div class="p-5">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="accessibility" class="w-5 h-5 text-[#fca5a5]"></i>
+                <span class="text-lg font-black text-white">Accessibility Audit</span>
+                <span class="ml-auto font-mono text-xs text-gray-500">74% compliant</span>
+              </div>
+              <div class="grid grid-cols-3 gap-3">
+                <div class="bg-[#1F1F1F] border border-[#444] p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-300 font-medium">Keyboard Nav</span>
+                    <span class="font-mono text-xs font-bold text-green-400">92/100</span>
+                  </div>
+                  <div class="w-full h-2 bg-[#333] rounded-full overflow-hidden"><div class="h-full rounded-full bg-green-400" style="width:92%"></div></div>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-300 font-medium">Screen Reader</span>
+                    <span class="font-mono text-xs font-bold text-yellow-400">68/100</span>
+                  </div>
+                  <div class="w-full h-2 bg-[#333] rounded-full overflow-hidden"><div class="h-full rounded-full bg-yellow-400" style="width:68%"></div></div>
+                </div>
+                <div class="bg-[#1F1F1F] border border-[#444] p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-300 font-medium">Contrast</span>
+                    <span class="font-mono text-xs font-bold text-green-400">85/100</span>
+                  </div>
+                  <div class="w-full h-2 bg-[#333] rounded-full overflow-hidden"><div class="h-full rounded-full bg-green-400" style="width:85%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom 3-column highlights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">WCAG Compliance</h4>
+            <p class="text-sm text-gray-400">Full accessibility audit covering contrast ratios, alt text, ARIA attributes, and landmark regions.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Keyboard Navigation</h4>
+            <p class="text-sm text-gray-400">Ensures every interactive element is reachable and usable without a mouse.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Screen Reader Support</h4>
+            <p class="text-sm text-gray-400">Validates semantic HTML, ARIA labels, and reading order for assistive technology users.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="max-w-6xl mx-auto">
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+</div>
+
+    <!-- ─── FEATURE 6: DOMAIN RATING ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="globe" class="w-3 h-3 inline-block mb-0.5"></i> Domain Rating
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              Understand your<br>domain authority
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              AI-generated domain authority analysis covering your backlink profile, trust signals, competitive positioning, and actionable recommendations to improve your domain's credibility and search ranking.
+            </p>
+          </div>
+
+          <!-- Right: Mockup — Domain Rating (matches results.html Domain Rating section) -->
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 md:p-8">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <div class="flex items-center gap-2 mb-4">
+              <i data-lucide="globe" class="w-5 h-5 text-[#fca5a5]"></i>
+              <h3 class="text-xl font-black text-white">Domain Rating</h3>
+            </div>
+            <p class="text-sm text-gray-300 leading-relaxed mb-5">
+              notefy.pro has a memorable and professional domain, suitable for a tech-focused service dealing with meeting management. The use of '.pro' indicates a professional offering, which can enhance trust among potential users. Moreover, the name is clear and concise, aligning well with its purpose. However, being a newer domain, it may take time to build authority and brand recognition compared to more established competitors. The domain is also somewhat limited in terms of keyword specificity; while it suggests professionalism in productivity, it does not explicitly highlight its unique service propositions. Therefore, strong marketing strategies would be crucial in establishing its position in the competitive landscape.
+            </p>
+
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Backlink Profile</h4>
+            <p class="text-sm text-gray-400">See how many referring domains link to your page, and whether they're high-authority, follow, or nofollow links.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Trust Signals</h4>
+            <p class="text-sm text-gray-400">Domain age, SSL, WHOIS data, and social proof indicators that search engines use to gauge your site's credibility.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Competitive Positioning</h4>
+            <p class="text-sm text-gray-400">AI-generated analysis of where you stand relative to competitors and actionable steps to improve your domain authority.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="max-w-6xl mx-auto">
+  <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+</div>
+
+    <!-- ─── FEATURE 7a: SEO ANALYSIS ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <!-- Left: Text -->
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="search" class="w-3 h-3 inline-block mb-0.5"></i> SEO Analysis
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              Every SEO element.<br>Checked and graded.
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              Complete SEO audit covering title tags, meta descriptions, headings, schema markup, canonicals, and Open Graph tags. Each element checked with status and recommendation.
+            </p>
+          </div>
+
+          <!-- Right: Mockup — SEO Analysis (matches results.html SEO section) -->
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <div class="px-5 py-3 border-b border-[#444]">
+              <span class="font-mono text-xs uppercase text-gray-400">SEO Analysis</span>
+            </div>
+            <div class="divide-y divide-[#333]">
+              <!-- Title Tag — Passed -->
+              <div class="px-5 py-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                    <span class="font-mono text-xs uppercase text-gray-300">Title Tag</span>
+                  </div>
+                  <span class="font-mono text-[10px] uppercase text-green-400">Passed</span>
+                </div>
+                <p class="font-mono text-xs text-gray-500 mb-1 break-all">Notefy | AI Meeting Notes & Action Items</p>
+                <p class="text-xs text-gray-500">42 characters</p>
+              </div>
+              <!-- Meta Description — Warning -->
+              <div class="px-5 py-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-500 flex-shrink-0"></span>
+                    <span class="font-mono text-xs uppercase text-gray-300">Meta Description</span>
+                  </div>
+                  <span class="font-mono text-[10px] uppercase text-yellow-400">Warning</span>
+                </div>
+                <p class="font-mono text-xs text-gray-500 mb-1 break-all">Notefy transforms your meetings into actionable notes.</p>
+                <p class="text-xs text-gray-500">52 characters</p>
+                <p class="text-xs text-gray-400 mt-2">Meta descriptions between 120 and 160 characters perform best in search results.</p>
+                <div class="mt-3 bg-[#1F1F1F] border border-[#444] p-3">
+                  <p class="font-mono text-[10px] text-gray-500 mb-1">Recommendation:</p>
+                  <p class="text-xs text-[#fca5a5]">Expand to 120+ characters. Include your primary keyword and a clear call to action.</p>
+                </div>
+              </div>
+              <!-- H1 Tag — Failed -->
+              <div class="px-5 py-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0"></span>
+                    <span class="font-mono text-xs uppercase text-gray-300">H1 Tag</span>
+                  </div>
+                  <span class="font-mono text-[10px] uppercase text-red-400">Failed</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Every page needs exactly one H1 tag for proper document hierarchy and search engine indexing.</p>
+                <div class="mt-3 bg-[#1F1F1F] border border-[#444] p-3">
+                  <p class="font-mono text-[10px] text-gray-500 mb-1">Recommendation:</p>
+                  <p class="text-xs text-[#fca5a5]">Add a single H1 tag containing your primary keyword. Replace the existing div with an h1 element.</p>
+                </div>
+              </div>
+              <!-- Image Alt Text — Warning -->
+              <div class="px-5 py-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-500 flex-shrink-0"></span>
+                    <span class="font-mono text-xs uppercase text-gray-300">Image Alt Text</span>
+                  </div>
+                  <span class="font-mono text-[10px] uppercase text-yellow-400">Warning</span>
+                </div>
+                <p class="text-xs text-gray-500">3/7 images have alt text</p>
+                <div class="mt-3 bg-[#1F1F1F] border border-[#444] p-3">
+                  <p class="font-mono text-[10px] text-gray-500 mb-1">Recommendation:</p>
+                  <p class="text-xs text-[#fca5a5]">Add descriptive alt text to all images for accessibility and image search rankings.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom 3-column highlights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Meta Tag Analysis</h4>
+            <p class="text-sm text-gray-400">Title, description, and Open Graph tags checked for length, relevance, and best practices.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Heading Structure</h4>
+            <p class="text-sm text-gray-400">Validates H1 through H6 hierarchy, ensuring proper document outline for search engines.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Schema and Canonicals</h4>
+            <p class="text-sm text-gray-400">Checks for structured data markup and canonical URL configuration.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto">
+      <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0;">
+    </div>
+
+    <!-- ─── FEATURE 7b: AI FIX PROMPT ─── -->
+    <div class="py-16 md:py-28 px-4 md:px-12">
+      <div class="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10 md:gap-16 items-center">
+          <!-- Left: Text -->
+          <div>
+            <span class="inline-block bg-[#fca5a5] text-black px-3 py-1 border border-[#444] font-mono text-[10px] font-bold uppercase mb-5">
+              <i data-lucide="sparkles" class="w-3 h-3 inline-block mb-0.5"></i> AI Fix Prompt
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-5">
+              One prompt.<br>Every fix applied.
+            </h2>
+            <p class="text-sm md:text-base text-gray-400 max-w-[450px] leading-relaxed font-poppins">
+              Auto generated prompt based on your audit results. Paste it into Claude, Cursor, or your favourite AI tool and get a fully fixed version of your website.
+            </p>
+          </div>
+
+          <!-- Right: Mockup — AI Fix Prompt -->
+          <div class="relative bg-[#2a2a2a] border-2 border-[#444] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 md:p-8">
+            <span class="absolute top-3 right-3 bg-[#fca5a5] text-black font-mono text-[9px] font-bold uppercase px-2 py-0.5 border border-[#444] z-10">Example</span>
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-black text-white flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-[#fca5a5]"></i> AI Fix Prompt</h3>
+                <button class="flex items-center gap-2 text-gray-400 text-sm font-mono"><i data-lucide="copy" class="w-4 h-4"></i> Copy</button>
+              </div>
+              <p class="text-xs text-gray-400 mb-3">Paste into Claude, Cursor, or any AI tool.</p>
+              <pre class="bg-[#1F1F1F] border border-[#444] p-4 font-mono text-[11px] text-gray-300 whitespace-pre-wrap overflow-hidden max-h-32 leading-relaxed">You are a frontend developer. Fix the following issues found on acme-startup.com:
+
+1. [CRITICAL] Add an H1 heading tag
+   - Replace &lt;div class="title"&gt; with &lt;h1&gt;
+   
+2. [HIGH] Improve CTA contrast ratio
+   - Change button background to #1a1a2e
+   
+3. [HIGH] Remove exposed API key
+   - Move sk_live_4eC39H to env variable...</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom 3-column highlights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">One Click AI Prompt</h4>
+            <p class="text-sm text-gray-400">Copy the entire prompt with all issues, fixes, copy changes, and code patches. Paste into any AI tool to fix everything.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Context Aware Fixes</h4>
+            <p class="text-sm text-gray-400">Every fix includes the exact file, line number, and code change needed. No guessing required.</p>
+          </div>
+          <div class="bg-[#2a2a2a] border-2 border-[#444] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h4 class="text-sm font-black text-white mb-1.5">Works With Any AI Tool</h4>
+            <p class="text-sm text-gray-400">Compatible with Claude, ChatGPT, Cursor, Copilot, and any other AI coding assistant.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <hr style="border: 2px solid #333; height: 10px; background-color: #fca5a5; margin: 0px;">
