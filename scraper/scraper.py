@@ -771,7 +771,7 @@ If no security evidence is found at all:
 
 - Set "security.summary" to explain that no client-side evidence was found
 - Set "overall_risk" conservatively (e.g., "unknown" or "low")
-- Leave security.checks as an empty object {}
+- Leave security.checks as an empty object 
 - Leave vulnerabilities as []
 
 Never fabricate findings to populate fields.
