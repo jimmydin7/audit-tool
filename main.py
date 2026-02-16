@@ -9,7 +9,7 @@ import threading
 import uuid
 #import time
 #from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import stripe
 import requests
 
@@ -31,6 +31,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
+app.permanent_session_lifetime = timedelta(days=30)
 public_base_url = os.environ.get("PUBLIC_SITE_URL") or os.environ.get("APP_BASE_URL")
 STRIPE_SECRET = os.environ.get("STRIPE_SECRET")
 STRIPE_PUBLISHABLE = os.environ.get("STRIPE_PUBLISHABLE")
@@ -509,6 +510,7 @@ def auth_callback():
         )
         name_parts = full_name.split() if full_name else []
 
+        session.permanent = True
         session['user'] = {
             "id": user.id,
             "email": user.email,
