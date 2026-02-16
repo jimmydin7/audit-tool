@@ -642,13 +642,16 @@ def generate_llm_prompt(audit_json):
 
 def _build_audit_prompt(html: str, url: str, current_date: str) -> str:
     return f"""
-You are a professional website auditing engine performing a strict, evidence-based evaluation.
+You are an advanced website auditing engine.
+Today's date is: {current_date}
 
-Today's date: {current_date}
-Target URL: {url}
+Analyze the HTML source of this website:
+URL: {url}
 
-You will analyze the provided HTML source and return a JSON object that EXACTLY matches the structure and nesting of the provided EXAMPLE_JSON schema.
+You MUST return a JSON object that MATCHES the STRUCTURE and DEPTH of the example below.
+Fill it with realistic scores, issues, explanations, and recommendations.
 
+RULES:
 ====================
 OUTPUT REQUIREMENTS
 ====================
@@ -664,118 +667,29 @@ OUTPUT REQUIREMENTS
 - All values must reflect the actual HTML.
 - Be critical, direct, and evidence-based.
 - Do not assume or fabricate facts not visible in the HTML.
-
-====================
-SCORING RULES
-====================
-
-- All scores must be real numbers between 0 and 100.
-- Do not default to 0 unless clearly justified.
-- The "grade" field must be a single letter: A, B, C, D, or F.
-- Issues.total must equal the length of issues.items.
-- Severity counts must exactly match the distribution inside issues.items.
-
-====================
-ISSUE REQUIREMENTS
-====================
-
-- Include at least 8 issues across categories.
-- Include security issues ONLY if clearly supported by HTML evidence.
-- NEVER speculate about server headers, backend configs, or runtime behavior not visible in the HTML.
-- If a security issue is not provable from the HTML source, DO NOT include it.
-- Do not invent vulnerabilities.
-- Each issue must include: category, severity, title, explanation, impact, recommendation.
-- Explanations must reference observable HTML evidence where applicable.
-
-====================
-SECURITY OUTPUT RULES (CRITICAL)
-====================
-
-Security checks must be evidence-based and conditional.
-
-DO NOT assume anything about:
-- HTTP headers (CSP, X-Frame-Options, etc.)
-- Server configuration
-- Backend validation
-- Runtime sanitization
-- Cookie flags
-- HTTPS enforcement
-- CSRF protection unless visible in HTML
-
-These cannot be determined from raw HTML alone.
-
---------------------------------
-
-ONLY include a security check entry if:
-
-1. There is CLEAR, DIRECT evidence in the HTML source.
-2. The issue is provable from visible markup or inline scripts.
-3. You can reference the exact HTML pattern causing it.
-
---------------------------------
-
-DO NOT:
-
-- Mark a check as "passed" unless HTML explicitly proves it.
-- Fill every check automatically.
-- Fabricate missing headers.
-- Infer backend protection.
-- Include speculative vulnerabilities.
-- Include theoretical risks without visible proof.
-
---------------------------------
-
-If something cannot be verified from HTML:
-
-- DO NOT include it in security.checks.
-- DO NOT mark it as passed.
-- DO NOT mark it as failed.
-- Simply omit it entirely.
-
---------------------------------
-
-security.checks must only contain checks that are:
-
-- Actually observable in the HTML
-- Clearly provable
-- Supported by direct evidence
-
---------------------------------
-
-Allowed examples of valid, provable findings:
-
-✓ Inline script using innerHTML with user-controlled input  
-✓ Exposed API keys in script tags  
-✓ CDN scripts without integrity attributes  
-✓ Visible console.log in production  
-✓ Hardcoded tokens in source  
-✓ Source map references  
-✓ localStorage usage for auth tokens (visible in JS)  
-✓ HTTP asset loaded on HTTPS page (mixed content)  
-
---------------------------------
-
-security.vulnerabilities must only be included if:
-
-- A reproducible proof exists from the HTML
-- A concrete exploit vector is visible
-- The proof can be demonstrated directly from markup
-
-If no provable vulnerability exists, return:
-
-"vulnerabilities": []
-
---------------------------------
-
-If no security evidence is found at all:
-
-- Set "security.summary" to explain that no client-side evidence was found
-- Set "overall_risk" conservatively (e.g., "unknown" or "low")
-- Leave security.checks as an empty object 
-- Leave vulnerabilities as []
-
-Never fabricate findings to populate fields.
-
+- Fill EVERYTHING in the json with REAL data from the HTML analysis
+- NEVER copy the example values verbatim — every value must reflect the actual page
+- The grade field must be a single letter (A, B, C, D, or F) — NEVER output "A-F"
+- All scores must be real numbers (0-100) based on your analysis — NEVER leave them as 0 unless truly warranted
+- No markdown
+- No commentary
+- No extra keys
+- Match the nesting and intent of the example
+- Populate every field with realistic values (avoid empty strings/arrays unless truly no data).
+- If a list can have items, include at least 3 items.
+- Ensure conversion.copy_changes has 10+ entries.
+- Ensure issues.items has 8+ entries spanning all categories and severities.
+- Ensure issues.total and severity counts match issues.items.
+- Never mention AI or "AI-powered" in any copy suggestions; be informative and conversion-focused.
+- Make copy_changes cover most of the page: hero, subheadline, primary CTA, features, paragraphs, social proof, pricing, FAQ, footer, and more.
+- Don't fill ANYTHING randomly
+- Be brutally honest
+- Never use em dashes on copy suggestions
+- Make copy_changes cover bigger parts of text as well (paragraphs) not only headlines, and make sure there are many suggestions for different parts of the website to increase conversion.
+- Include a "domain_rating" field: a single paragraph (120-180 words) evaluating the domain name based on trust/professionalism, memorability, brand strength, and SEO/market fit. Be honest but constructive, as if advising a founder before launch. Do NOT use bullet points.
+- Ensure security checks cover: CSP headers, XSS vectors, sensitive data exposure, dependency/script safety (SRI), clickjacking protection, insecure storage, form security, open redirects, mixed content, and debug artifacts.
+- Include security issues in the issues.items array with category "security".
+- Be thorough about security: check for exposed API keys, tokens, env variables in HTML source, inline scripts with dynamic values, missing integrity attributes on CDN scripts, localStorage usage for auth, console.log in production, source maps, and open redirect vectors.
 
 ====================
 COPY & CONVERSION REQUIREMENTS
@@ -807,44 +721,14 @@ copy_changes requirements:
 - Do not invent unsupported claims
 - Keep tone aligned with original brand positioning
 
-====================
-DOMAIN RATING REQUIREMENT
-====================
 
-Include a "domain_rating" field:
-- 120 to 180 words
-- Single paragraph
-- No bullet points
-- Evaluate:
-  - Trust and professionalism
-  - Memorability
-  - Brand strength
-  - SEO and market positioning
-- Honest but constructive
-- Written as if advising a founder pre-launch
-
-====================
-QUALITY CONTROL
-====================
-
-- Avoid empty arrays unless absolutely necessary.
-- If a list can contain items, include at least 3.
-- Ensure internal consistency.
-- Do not fill anything randomly.
-- Base all findings strictly on the HTML provided.
-- If something cannot be verified from the HTML, do not state it.
-
-====================
-SCHEMA REFERENCE
-====================
-
+EXAMPLE JSON (schema reference):
 {EXAMPLE_JSON}
 
-====================
-HTML SOURCE
-====================
-
+HTML SOURCE:
+----------------
 {html}
+----------------
 """
 
 
