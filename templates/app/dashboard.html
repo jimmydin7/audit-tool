@@ -191,8 +191,16 @@
     </nav>
   </div>
 
-  <!-- Bottom section: Scans + User Info -->
+  <!-- Bottom section: Action Buttons + Scans + User Info -->
   <div class="mt-auto">
+    <!-- Action Buttons -->
+    <div class="px-4 pb-3">
+      <button onclick="openFeatureModal()" class="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold font-mono bg-[#1F1F1F] text-gray-300 border border-[#444] rounded hover:bg-[#333] hover:text-white transition-colors">
+        <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
+        Suggest feature
+      </button>
+    </div>
+
     <!-- Scan Usage -->
     <div class="px-4 pb-3">
       {% set used = month_count or 0 %}
@@ -489,6 +497,25 @@
     </div>
   </footer>
 
+  <!-- Feature Suggestion Modal -->
+  <div id="feature-modal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-black/60" onclick="closeFeatureModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-[#2a2a2a] border-2 border-[#444] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-black text-white">Suggest a Feature</h3>
+        <button onclick="closeFeatureModal()" class="w-8 h-8 flex items-center justify-center border border-[#444] bg-[#333] hover:bg-[#444] transition-colors">
+          <i data-lucide="x" class="w-4 h-4 text-gray-300"></i>
+        </button>
+      </div>
+      <p class="text-sm text-gray-400 mb-4">What feature would you like to see in FixMyLanding?</p>
+      <textarea id="feature-text" rows="4" placeholder="Describe the feature you'd like..." class="w-full bg-[#1F1F1F] border-2 border-[#444] text-white text-sm p-3 placeholder-gray-500 outline-none resize-none focus:border-[#fca5a5] transition-colors"></textarea>
+      <div id="feature-msg" class="text-sm mt-2 hidden"></div>
+      <button id="feature-submit" onclick="submitFeature()" class="mt-4 w-full bg-[#fca5a5] text-black py-2.5 font-bold text-sm border-2 border-[#444] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+        Submit
+      </button>
+    </div>
+  </div>
+
   <script>
     lucide.createIcons();
 
@@ -533,6 +560,57 @@
     if (overlay) {
       overlay.addEventListener('click', closeSidebar);
     }
+    function openFeatureModal() {
+      document.getElementById('feature-modal').classList.remove('hidden');
+      document.getElementById('feature-text').value = '';
+      const msg = document.getElementById('feature-msg');
+      msg.classList.add('hidden');
+      msg.textContent = '';
+      document.getElementById('feature-submit').disabled = false;
+      document.getElementById('feature-submit').textContent = 'Submit';
+    }
+    function closeFeatureModal() {
+      document.getElementById('feature-modal').classList.add('hidden');
+    }
+    function submitFeature() {
+      const text = document.getElementById('feature-text').value.trim();
+      const msg = document.getElementById('feature-msg');
+      const btn = document.getElementById('feature-submit');
+      if (!text) {
+        msg.textContent = 'Please describe the feature you want.';
+        msg.className = 'text-sm mt-2 text-red-400';
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      btn.classList.add('opacity-60', 'cursor-not-allowed');
+      fetch('/api/suggest-feature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feature: text })
+      }).then(r => r.json()).then(data => {
+        if (data.success) {
+          msg.textContent = 'Thanks! Your suggestion has been submitted.';
+          msg.className = 'text-sm mt-2 text-green-400';
+          btn.textContent = 'Submitted ✓';
+          document.getElementById('feature-text').value = '';
+          setTimeout(closeFeatureModal, 1500);
+        } else {
+          msg.textContent = data.error || 'Something went wrong. Please try again.';
+          msg.className = 'text-sm mt-2 text-red-400';
+          btn.disabled = false;
+          btn.textContent = 'Submit';
+          btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+      }).catch(() => {
+        msg.textContent = 'Something went wrong. Please try again.';
+        msg.className = 'text-sm mt-2 text-red-400';
+        btn.disabled = false;
+        btn.textContent = 'Submit';
+        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+      });
+    }
+
     const auditSearch = document.getElementById('audit-search');
     if (auditSearch) {
       auditSearch.addEventListener('input', (event) => {

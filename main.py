@@ -7,20 +7,22 @@ from urllib.parse import urlparse
 from scraper.scraper import analyze, generate_llm_prompt, ScrapeError
 import threading
 import uuid
-#import time
-#from collections import deque
+import time
+from collections import deque
 from datetime import datetime, timezone, timedelta
 import stripe
 import requests
 
 
 AUDIT_JOBS = {}
+FEATURE_SUGGEST_TIMES = {}
 #RATE_LIMITS = {}
 #RATE_LIMIT_WINDOW_SEC = 60
 #RATE_LIMIT_MAX_REQUESTS = 5
 SCAN_LIMITS = {"free": 1, "paid": 15}
 DISCORD_CONTACT_WEBHOOK = "https://discord.com/api/webhooks/1470306076694941719/ClTudUO8_Lu_I40i1t0P51oMcKcVtxzSlmdPUF-cy7lYy9niqsvZ4MNRaVQqw0JGpLYL"
 DISCORD_SCAN_WEBHOOK = "https://discord.com/api/webhooks/1470306210036318231/LVGfUqdLSniOKg3Cg3Udzb_q4dkuURHPXxZ0KwiyIMefUcahmUizPmb2NgHDITTQ52Xc"
+DISCORD_FEATURE_WEBHOOK = "https://discord.com/api/webhooks/1473046786997358752/3YJeqGNe5of7wykVUh-3m_JycKVmuqtP5YSIHnNqr6A7EWD3jwDSVz2_a2xDWNS_UiuT"
 
 
 load_dotenv()
@@ -436,6 +438,46 @@ def contact():
         except Exception:
             return render_template('contact.html', error="Failed to send message. Please try again.")
     return render_template('contact.html')
+
+
+@app.route('/api/suggest-feature', methods=['POST'])
+def suggest_feature():
+    user = session.get("user")
+    if not user:
+        return jsonify({"success": False, "error": "You must be logged in."}), 401
+    uid = user.get("id") or _client_ip()
+    now = time.time()
+    q = FEATURE_SUGGEST_TIMES.get(uid)
+    if q is None:
+        q = deque()
+        FEATURE_SUGGEST_TIMES[uid] = q
+    while q and now - q[0] > 3600:
+        q.popleft()
+    if len(q) >= 3:
+        return jsonify({"success": False, "error": "You can only submit 3 suggestions per hour. Try again later."}), 429
+    data = request.get_json() or {}
+    feature = (data.get("feature") or "").strip()
+    if not feature:
+        return jsonify({"success": False, "error": "Please describe the feature."}), 400
+    q.append(now)
+    name = f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or "Unknown"
+    email = user.get("email") or "Unknown"
+    try:
+        requests.post(DISCORD_FEATURE_WEBHOOK, json={
+            "embeds": [{
+                "title": "Feature Suggestion",
+                "color": 7506394,
+                "fields": [
+                    {"name": "Name", "value": name, "inline": True},
+                    {"name": "Email", "value": email, "inline": True},
+                    {"name": "Feature", "value": feature[:1024]},
+                ]
+            }]
+        }, timeout=10)
+        return jsonify({"success": True})
+    except Exception:
+        return jsonify({"success": False, "error": "Failed to send suggestion. Please try again."}), 500
+
 
 @app.route('/terms')
 def terms():

@@ -1477,7 +1477,7 @@
           </button>
           <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
             <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
-              FixMyLanding analyzes your landing page across five key areas: conversion optimization (CTAs, headlines, trust signals), SEO (meta tags, headings, keywords), performance (load speed, Core Web Vitals), accessibility (WCAG compliance, contrast, alt text), and design (visual hierarchy, typography, layout).
+              FixMyLanding scans your page across six categories: <strong class="text-gray-300">Conversion</strong> (CTAs, headlines, copy effectiveness, trust signals), <strong class="text-gray-300">SEO</strong> (title tags, meta descriptions, headings, alt text coverage), <strong class="text-gray-300">Performance</strong> (page weight, Core Web Vitals like LCP, CLS, and TBT), <strong class="text-gray-300">Accessibility</strong> (WCAG compliance, keyboard navigation, screen reader support, color contrast), <strong class="text-gray-300">Security</strong> (CSP headers, XSS vectors, exposed API keys, clickjacking protection, mixed content), and <strong class="text-gray-300">Domain Rating</strong> (brand strength, memorability, trust, and SEO fit of your domain name). You also get specific copy rewrite suggestions for your headlines, CTAs, features, and more.
             </div>
           </div>
         </div>
@@ -1492,7 +1492,7 @@
           </button>
           <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
             <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
-              Most audits complete in under 30 seconds. Complex pages with lots of resources may take up to a minute. You'll get a real-time progress indicator while the analysis runs.
+              Most audits finish in under 30 seconds. Larger or more complex pages may take up to a minute. You'll see a real-time progress indicator while the scan runs, so you'll always know when your report is ready.
             </div>
           </div>
         </div>
@@ -1507,7 +1507,7 @@
           </button>
           <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
             <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
-              Yes, you can audit any publicly accessible URL. This includes your own landing pages, competitor pages, or any page on the web. Password-protected pages are not currently supported.
+              You can audit any publicly accessible URL, including your own landing pages, competitor sites, or any page on the web. Password-protected pages and pages that block automated access (e.g., Cloudflare-protected sites) are not currently supported.
             </div>
           </div>
         </div>
@@ -1517,28 +1517,87 @@
           <button
             class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
             onclick="toggleAccordion(this)">
-            <span>Is the free audit really free?</span>
+            <span>Is the free plan really free?</span>
             <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
           </button>
           <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
             <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
-              Yes. You can run a full audit on any page completely free, no credit card required. 
+              Yes. The free plan gives you 1 audit per month with no credit card required. You'll get scores across all categories, SEO recommendations, performance metrics, and accessibility checks. Some features like full copy suggestions, all issue solutions, and the AI fix prompt are reserved for the Pro plan.
             </div>
           </div>
         </div>
-
 
         <div
           class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <button
             class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
             onclick="toggleAccordion(this)">
-            <span>Can I share the audit report?</span>
+            <span>What's included in the Pro plan?</span>
             <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
           </button>
           <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
             <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
-              Yes. You can share the audit with your team or clients using your dashboard and shared links.
+              Pro is $5/month and gives you 15 full audits per month, the ability to scan larger websites, all copy change suggestions, all issue solutions with code patches, a full AI fix prompt you can paste into any coding assistant, and a faster AI model for more detailed analysis.
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>Can I share audit reports?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              Yes. Every audit gets a unique shareable link you can send to your team, clients, or developers. Anyone with the link can view the report, though they'll need to sign in to see the full details.
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>What is the AI fix prompt?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              After an audit, Pro users get a ready-to-use prompt that contains every issue, copy change, and recommendation from the report. You can paste it directly into any coding assistant (like ChatGPT, Claude, Cursor, or Copilot) along with your source code, and it will generate the fixes for you.
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>How do I sign up?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              Just click "Log In" or "Get Started" and sign in with your Google or GitHub account. No separate registration or password needed. You can start your first audit right away.
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="nf-accordion-item border-2 border-[#444] bg-[#2a2a2a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button
+            class="w-full px-4 md:px-6 py-4 flex justify-between items-center font-bold font-mono text-base md:text-lg uppercase text-left text-gray-200"
+            onclick="toggleAccordion(this)">
+            <span>Can I cancel the Pro plan anytime?</span>
+            <i data-lucide="chevron-down" class="nf-accordion-icon shrink-0 ml-2 text-gray-400"></i>
+          </button>
+          <div class="nf-accordion-content bg-[#222] border-t-2 border-dashed border-[#444]">
+            <div class="p-4 md:p-6 text-sm md:text-base text-gray-400 font-medium font-poppins">
+              Yes. Pro is a monthly subscription you can cancel anytime from your dashboard. There are no contracts or cancellation fees. You'll keep access until the end of your billing period.
             </div>
           </div>
         </div>
