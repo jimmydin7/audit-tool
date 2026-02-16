@@ -150,7 +150,7 @@ def _format_domain(url):
     return url.replace("https://", "").replace("http://", "").split("/")[0] or "unknown"
 
 
-def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None, audit_id=None, scan_cost=None, duration_ms=None, model_used=None, user_name=None):
+def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None, audit_id=None, scan_cost=None, duration_ms=None, model_used=None, user_name=None, html_lines=None, html_chars=None):
     try:
         domain = _format_domain(url)
         title = "Audit Completed" if status == "completed" else "Audit Blocked"
@@ -176,6 +176,10 @@ def _send_scan_webhook(*, status, reason=None, url=None, user_id=None, plan=None
             fields.append({"name": "Model", "value": model_used, "inline": True})
         if user_name:
             fields.append({"name": "User", "value": user_name, "inline": True})
+        if html_lines is not None:
+            fields.append({"name": "HTML Lines", "value": f"{html_lines:,}", "inline": True})
+        if html_chars is not None:
+            fields.append({"name": "HTML Chars", "value": f"{html_chars:,}", "inline": True})
 
         requests.post(DISCORD_SCAN_WEBHOOK, json={
             "embeds": [{
@@ -203,6 +207,8 @@ def run_audit(job_id, url):
         result = analyze(url, plan=plan, on_fallback=_on_fallback)
         model_used = result.pop("_model_used", None)
         scan_cost = result.pop("_scan_cost", 1)
+        html_lines = result.pop("_html_lines", None)
+        html_chars = result.pop("_html_chars", None)
         upgrade_required = (result.get("metadata") or {}).get("upgrade_required", False)
         model_limit = (result.get("metadata") or {}).get("model_limit", False)
         audit_id = None
@@ -247,7 +253,9 @@ def run_audit(job_id, url):
             scan_cost=scan_cost,
             duration_ms=result.get("scan_duration_ms"),
             model_used=model_used,
-            user_name=user_name
+            user_name=user_name,
+            html_lines=html_lines,
+            html_chars=html_chars
         )
     except ScrapeError as e:
         AUDIT_JOBS[job_id]["status"] = "error"

@@ -752,10 +752,14 @@ def analyze(url, plan="free", on_fallback=None):
     import time
     start_time = time.monotonic()
     html_code = scrape(url)
+    html_line_count = html_code.count('\n') + 1
+    html_char_count = len(html_code)
 
     def _with_duration(audit):
         elapsed_ms = int((time.monotonic() - start_time) * 1000)
         audit["scan_duration_ms"] = elapsed_ms
+        audit["_html_lines"] = html_line_count
+        audit["_html_chars"] = html_char_count
         return audit
 
     # Both free and paid try gpt-4o-mini first
