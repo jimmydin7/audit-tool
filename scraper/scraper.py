@@ -642,49 +642,147 @@ def generate_llm_prompt(audit_json):
 
 def _build_audit_prompt(html: str, url: str, current_date: str) -> str:
     return f"""
-You are an advanced website auditing engine.
-Today's date is: {current_date}
+You are a professional website auditing engine performing a strict, evidence-based evaluation.
 
-Analyze the HTML source of this website:
-URL: {url}
+Today's date: {current_date}
+Target URL: {url}
 
-You MUST return a JSON object that MATCHES the STRUCTURE and DEPTH of the example below.
-Fill it with realistic scores, issues, explanations, and recommendations.
+You will analyze the provided HTML source and return a JSON object that EXACTLY matches the structure and nesting of the provided EXAMPLE_JSON schema.
 
-RULES:
-- Output ONLY valid JSON
-- Fill EVERYTHING in the json with REAL data from the HTML analysis
-- NEVER copy the example values verbatim — every value must reflect the actual page
-- The grade field must be a single letter (A, B, C, D, or F) — NEVER output "A-F"
-- All scores must be real numbers (0-100) based on your analysis — NEVER leave them as 0 unless truly warranted
-- No markdown
-- No commentary
-- No extra keys
-- Match the nesting and intent of the example
-- Populate every field with realistic values (avoid empty strings/arrays unless truly no data).
-- If a list can have items, include at least 3 items.
-- Ensure conversion.copy_changes has 10+ entries.
-- Ensure issues.items has 8+ entries spanning all categories and severities.
-- Ensure issues.total and severity counts match issues.items.
-- Never mention AI or "AI-powered" in any copy suggestions; be informative and conversion-focused.
-- Make copy_changes cover most of the page: hero, subheadline, primary CTA, features, paragraphs, social proof, pricing, FAQ, footer, and more.
-- Don't fill ANYTHING randomly
-- Be brutally honest
-- Never use em dashes on copy suggestions
-- Make copy_changes cover bigger parts of text as well (paragraphs) not only headlines, and make sure there are many suggestions for different parts of the website to increase conversion.
-- Include a "domain_rating" field: a single paragraph (120-180 words) evaluating the domain name based on trust/professionalism, memorability, brand strength, and SEO/market fit. Be honest but constructive, as if advising a founder before launch. Do NOT use bullet points.
-- Ensure security checks cover: CSP headers, XSS vectors, sensitive data exposure, dependency/script safety (SRI), clickjacking protection, insecure storage, form security, open redirects, mixed content, and debug artifacts.
-- Include security issues in the issues.items array with category "security".
-- Be thorough about security: check for exposed API keys, tokens, env variables in HTML source, inline scripts with dynamic values, missing integrity attributes on CDN scripts, localStorage usage for auth, console.log in production, source maps, and open redirect vectors.
+====================
+OUTPUT REQUIREMENTS
+====================
 
-EXAMPLE JSON (schema reference):
+- Output ONLY valid raw JSON.
+- No markdown.
+- No commentary.
+- No extra keys.
+- No schema changes.
+- No trailing commas.
+- Every field must be populated.
+- Never copy example values.
+- All values must reflect the actual HTML.
+- Be critical, direct, and evidence-based.
+- Do not assume or fabricate facts not visible in the HTML.
+
+====================
+SCORING RULES
+====================
+
+- All scores must be real numbers between 0 and 100.
+- Do not default to 0 unless clearly justified.
+- The "grade" field must be a single letter: A, B, C, D, or F.
+- Issues.total must equal the length of issues.items.
+- Severity counts must exactly match the distribution inside issues.items.
+
+====================
+ISSUE REQUIREMENTS
+====================
+
+- Include at least 8 issues across categories.
+- Include security issues ONLY if clearly supported by HTML evidence.
+- NEVER speculate about server headers, backend configs, or runtime behavior not visible in the HTML.
+- If a security issue is not provable from the HTML source, DO NOT include it.
+- Do not invent vulnerabilities.
+- Each issue must include: category, severity, title, explanation, impact, recommendation.
+- Explanations must reference observable HTML evidence where applicable.
+
+====================
+SECURITY CHECK RULES
+====================
+
+Only report security issues that can be CONFIRMED directly from the HTML source.
+
+You may evaluate:
+- Inline scripts that increase XSS risk
+- Exposed API keys, tokens, secrets in HTML
+- Missing integrity attributes (SRI) on external CDN scripts
+- Visible debug artifacts (console.log, source maps)
+- localStorage/sessionStorage usage for auth tokens
+- Open redirect patterns visible in links
+- Forms missing CSRF indicators (if clearly visible)
+- Mixed content references
+- Hardcoded credentials
+
+DO NOT:
+- Assume missing CSP headers (cannot be seen in HTML)
+- Assume missing HTTP headers
+- Assume backend misconfigurations
+- Invent attack vectors
+- Flag theoretical risks without clear evidence
+
+If no concrete security issues are found in the HTML, do not fabricate them.
+
+====================
+COPY & CONVERSION REQUIREMENTS
+====================
+
+Rewrite hero headlines and titles to remove vague phrases like:
+- "AI-powered tool"
+- "All-in-one platform"
+
+Instead:
+- Be specific
+- Focus on measurable outcomes
+- Emphasize urgency
+- Lead with user benefit
+- Use clear value propositions
+- Avoid em dashes
+- Never mention AI in copy suggestions
+
+Length Constraint:
+- Rewritten copy must stay within ±20% of the original text length.
+- Do not dramatically shorten or expand content.
+- Maintain similar density and structure.
+- Preserve original intent but improve clarity and conversion strength.
+
+copy_changes requirements:
+- Minimum 10 entries
+- Cover hero, subheadline, primary CTA, features, paragraphs, pricing, FAQ, footer, social proof
+- Include paragraph-level rewrites, not only headlines
+- Do not invent unsupported claims
+- Keep tone aligned with original brand positioning
+
+====================
+DOMAIN RATING REQUIREMENT
+====================
+
+Include a "domain_rating" field:
+- 120 to 180 words
+- Single paragraph
+- No bullet points
+- Evaluate:
+  - Trust and professionalism
+  - Memorability
+  - Brand strength
+  - SEO and market positioning
+- Honest but constructive
+- Written as if advising a founder pre-launch
+
+====================
+QUALITY CONTROL
+====================
+
+- Avoid empty arrays unless absolutely necessary.
+- If a list can contain items, include at least 3.
+- Ensure internal consistency.
+- Do not fill anything randomly.
+- Base all findings strictly on the HTML provided.
+- If something cannot be verified from the HTML, do not state it.
+
+====================
+SCHEMA REFERENCE
+====================
+
 {EXAMPLE_JSON}
 
-HTML SOURCE:
-----------------
+====================
+HTML SOURCE
+====================
+
 {html}
-----------------
 """
+
 
 
 def analyze_with_ai(html: str, url: str) -> dict:
