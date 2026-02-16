@@ -243,7 +243,14 @@
     <h3 class="text-xl font-black text-white mb-2">Copy Changes to Increase Customers</h3>
     <p class="text-sm text-gray-400 mb-6">Targeted text swaps to improve clarity and conversion intent.</p>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {% for change in audit.conversion.copy_changes or [] %}
+      {% set copy_changes = audit.conversion.copy_changes if audit.conversion and audit.conversion.copy_changes else [] %}
+      {% if not copy_changes %}
+      <div class="lg:col-span-2 bg-[#1F1F1F] border border-[#444] p-6 text-center">
+        <i data-lucide="check-circle" class="w-8 h-8 text-green-400 mx-auto mb-2"></i>
+        <p class="text-sm text-gray-400">No copy changes needed — your copy looks great!</p>
+      </div>
+      {% else %}
+      {% for change in copy_changes %}
       {% if change is mapping %}
       <div class="bg-[#1F1F1F] border border-[#444] p-4">
         <div class="flex items-center justify-between mb-2">
@@ -268,18 +275,21 @@
       </div>
       {% endif %}
       {% endfor %}
+      {% endif %}
     </div>
   </div>
 </section>
 
 <!-- Quick Stats -->
 <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+  {% set cta = audit.conversion.cta_analysis if audit.conversion and audit.conversion.cta_analysis else {} %}
+  {% set a11y = audit.accessibility if audit.accessibility else {} %}
   {% set stats = [
     ('Issues Found', ns.total, ns.critical ~ ' critical'),
     ('Scan Speed', dur ~ 's', 'Time to process audit'),
-    ('Page Size', (pw.total_kb / 1024) | round(1) ~ ' MB', pw.images_kb ~ ' KB images'),
-    ('CTA Count', audit.conversion.cta_analysis.total_ctas, audit.conversion.cta_analysis.overall_effectiveness),
-    ('A11y Score', audit.accessibility.compliance_percentage ~ '%', audit.accessibility.summary)
+    ('Page Size', (pw.total_kb / 1024) | round(1) ~ ' MB', (pw.images_kb | default(0)) ~ ' KB images'),
+    ('CTA Count', cta.total_ctas | default(0), cta.overall_effectiveness | default('N/A')),
+    ('A11y Score', (a11y.compliance_percentage | default(0)) ~ '%', a11y.summary | default('N/A'))
   ] %}
   {% for label, val, sub in stats %}
   <div class="fade-up bg-[#2a2a2a] border-2 border-[#444] p-4" style="animation-delay:{{ loop.index * 0.05 }}s">
@@ -361,9 +371,16 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-2 space-y-4">
         <h3 class="text-xl font-black text-white mb-1">SEO Analysis</h3>
-        <p class="text-sm text-gray-400 mb-4">{{ audit.seo.summary }}</p>
+        <p class="text-sm text-gray-400 mb-4">{{ audit.seo.summary if audit.seo else 'N/A' }}</p>
 
-        {% for key, el in audit.seo.elements.items() if el is mapping %}
+        {% set seo_elements = audit.seo.elements if audit.seo and audit.seo.elements else {} %}
+        {% if not seo_elements %}
+        <div class="bg-[#1F1F1F] border border-[#444] p-6 text-center">
+          <i data-lucide="check-circle" class="w-8 h-8 text-green-400 mx-auto mb-2"></i>
+          <p class="text-sm text-gray-400">No SEO elements to analyze.</p>
+        </div>
+        {% else %}
+        {% for key, el in seo_elements.items() if el is mapping %}
         <div class="bg-[#2a2a2a] border-2 border-[#444]">
           <div class="px-5 py-3 border-b border-[#444] flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -393,13 +410,19 @@
           </div>
         </div>
         {% endfor %}
+        {% endif %}
       </div>
 
       <!-- SEO Checklist sidebar -->
       <div>
         <h3 class="text-xl font-black text-white mb-4">SEO Checklist</h3>
         <div class="bg-[#2a2a2a] border-2 border-[#444] divide-y divide-[#333]">
-          {% for key, el in audit.seo.elements.items() if el is mapping %}
+          {% if not seo_elements %}
+          <div class="px-4 py-6 text-center">
+            <p class="text-sm text-gray-500">No checklist items available.</p>
+          </div>
+          {% else %}
+          {% for key, el in seo_elements.items() if el is mapping %}
           <div class="px-4 py-3 flex items-center gap-3">
             {% if el.status == 'passed' %}<i data-lucide="check-circle" class="w-4 h-4 text-green-400 flex-shrink-0"></i>
             {% elif el.status == 'warning' %}<i data-lucide="alert-circle" class="w-4 h-4 text-yellow-400 flex-shrink-0"></i>
@@ -407,6 +430,7 @@
             <span class="text-sm text-gray-300">{{ key | replace('_', ' ') | title }}</span>
           </div>
           {% endfor %}
+          {% endif %}
         </div>
       </div>
     </div>
@@ -417,7 +441,7 @@
 <section class="mb-10">
   <div id="tab-performance" class="tab-c active">
     <h3 class="text-xl font-black text-white mb-1">Performance Audit</h3>
-    <p class="text-sm text-gray-400 mb-6">{{ audit.performance.summary }}</p>
+    <p class="text-sm text-gray-400 mb-6">{{ audit.performance.summary if audit.performance else 'N/A' }}</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Resource breakdown -->
@@ -441,7 +465,14 @@
       <div class="bg-[#2a2a2a] border-2 border-[#444]">
         <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Performance Issues</span></div>
         <div class="divide-y divide-[#333]">
-          {% for item in audit.issues['items'] if item is mapping and item.category == 'performance' %}
+          {% set perf_issues = audit.issues['items'] | selectattr('category', 'equalto', 'performance') | list if audit.issues['items'] else [] %}
+          {% if not perf_issues %}
+          <div class="px-5 py-6 text-center">
+            <i data-lucide="check-circle" class="w-6 h-6 text-green-400 mx-auto mb-2"></i>
+            <p class="text-sm text-gray-400">No performance issues detected.</p>
+          </div>
+          {% else %}
+          {% for item in perf_issues if item is mapping %}
           <div class="issue-row px-5 py-4 flex items-start gap-4">
             <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
             <div>
@@ -457,6 +488,7 @@
             </div>
           </div>
           {% endfor %}
+          {% endif %}
         </div>
       </div>
     </div>
@@ -467,11 +499,11 @@
 <section class="mb-10">
   <div id="tab-accessibility" class="tab-c active">
     <h3 class="text-xl font-black text-white mb-1">Accessibility Audit</h3>
-    <p class="text-sm text-gray-400 mb-6">{{ audit.accessibility.summary }} &middot; {{ audit.accessibility.compliance_percentage }}% compliant</p>
+    <p class="text-sm text-gray-400 mb-6">{{ (audit.accessibility.summary if audit.accessibility else 'N/A') }} &middot; {{ (audit.accessibility.compliance_percentage if audit.accessibility else 0) }}% compliant</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
       {% for area, label in [('keyboard_navigation','Keyboard Nav'),('screen_reader','Screen Reader'),('color_contrast','Color Contrast')] %}
-      {% set a = audit.accessibility[area] %}
+      {% set a = audit.accessibility[area] if audit.accessibility and audit.accessibility[area] else {'status': 'unknown', 'score': 0, 'issues': []} %}
       {% if a.status == 'passed' %}{% set ac = '#22c55e' %}{% elif a.status == 'needs_improvement' %}{% set ac = '#f59e0b' %}{% else %}{% set ac = '#ef4444' %}{% endif %}
       <div class="bg-[#2a2a2a] border-2 border-[#444] p-5">
         <div class="flex items-center justify-between mb-3">
@@ -491,7 +523,14 @@
       <div class="bg-[#2a2a2a] border-2 border-[#444]">
         <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Accessibility Issues</span></div>
         <div class="divide-y divide-[#333]">
-          {% for item in audit.issues['items'] if item is mapping and item.category == 'accessibility' %}
+          {% set a11y_issues = audit.issues['items'] | selectattr('category', 'equalto', 'accessibility') | list if audit.issues['items'] else [] %}
+          {% if not a11y_issues %}
+          <div class="px-5 py-6 text-center">
+            <i data-lucide="check-circle" class="w-6 h-6 text-green-400 mx-auto mb-2"></i>
+            <p class="text-sm text-gray-400">No accessibility issues detected.</p>
+          </div>
+          {% else %}
+          {% for item in a11y_issues if item is mapping %}
           <div class="issue-row px-5 py-4 flex items-start gap-4">
             <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
             <div>
@@ -512,6 +551,7 @@
             </div>
           </div>
           {% endfor %}
+          {% endif %}
         </div>
       </div>
     </div>
@@ -522,10 +562,18 @@
 <section class="mb-10">
   <div id="tab-security" class="tab-c active">
     <h3 class="text-xl font-black text-white mb-1">Security Audit</h3>
-    <p class="text-sm text-gray-400 mb-6">{{ audit.security.summary }} &middot; Risk level: <span class="font-bold {% if audit.security.overall_risk == 'low' %}text-green-400{% elif audit.security.overall_risk == 'medium' %}text-yellow-400{% else %}text-red-400{% endif %}">{{ audit.security.overall_risk | upper }}</span></p>
+    {% set sec = audit.security if audit.security else {} %}
+    <p class="text-sm text-gray-400 mb-6">{{ sec.summary | default('N/A') }} &middot; Risk level: <span class="font-bold {% if sec.overall_risk == 'low' %}text-green-400{% elif sec.overall_risk == 'medium' %}text-yellow-400{% else %}text-red-400{% endif %}">{{ (sec.overall_risk | default('unknown')) | upper }}</span></p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-      {% for check_id, check in (audit.security.checks or {}).items() %}
+      {% set sec_checks = sec.checks or {} %}
+      {% if not sec_checks %}
+      <div class="md:col-span-2 lg:col-span-3 bg-[#1F1F1F] border border-[#444] p-6 text-center">
+        <i data-lucide="shield-check" class="w-8 h-8 text-green-400 mx-auto mb-2"></i>
+        <p class="text-sm text-gray-400">No security checks were performed for this scan.</p>
+      </div>
+      {% else %}
+      {% for check_id, check in sec_checks.items() %}
       <div class="bg-[#2a2a2a] border-2 border-[#444] p-4">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm text-gray-300 font-medium">{{ check_id | replace('_', ' ') | title }}</span>
@@ -547,13 +595,14 @@
         {% endif %}
       </div>
       {% endfor %}
+      {% endif %}
     </div>
 
-    {% if audit.security.vulnerabilities %}
+    {% if sec.vulnerabilities %}
     <div class="bg-[#2a2a2a] border-2 border-[#444]">
       <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Vulnerabilities Found</span></div>
       <div class="divide-y divide-[#333]">
-        {% for vuln in audit.security.vulnerabilities %}
+        {% for vuln in sec.vulnerabilities %}
         <div class="px-5 py-4 flex items-start gap-4">
           <span class="w-2.5 h-2.5 rounded-full dot-{{ vuln.severity }} mt-1.5 flex-shrink-0"></span>
           <div>
@@ -586,7 +635,14 @@
       <div class="bg-[#2a2a2a] border-2 border-[#444]">
         <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Security Issues</span></div>
         <div class="divide-y divide-[#333]">
-          {% for item in audit.issues['items'] if item is mapping and item.category == 'security' %}
+          {% set sec_issues = audit.issues['items'] | selectattr('category', 'equalto', 'security') | list if audit.issues['items'] else [] %}
+          {% if not sec_issues %}
+          <div class="px-5 py-6 text-center">
+            <i data-lucide="shield-check" class="w-6 h-6 text-green-400 mx-auto mb-2"></i>
+            <p class="text-sm text-gray-400">No security issues detected.</p>
+          </div>
+          {% else %}
+          {% for item in sec_issues if item is mapping %}
           <div class="issue-row px-5 py-4 flex items-start gap-4">
             <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
             <div>
@@ -607,6 +663,7 @@
             </div>
           </div>
           {% endfor %}
+          {% endif %}
         </div>
       </div>
     </div>
@@ -627,6 +684,13 @@
   </div>
 
   <div class="bg-[#2a2a2a] border-2 border-[#444] overflow-hidden">
+    {% if ns.total == 0 %}
+    <div class="px-5 py-10 text-center">
+      <i data-lucide="check-circle" class="w-10 h-10 text-green-400 mx-auto mb-3"></i>
+      <p class="text-lg font-bold text-white mb-1">No issues found!</p>
+      <p class="text-sm text-gray-400">Your site passed all checks. Great job!</p>
+    </div>
+    {% else %}
     <div class="grid grid-cols-12 gap-4 px-5 py-3 border-b-2 border-[#444] text-gray-500">
       <div class="col-span-1 fm text-[10px] uppercase"></div>
       <div class="col-span-5 fm text-[10px] uppercase">Issue</div>
@@ -666,6 +730,7 @@
       <div class="col-span-2 hidden md:block"><p class="text-xs text-gray-500 line-clamp-2">{{ item.impact }}</p></div>
     </div>
     {% endfor %}
+    {% endif %}
   </div>
 </section>
 

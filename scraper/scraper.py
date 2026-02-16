@@ -688,30 +688,94 @@ ISSUE REQUIREMENTS
 - Explanations must reference observable HTML evidence where applicable.
 
 ====================
-SECURITY CHECK RULES
+SECURITY OUTPUT RULES (CRITICAL)
 ====================
 
-Only report security issues that can be CONFIRMED directly from the HTML source.
+Security checks must be evidence-based and conditional.
 
-You may evaluate:
-- Inline scripts that increase XSS risk
-- Exposed API keys, tokens, secrets in HTML
-- Missing integrity attributes (SRI) on external CDN scripts
-- Visible debug artifacts (console.log, source maps)
-- localStorage/sessionStorage usage for auth tokens
-- Open redirect patterns visible in links
-- Forms missing CSRF indicators (if clearly visible)
-- Mixed content references
-- Hardcoded credentials
+DO NOT assume anything about:
+- HTTP headers (CSP, X-Frame-Options, etc.)
+- Server configuration
+- Backend validation
+- Runtime sanitization
+- Cookie flags
+- HTTPS enforcement
+- CSRF protection unless visible in HTML
+
+These cannot be determined from raw HTML alone.
+
+--------------------------------
+
+ONLY include a security check entry if:
+
+1. There is CLEAR, DIRECT evidence in the HTML source.
+2. The issue is provable from visible markup or inline scripts.
+3. You can reference the exact HTML pattern causing it.
+
+--------------------------------
 
 DO NOT:
-- Assume missing CSP headers (cannot be seen in HTML)
-- Assume missing HTTP headers
-- Assume backend misconfigurations
-- Invent attack vectors
-- Flag theoretical risks without clear evidence
 
-If no concrete security issues are found in the HTML, do not fabricate them.
+- Mark a check as "passed" unless HTML explicitly proves it.
+- Fill every check automatically.
+- Fabricate missing headers.
+- Infer backend protection.
+- Include speculative vulnerabilities.
+- Include theoretical risks without visible proof.
+
+--------------------------------
+
+If something cannot be verified from HTML:
+
+- DO NOT include it in security.checks.
+- DO NOT mark it as passed.
+- DO NOT mark it as failed.
+- Simply omit it entirely.
+
+--------------------------------
+
+security.checks must only contain checks that are:
+
+- Actually observable in the HTML
+- Clearly provable
+- Supported by direct evidence
+
+--------------------------------
+
+Allowed examples of valid, provable findings:
+
+✓ Inline script using innerHTML with user-controlled input  
+✓ Exposed API keys in script tags  
+✓ CDN scripts without integrity attributes  
+✓ Visible console.log in production  
+✓ Hardcoded tokens in source  
+✓ Source map references  
+✓ localStorage usage for auth tokens (visible in JS)  
+✓ HTTP asset loaded on HTTPS page (mixed content)  
+
+--------------------------------
+
+security.vulnerabilities must only be included if:
+
+- A reproducible proof exists from the HTML
+- A concrete exploit vector is visible
+- The proof can be demonstrated directly from markup
+
+If no provable vulnerability exists, return:
+
+"vulnerabilities": []
+
+--------------------------------
+
+If no security evidence is found at all:
+
+- Set "security.summary" to explain that no client-side evidence was found
+- Set "overall_risk" conservatively (e.g., "unknown" or "low")
+- Leave security.checks as an empty object {}
+- Leave vulnerabilities as []
+
+Never fabricate findings to populate fields.
+
 
 ====================
 COPY & CONVERSION REQUIREMENTS
