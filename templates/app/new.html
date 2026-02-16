@@ -125,6 +125,10 @@
       if (!/^https?:\/\//i.test(value)) {
         input.value = 'https://' + value;
       }
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.innerHTML = 'Starting audit…';
+      btn.classList.add('opacity-60', 'cursor-not-allowed');
     });
   </script>
 </body>

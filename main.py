@@ -845,6 +845,11 @@ def new_audit():
         return render_template('app/new.html', user=user, error="Please enter a valid URL.")
 
     if url:
+        # Prevent duplicate scans: if user already has a running job, redirect to it
+        for existing_id, existing_job in AUDIT_JOBS.items():
+            if existing_job.get("user_id") == user["id"] and existing_job["status"] == "running":
+                return render_template('app/processing.html', user=user, url=existing_job.get("url"), job_id=existing_id)
+
         stats = _get_user_stats(user["id"])
         limit = SCAN_LIMITS.get(stats["plan"], 1)
         user_email = (user.get("email") or "").lower() if user else ""
@@ -915,6 +920,11 @@ def audit_results():
             'index',
             error="Please enter a valid URL (example: https://example.com)."
         ))
+
+    # Prevent duplicate scans: if user already has a running job, redirect to it
+    for existing_id, existing_job in AUDIT_JOBS.items():
+        if existing_job.get("user_id") == user["id"] and existing_job["status"] == "running":
+            return redirect(url_for("audit_status", job_id=existing_id))
 
     job_id = str(uuid.uuid4())
 
