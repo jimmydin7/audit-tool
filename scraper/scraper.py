@@ -675,9 +675,9 @@ BLOCKED / EMPTY PAGE CHECK
 BEFORE doing any analysis, check if the HTML looks like a real website with actual visible content.
 If the HTML is a blocked page, Cloudflare challenge, empty JavaScript shell (e.g. just a <div id="root"></div> with no content), bot protection page, or any page that does NOT contain enough real visible text/content to meaningfully audit, then return ONLY this JSON:
 
-{"EMPTYPAGE": true}
+{{"EMPTYPAGE": true}}
 
-Do NOT return the full audit JSON in that case. Only return {"EMPTYPAGE": true}.
+Do NOT return the full audit JSON in that case. Only return {{"EMPTYPAGE": true}}.
 
 Only proceed with the full audit if the HTML contains real, visible website content (headings, paragraphs, CTAs, navigation, etc.).
 
