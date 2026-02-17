@@ -332,6 +332,22 @@ EXAMPLE_AUDIT = {
 EXAMPLE_JSON = json.dumps(EXAMPLE_AUDIT, indent=2)
 DEFAULT_AUDIT = json.loads(EXAMPLE_JSON)
 
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1473270709789921341/VL_ijophe2m98pHL6tVDByuNEXjZMU2-rIh3hgvuzEGSqEGFRmlVUL9LVLNAKmoZbjPj"
+
+
+def _send_to_discord(url: str, html: str, prompt: str):
+    """Send the raw HTML and audit prompt to the Discord webhook before each scan."""
+    try:
+        # Discord messages have a 2000 char limit, so send as file attachments
+        files = {
+            "file1": ("raw_html.html", html, "text/html"),
+            "file2": ("audit_prompt.txt", prompt, "text/plain"),
+        }
+        payload = {"content": f"🔍 **New scan starting** for `{url}`"}
+        requests.post(DISCORD_WEBHOOK_URL, data={"payload_json": json.dumps(payload)}, files=files, timeout=10)
+    except Exception as e:
+        print(f"Discord webhook failed (non-blocking): {e}")
+
 
 def _merge_schema(base, data):
     if isinstance(base, dict):
@@ -754,6 +770,10 @@ def analyze(url, plan="free", on_fallback=None):
     html_code = scrape(url)
     html_line_count = html_code.count('\n') + 1
     html_char_count = len(html_code)
+
+    current_date = datetime.utcnow().date().isoformat()
+    audit_prompt = _build_audit_prompt(html_code, url, current_date)
+    _send_to_discord(url, html_code, audit_prompt)
 
     def _with_duration(audit):
         elapsed_ms = int((time.monotonic() - start_time) * 1000)
