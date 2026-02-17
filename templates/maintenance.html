@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-[#fca5a5] selection:text-black">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Down For Maintenance | FixMyLanding</title>
+  <meta name="description" content="FixMyLanding is temporarily down for maintenance.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Down For Maintenance | FixMyLanding">
+  <meta property="og:description" content="FixMyLanding is temporarily down for maintenance and will be back soon.">
+  <meta property="og:image" content="{{ url_for('static', filename='imgs/og-image.png') }}">
+  <meta property="og:image:alt" content="FixMyLanding preview">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+  <style>
+    body {
+      background: #1F1F1F;
+      color: #e5e5e5;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="relative min-h-screen flex items-center justify-center px-4">
+  <div class="paper-grid"></div>
+  <div class="noise-overlay"></div>
+
+  <main class="relative z-10 w-full max-w-2xl">
+    <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8 md:p-12 text-center rotate-[-1deg]">
+      <p class="font-mono text-[10px] uppercase tracking-widest text-gray-500 mb-3">System Status</p>
+      <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">
+        Down for maintance
+      </h1>
+      <p class="text-base md:text-lg text-gray-300 leading-relaxed max-w-xl mx-auto">
+        We are currently down for maintance and will be up soon in about 12 hours.
+      </p>
+      <div class="mt-7 inline-block bg-[#fca5a5] text-black border-2 border-[#444] px-4 py-2 font-mono text-xs uppercase tracking-wide">
+        Estimated recovery: 12 hours
+      </div>
+    </div>
+  </main>
+</body>
+</html>

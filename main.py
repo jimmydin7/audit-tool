@@ -45,6 +45,20 @@ if public_base_url and public_base_url.startswith("https://"):
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 
+def _is_down_mode_enabled() -> bool:
+    value = (os.environ.get("DOWN") or "").strip().lower()
+    return value in {"1", "true", "yes", "on"}
+
+
+@app.before_request
+def maintenance_mode_guard():
+    if not _is_down_mode_enabled():
+        return None
+    if request.endpoint == "static":
+        return None
+    return render_template("maintenance.html"), 503
+
+
 def store_post_login_redirect(target_path):
     if not target_path:
         return
