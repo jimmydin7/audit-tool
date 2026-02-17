@@ -4,7 +4,7 @@ from supabase import create_client
 import json
 import os
 from urllib.parse import urlparse
-from scraper.scraper import analyze, generate_llm_prompt, ScrapeError
+from scraper.scraper import analyze, analyze_html, generate_llm_prompt, ScrapeError
 import threading
 import uuid
 import time
@@ -207,6 +207,25 @@ def run_audit(job_id, url):
             AUDIT_JOBS[job_id]["fallback"] = True
 
         result = analyze(url, plan=plan, on_fallback=_on_fallback)
+
+        if result.get("_empty_page"):
+            result.pop("_empty_page", None)
+            result.pop("_model_used", None)
+            result.pop("_scan_cost", None)
+            result.pop("_html_lines", None)
+            result.pop("_html_chars", None)
+            AUDIT_JOBS[job_id]["status"] = "blocked_page"
+            AUDIT_JOBS[job_id]["error"] = "The website returned a protected or empty page that we can't audit automatically."
+            _send_scan_webhook(
+                status="blocked",
+                reason="blocked_page: AI detected shell/protected HTML",
+                url=url,
+                user_id=user_id,
+                plan=plan,
+                user_name=user_name
+            )
+            return
+
         model_used = result.pop("_model_used", None)
         scan_cost = result.pop("_scan_cost", 1)
         html_lines = result.pop("_html_lines", None)
@@ -280,6 +299,56 @@ def run_audit(job_id, url):
             user_id=AUDIT_JOBS[job_id].get("user_id"),
             user_name=AUDIT_JOBS[job_id].get("user_name")
         )
+
+
+def run_audit_with_html(job_id, url, html_code):
+    try:
+        user_id = AUDIT_JOBS[job_id].get("user_id")
+        user_name = AUDIT_JOBS[job_id].get("user_name")
+        plan = "free"
+        if user_id:
+            stats = _get_user_stats(user_id)
+            plan = stats.get("plan") or "free"
+        def _on_fallback():
+            AUDIT_JOBS[job_id]["fallback"] = True
+
+        result = analyze_html(html_code, url, plan=plan, on_fallback=_on_fallback)
+        model_used = result.pop("_model_used", None)
+        scan_cost = result.pop("_scan_cost", 1)
+        html_lines = result.pop("_html_lines", None)
+        html_chars = result.pop("_html_chars", None)
+        upgrade_required = (result.get("metadata") or {}).get("upgrade_required", False)
+        audit_id = None
+        if user_id and not upgrade_required:
+            try:
+                insert_resp = supabase.table("audits").insert({
+                    "user_id": user_id,
+                    "url": url,
+                    "result": result
+                }).execute()
+                if insert_resp.data:
+                    audit_id = insert_resp.data[0].get("id")
+            except Exception as e:
+                print("Failed to save audit:", e)
+        AUDIT_JOBS[job_id]["status"] = "done"
+        AUDIT_JOBS[job_id]["result"] = result
+        AUDIT_JOBS[job_id]["audit_id"] = audit_id
+        _send_scan_webhook(
+            status="completed",
+            url=url,
+            user_id=user_id,
+            plan=plan,
+            audit_id=audit_id,
+            scan_cost=scan_cost,
+            duration_ms=result.get("scan_duration_ms"),
+            model_used=model_used,
+            user_name=user_name,
+            html_lines=html_lines,
+            html_chars=html_chars
+        )
+    except Exception as e:
+        AUDIT_JOBS[job_id]["status"] = "error"
+        AUDIT_JOBS[job_id]["error"] = str(e)
 
 
 def get_oauth_url(provider, redirect_url):
@@ -938,6 +1007,43 @@ def new_audit():
     return render_template('app/new.html', user=user)
 
 
+@app.route('/app/paste', methods=['POST'])
+def paste_html_audit():
+    user = session.get("user")
+    if not user:
+        return redirect('/login')
+
+    raw_url = request.form.get('url', '').strip()
+    url = normalize_url(raw_url) if raw_url else None
+    pasted_html = request.form.get('html', '').strip()
+
+    if not url:
+        return render_template('app/paste_html.html', user=user, url=raw_url, error="Please provide a valid URL.")
+    if not pasted_html or len(pasted_html) < 100:
+        return render_template('app/paste_html.html', user=user, url=raw_url, error="Please paste the full HTML source code (it seems too short).")
+
+    stats = _get_user_stats(user["id"])
+    limit = SCAN_LIMITS.get(stats["plan"], 1)
+    user_email = (user.get("email") or "").lower()
+    if user_email not in ADMIN_EMAILS:
+        if stats["scans_this_month"] >= limit:
+            return render_template('app/new.html', user=user, quota_exceeded=True)
+
+    job_id = str(uuid.uuid4())
+    AUDIT_JOBS[job_id] = {
+        "status": "running",
+        "result": None,
+        "error": None,
+        "url": url,
+        "user_id": user["id"],
+        "user_name": f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or user.get("email") or "Unknown"
+    }
+    thread = threading.Thread(target=run_audit_with_html, args=(job_id, url, pasted_html))
+    thread.daemon = True
+    thread.start()
+    return render_template('app/processing.html', user=user, url=url, job_id=job_id)
+
+
 @app.route('/app/results', methods=['GET', 'POST'])
 def audit_results():
     user = session.get("user")
@@ -1007,6 +1113,13 @@ def audit_status(job_id):
 
     if job["status"] == "running":
         return render_template("app/processing.html", url=job.get("url"), job_id=job_id)
+
+    if job["status"] == "blocked_page":
+        return render_template(
+            "app/paste_html.html",
+            url=job.get("url"),
+            user=session.get("user")
+        )
 
     if job["status"] == "error":
         return render_template(
@@ -1108,12 +1221,15 @@ def audit_status_api(job_id):
     job = AUDIT_JOBS.get(job_id)
     if not job:
         return jsonify({"status": "not_found"}), 404
-    return jsonify({
+    resp = {
         "status": job["status"],
         "error": job.get("error"),
         "audit_id": job.get("audit_id"),
         "fallback": job.get("fallback", False)
-    })
+    }
+    if job["status"] == "blocked_page":
+        resp["blocked_url"] = job.get("url")
+    return jsonify(resp)
 
 
 

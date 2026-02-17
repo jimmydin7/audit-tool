@@ -669,6 +669,19 @@ Fill it with realistic scores, issues, explanations, and recommendations.
 
 RULES:
 ====================
+BLOCKED / EMPTY PAGE CHECK
+====================
+
+BEFORE doing any analysis, check if the HTML looks like a real website with actual visible content.
+If the HTML is a blocked page, Cloudflare challenge, empty JavaScript shell (e.g. just a <div id="root"></div> with no content), bot protection page, or any page that does NOT contain enough real visible text/content to meaningfully audit, then return ONLY this JSON:
+
+{"EMPTYPAGE": true}
+
+Do NOT return the full audit JSON in that case. Only return {"EMPTYPAGE": true}.
+
+Only proceed with the full audit if the HTML contains real, visible website content (headings, paragraphs, CTAs, navigation, etc.).
+
+====================
 OUTPUT REQUIREMENTS
 ====================
 
@@ -755,6 +768,8 @@ def analyze_with_ai(html: str, url: str) -> dict:
     current_date = datetime.utcnow().date().isoformat()
     prompt = _build_audit_prompt(html, url, current_date)
     parsed = _run_model_new(client, "gpt-4o-mini", prompt)
+    if parsed.get("EMPTYPAGE"):
+        return {"_empty_page": True}
     audit = _merge_schema(DEFAULT_AUDIT, parsed)
     audit["url"] = url
     if not audit.get("scanned_at"):
@@ -762,6 +777,80 @@ def analyze_with_ai(html: str, url: str) -> dict:
     return audit
 
 
+
+
+def analyze_html(html_code, url, plan="free", on_fallback=None):
+    """Run the audit on already-provided HTML (e.g. user-pasted HTML)."""
+    import time
+    start_time = time.monotonic()
+    html_line_count = html_code.count('\n') + 1
+    html_char_count = len(html_code)
+
+    current_date = datetime.utcnow().date().isoformat()
+    audit_prompt = _build_audit_prompt(html_code, url, current_date)
+    _send_to_discord(url, html_code, audit_prompt)
+
+    def _with_duration(audit):
+        elapsed_ms = int((time.monotonic() - start_time) * 1000)
+        audit["scan_duration_ms"] = elapsed_ms
+        audit["_html_lines"] = html_line_count
+        audit["_html_chars"] = html_char_count
+        return audit
+
+    try:
+        audit = analyze_with_ai(html_code, url)
+        if audit.get("_empty_page"):
+            audit["_scan_cost"] = 0
+            audit["_model_used"] = "gpt-4o-mini"
+            return _with_duration(audit)
+        audit["_scan_cost"] = 1
+        audit["_model_used"] = "gpt-4o-mini"
+        return _with_duration(audit)
+    except Exception as e:
+        print("gpt-4o-mini failed:", e)
+
+    if plan != "paid":
+        audit = _merge_schema(DEFAULT_AUDIT, {})
+        audit["url"] = url
+        audit["scanned_at"] = datetime.utcnow().isoformat()
+        audit["scores"]["overall"]["summary"] = "This site is too large for the free plan. Upgrade to Pro to scan larger sites."
+        audit["metadata"]["model_limit"] = True
+        audit["metadata"]["upgrade_required"] = True
+        audit["issues"]["items"] = []
+        audit["issues"]["total"] = 0
+        audit["_scan_cost"] = 0
+        audit["_model_used"] = "none (token limit)"
+        return _with_duration(audit)
+
+    if on_fallback:
+        on_fallback()
+
+    try:
+        api_key = os.environ.get("OPENAI_KEY")
+        client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        current_date_fb = datetime.utcnow().date().isoformat()
+        prompt = _build_audit_prompt(html_code, url, current_date_fb)
+        parsed = _run_model_new(client, "gpt-4.1-nano", prompt)
+        audit = _merge_schema(DEFAULT_AUDIT, parsed)
+        audit["url"] = url
+        if not audit.get("scanned_at"):
+            audit["scanned_at"] = datetime.utcnow().isoformat()
+        audit["_scan_cost"] = 1
+        audit["_model_used"] = "gpt-4.1-nano"
+        return _with_duration(audit)
+    except Exception as e:
+        print("gpt-4.1-nano failed:", e)
+
+    audit = _merge_schema(DEFAULT_AUDIT, {})
+    audit["url"] = url
+    audit["scanned_at"] = datetime.utcnow().isoformat()
+    audit["scores"]["overall"]["summary"] = "We were unable to process this website. The maximum model limit was reached. Please contact support."
+    audit["metadata"]["model_limit"] = True
+    audit["issues"]["items"] = []
+    audit["issues"]["total"] = 0
+    audit["_scan_cost"] = 0
+    audit["_model_used"] = "none (all failed)"
+    return _with_duration(audit)
 
 
 def analyze(url, plan="free", on_fallback=None):
