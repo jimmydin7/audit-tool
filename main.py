@@ -15,6 +15,16 @@ import requests
 
 
 AUDIT_JOBS = {}
+_JOB_CREATED = {}
+
+
+def _cleanup_old_jobs():
+    now = time.time()
+    stale = [jid for jid, ts in _JOB_CREATED.items()
+             if now - ts > 600 and AUDIT_JOBS.get(jid, {}).get("status") != "running"]
+    for jid in stale:
+        AUDIT_JOBS.pop(jid, None)
+        _JOB_CREATED.pop(jid, None)
 FEATURE_SUGGEST_TIMES = {}
 #RATE_LIMITS = {}
 #RATE_LIMIT_WINDOW_SEC = 60
@@ -1001,6 +1011,7 @@ def new_audit():
                 return render_template('app/new.html', user=user, quota_exceeded=True)
 
         if url:
+            _cleanup_old_jobs()
             job_id = str(uuid.uuid4())
             AUDIT_JOBS[job_id] = {
                 "status": "running",
@@ -1010,6 +1021,7 @@ def new_audit():
                 "user_id": user["id"],
                 "user_name": f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or user.get("email") or "Unknown"
             }
+            _JOB_CREATED[job_id] = time.time()
         thread = threading.Thread(target=run_audit, args=(job_id, url))
         thread.daemon = True
         thread.start()
@@ -1040,6 +1052,7 @@ def paste_html_audit():
         if stats["scans_this_month"] >= limit:
             return render_template('app/new.html', user=user, quota_exceeded=True)
 
+    _cleanup_old_jobs()
     job_id = str(uuid.uuid4())
     AUDIT_JOBS[job_id] = {
         "status": "running",
@@ -1049,6 +1062,7 @@ def paste_html_audit():
         "user_id": user["id"],
         "user_name": f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or user.get("email") or "Unknown"
     }
+    _JOB_CREATED[job_id] = time.time()
     thread = threading.Thread(target=run_audit_with_html, args=(job_id, url, pasted_html))
     thread.daemon = True
     thread.start()
@@ -1095,6 +1109,7 @@ def audit_results():
         if existing_job.get("user_id") == user["id"] and existing_job["status"] == "running":
             return redirect(url_for("audit_status", job_id=existing_id))
 
+    _cleanup_old_jobs()
     job_id = str(uuid.uuid4())
 
     AUDIT_JOBS[job_id] = {
@@ -1105,6 +1120,7 @@ def audit_results():
         "user_id": user["id"],
         "user_name": f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or user.get("email") or "Unknown"
     }
+    _JOB_CREATED[job_id] = time.time()
 
     thread = threading.Thread(target=run_audit, args=(job_id, url))
     thread.daemon = True

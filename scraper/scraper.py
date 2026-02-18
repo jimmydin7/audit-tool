@@ -961,9 +961,10 @@ def analyze(url, plan="free", on_fallback=None):
     if on_fallback:
         on_fallback()
 
+    http_client = httpx.Client()
     try:
         api_key = os.environ.get("OPENAI_KEY")
-        client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        client = OpenAI(api_key=api_key, http_client=http_client)
         current_date = datetime.utcnow().date().isoformat()
         prompt = _build_audit_prompt(html_code, url, current_date)
         parsed = _run_model_new(client, "gpt-4.1-mini", prompt)
@@ -976,6 +977,8 @@ def analyze(url, plan="free", on_fallback=None):
         return _with_duration(audit)
     except Exception as e:
         print("gpt-4.1-mini failed:", e)
+    finally:
+        http_client.close()
 
     # Paid user exhausted all model attempts
     audit = _merge_schema(DEFAULT_AUDIT, {})
