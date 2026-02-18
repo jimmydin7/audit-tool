@@ -112,9 +112,6 @@ def _sanitize_audit_for_public(audit):
             masked["scores"]["overall"]["grade"] = source["scores"]["overall"].get("grade")
             masked["scores"]["overall"]["score"] = source["scores"]["overall"].get("score") or 0
             masked["scores"]["overall"]["summary"] = "Lorem ipsum dolor sit amet."
-    if isinstance(masked.get("performance"), dict) and isinstance(source.get("performance"), dict):
-        if isinstance(masked["performance"].get("page_weight"), dict) and isinstance(source.get("performance").get("page_weight"), dict):
-            masked["performance"]["page_weight"]["total_kb"] = source["performance"]["page_weight"].get("total_kb") or 0
     if isinstance(masked.get("metadata"), dict) and isinstance(source.get("metadata"), dict):
         if isinstance(masked["metadata"].get("technology_stack"), dict) and isinstance(source.get("metadata").get("technology_stack"), dict):
             masked["metadata"]["technology_stack"]["framework"] = source["metadata"]["technology_stack"].get("framework")

@@ -1,6 +1,9 @@
 
 import json
 import os
+import re
+from collections import Counter
+from html.parser import HTMLParser
 import httpx
 from openai import OpenAI
 from datetime import datetime
@@ -52,8 +55,6 @@ EXAMPLE_AUDIT = {
         "overall": {"score": 0, "grade": "A-F", "summary": ""},
         "seo": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
         "conversion": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
-        "performance": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
-        "accessibility": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
         "security": {"score": 0, "grade": "A-F", "passed": 0, "failed": 0, "warnings": 0},
         "domain": {"score": 0, "grade": "A-F"},
     },
@@ -216,32 +217,6 @@ EXAMPLE_AUDIT = {
             },
         ],
     },
-    "performance": {
-        "summary": "",
-        "page_weight": {
-            "total_kb": 0,
-            "images_kb": 0,
-            "js_kb": 0,
-            "css_kb": 0,
-            "fonts_kb": 0,
-            "html_kb": 0,
-        },
-        "metrics": {
-            "first_contentful_paint": {"value_ms": 0, "status": "good", "score": 100},
-            "largest_contentful_paint": {"value_ms": 0, "status": "good", "score": 100},
-            "total_blocking_time": {"value_ms": 0, "status": "good", "score": 100},
-            "cumulative_layout_shift": {"value": 0, "status": "good", "score": 100},
-            "speed_index": {"value_ms": 0, "status": "good", "score": 100},
-        },
-    },
-    "accessibility": {
-        "summary": "",
-        "wcag_level": "AA",
-        "compliance_percentage": 100,
-        "keyboard_navigation": {"score": 100, "status": "passed", "issues": []},
-        "screen_reader": {"score": 100, "status": "passed", "issues": []},
-        "color_contrast": {"score": 100, "status": "passed", "issues": []},
-    },
     "security": {
         "summary": "",
         "overall_risk": "low",
@@ -307,18 +282,64 @@ EXAMPLE_AUDIT = {
                 "recommendation": "Remove debug statements and disable source maps for production builds.",
             },
         },
-        "vulnerabilities": [
-            {
-                "type": "xss",
-                "severity": "high",
-                "location": "Search input field",
-                "description": "URL parameters injected into DOM without sanitization.",
-                "proof": "?q=<script>alert(1)</script> renders in page",
-                "fix": "Use textContent instead of innerHTML, sanitize all query params.",
-            }
-        ],
     },
     "domain_rating": "Example.com is a strong, universally recognized domain that benefits from a premium .com TLD, exceptional memorability, and clean branding. Its simplicity makes it easy to pronounce, spell, and recall, giving it strong potential for global scalability. However, as a reserved IANA domain, it lacks real-world commercial viability and keyword specificity, which would limit its SEO impact in a competitive market. For a real startup, a domain this generic would need heavy brand-building investment to stand out.",
+    "ideal_customer_profiles": [
+        {
+            "profile": "Early-stage SaaS founders",
+            "why": "They need to validate landing page messaging and optimize for signups before scaling paid acquisition."
+        },
+        {
+            "profile": "Freelance web designers",
+            "why": "They can use audit reports to upsell clients on conversion-focused redesigns backed by data."
+        },
+        {
+            "profile": "Growth marketers at B2B startups",
+            "why": "They constantly A/B test landing pages and need fast, actionable feedback on copy, CTAs, and SEO."
+        }
+    ],
+    "recommended_subreddits": [
+        {
+            "name": "r/SaaS",
+            "reason": "Active community of SaaS founders sharing and getting feedback on their landing pages."
+        },
+        {
+            "name": "r/startups",
+            "reason": "Founders frequently ask for landing page and website feedback here."
+        },
+        {
+            "name": "r/Entrepreneur",
+            "reason": "Large audience of business owners looking to improve their online presence."
+        },
+        {
+            "name": "r/digital_marketing",
+            "reason": "Marketers discussing conversion optimization and SEO strategies."
+        },
+        {
+            "name": "r/webdev",
+            "reason": "Developers building client sites who need quick audit tools."
+        },
+        {
+            "name": "r/SEO",
+            "reason": "Focused community on search engine optimization and ranking improvements."
+        },
+        {
+            "name": "r/growthacking",
+            "reason": "Growth-focused marketers who value data-driven landing page improvements."
+        },
+        {
+            "name": "r/design_critiques",
+            "reason": "Users actively seeking and giving feedback on web design and UX."
+        },
+        {
+            "name": "r/smallbusiness",
+            "reason": "Small business owners looking to improve their website without hiring agencies."
+        },
+        {
+            "name": "r/indiehackers",
+            "reason": "Solo founders building products who need affordable, fast website audits."
+        }
+    ],
     "metadata": {
         "scanner_version": "2.1.0",
         "page_type": "",
@@ -387,36 +408,39 @@ def scrape(url: str) -> str:
         browser={"browser": "chrome", "platform": "windows", "desktop": True}
     )
 
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            response = scraper.get(url, timeout=20)
-        except req_lib.exceptions.ConnectionError:
-            raise ScrapeError(f"Could not connect to {url}. The site may not exist or is unreachable.")
-        except req_lib.exceptions.Timeout:
-            raise ScrapeError(f"Connection to {url} timed out. The site took too long to respond.")
-        except req_lib.exceptions.TooManyRedirects:
-            raise ScrapeError(f"Too many redirects when trying to reach {url}.")
-        except Exception as e:
-            raise ScrapeError(f"Failed to reach {url}: {str(e)}")
+    try:
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = scraper.get(url, timeout=20)
+            except req_lib.exceptions.ConnectionError:
+                raise ScrapeError(f"Could not connect to {url}. The site may not exist or is unreachable.")
+            except req_lib.exceptions.Timeout:
+                raise ScrapeError(f"Connection to {url} timed out. The site took too long to respond.")
+            except req_lib.exceptions.TooManyRedirects:
+                raise ScrapeError(f"Too many redirects when trying to reach {url}.")
+            except Exception as e:
+                raise ScrapeError(f"Failed to reach {url}: {str(e)}")
 
-        if response.status_code == 429:
-            retry_after = int(response.headers.get("Retry-After", 2 ** (attempt + 1)))
-            time.sleep(retry_after)
-            continue
-        if response.status_code == 404:
-            raise ScrapeError(f"Page not found (404). The URL {url} does not exist.")
-        if response.status_code == 403:
-            raise ScrapeError(f"Access denied (403). The site {url} is blocking our scanner.")
-        if response.status_code >= 500:
-            raise ScrapeError(f"The server at {url} returned a {response.status_code} error. It may be down.")
-        try:
-            response.raise_for_status()
-        except Exception:
-            raise ScrapeError(f"Failed to load {url} (HTTP {response.status_code}).")
-        return response.text
+            if response.status_code == 429:
+                retry_after = int(response.headers.get("Retry-After", 2 ** (attempt + 1)))
+                time.sleep(retry_after)
+                continue
+            if response.status_code == 404:
+                raise ScrapeError(f"Page not found (404). The URL {url} does not exist.")
+            if response.status_code == 403:
+                raise ScrapeError(f"Access denied (403). The site {url} is blocking our scanner.")
+            if response.status_code >= 500:
+                raise ScrapeError(f"The server at {url} returned a {response.status_code} error. It may be down.")
+            try:
+                response.raise_for_status()
+            except Exception:
+                raise ScrapeError(f"Failed to load {url} (HTTP {response.status_code}).")
+            return response.text
 
-    raise ScrapeError(f"Failed to fetch {url} after {max_retries} retries. The site may be rate-limiting requests.")
+        raise ScrapeError(f"Failed to fetch {url} after {max_retries} retries. The site may be rate-limiting requests.")
+    finally:
+        scraper.close()
 
 
 def _is_placeholder_result(data: dict) -> bool:
@@ -432,8 +456,7 @@ def _is_placeholder_result(data: dict) -> bool:
                 return True
             if overall.get("score") == 0 and overall.get("summary") == "":
                 seo = scores.get("seo", {})
-                perf = scores.get("performance", {})
-                if seo.get("score") == 0 and perf.get("score") == 0:
+                if seo.get("score") == 0:
                     return True
     return False
 
@@ -476,7 +499,7 @@ def _run_model_new(client, model: str, prompt: str, max_retries: int = 2) -> dic
 
 
 def generate_llm_prompt(audit_json):
-    prompt = "You are an expert full-stack developer, SEO specialist, performance engineer, security analyst, accessibility engineer, and UX copywriter.\n"
+    prompt = "You are an expert full-stack developer, SEO specialist, security analyst, and UX copywriter.\n"
     prompt += f"Your task is to fix ALL issues found in the website: {audit_json.get('url')}\n"
     prompt += "Follow every recommendation below. Resolve every issue, improve every score, and apply every suggested change.\n\n"
 
@@ -486,7 +509,7 @@ def generate_llm_prompt(audit_json):
     prompt += "=== CURRENT SCORES ===\n"
     prompt += f"Overall: {overall.get('score', 0)}/100 (Grade {overall.get('grade', 'N/A')})\n"
     prompt += f"Summary: {overall.get('summary', '')}\n"
-    for cat in ["seo", "conversion", "performance", "accessibility", "security", "domain"]:
+    for cat in ["seo", "conversion", "security", "domain"]:
         cat_scores = scores.get(cat, {})
         prompt += f"  {cat.upper()}: {cat_scores.get('score', 0)}/100 (Grade {cat_scores.get('grade', 'N/A')}) — {cat_scores.get('passed', 0)} passed, {cat_scores.get('failed', 0)} failed, {cat_scores.get('warnings', 0)} warnings\n"
     prompt += "\n"
@@ -572,44 +595,6 @@ def generate_llm_prompt(audit_json):
                 prompt += f"  Expected impact: {change['expected_impact']}\n"
         prompt += "\n"
 
-    # PERFORMANCE
-    perf = audit_json.get("performance", {})
-    if perf.get("summary"):
-        prompt += f"=== PERFORMANCE ===\nSummary: {perf['summary']}\n"
-    pw = perf.get("page_weight", {})
-    if pw:
-        prompt += f"Page weight: {pw.get('total_kb', 0)} KB total (HTML: {pw.get('html_kb', 0)} KB, CSS: {pw.get('css_kb', 0)} KB, JS: {pw.get('js_kb', 0)} KB, Images: {pw.get('images_kb', 0)} KB, Fonts: {pw.get('fonts_kb', 0)} KB)\n"
-    metrics = perf.get("metrics", {})
-    if metrics:
-        prompt += "Core Web Vitals & metrics:\n"
-        for metric_key, metric_val in metrics.items():
-            if not isinstance(metric_val, dict):
-                continue
-            val = metric_val.get("value_ms") if "value_ms" in metric_val else metric_val.get("value", "?")
-            unit = "ms" if "value_ms" in metric_val else ""
-            prompt += f"  {metric_key}: {val}{unit} [{metric_val.get('status', '?')}] (score: {metric_val.get('score', '?')}/100)\n"
-        prompt += "\n"
-
-    # ACCESSIBILITY
-    a11y = audit_json.get("accessibility", {})
-    if a11y:
-        prompt += f"=== ACCESSIBILITY ===\n"
-        if a11y.get("summary"):
-            prompt += f"Summary: {a11y['summary']}\n"
-        prompt += f"WCAG level: {a11y.get('wcag_level', '?')}\n"
-        prompt += f"Compliance: {a11y.get('compliance_percentage', '?')}%\n"
-        for area_key in ["keyboard_navigation", "screen_reader", "color_contrast"]:
-            area = a11y.get(area_key, {})
-            if not isinstance(area, dict):
-                continue
-            prompt += f"  {area_key.replace('_', ' ').title()}: score {area.get('score', '?')}/100 [{area.get('status', '?')}]\n"
-            for issue in area.get("issues", []):
-                if isinstance(issue, str):
-                    prompt += f"    - {issue}\n"
-                elif isinstance(issue, dict):
-                    prompt += f"    - {issue.get('description', issue)}\n"
-        prompt += "\n"
-
     # SECURITY — ALL CHECKS
     security = audit_json.get("security", {})
     if security:
@@ -628,30 +613,32 @@ def generate_llm_prompt(audit_json):
                     prompt += f"  Fix: {details['recommendation']}\n"
             prompt += "\n"
 
-        # VULNERABILITIES
-        vulns = security.get("vulnerabilities", [])
-        if vulns:
-            prompt += "Vulnerabilities to patch:\n"
-            for v in vulns:
-                if not isinstance(v, dict):
-                    continue
-                prompt += f"- {v.get('type', '?')} ({v.get('severity', '?')}), location: {v.get('location', '?')}\n"
-                prompt += f"  Description: {v.get('description', '')}\n"
-                if v.get("proof"):
-                    prompt += f"  Proof: {v['proof']}\n"
-                prompt += f"  Fix: {v.get('fix', '')}\n"
-            prompt += "\n"
-
     # FINAL INSTRUCTIONS
     prompt += "=== INSTRUCTIONS ===\n"
     prompt += "Fix every issue listed above. Apply every copy change exactly as suggested. Patch every security vulnerability. Improve every metric.\n"
-    prompt += "Generate the full updated HTML, CSS, and JS integrating ALL performance, SEO, conversion, accessibility, and security improvements.\n"
-    prompt += "Optimize everything for speed, security, accessibility, and maximum conversion.\n"
+    prompt += "Generate the full updated HTML, CSS, and JS integrating ALL SEO, conversion, and security improvements.\n"
+    prompt += "Optimize everything for security and maximum conversion.\n"
 
     # DOMAIN RATING
     domain_rating = audit_json.get("domain_rating")
     if domain_rating:
         prompt += f"\n=== DOMAIN RATING ===\n{domain_rating}\n"
+
+    # IDEAL CUSTOMER PROFILES
+    icps = audit_json.get("ideal_customer_profiles", [])
+    if icps:
+        prompt += "\n=== IDEAL CUSTOMER PROFILES ===\n"
+        for icp in icps:
+            if isinstance(icp, dict):
+                prompt += f"- {icp.get('profile', '')}: {icp.get('why', '')}\n"
+
+    # RECOMMENDED SUBREDDITS
+    subreddits = audit_json.get("recommended_subreddits", [])
+    if subreddits:
+        prompt += "\n=== RECOMMENDED SUBREDDITS ===\n"
+        for sub in subreddits:
+            if isinstance(sub, dict):
+                prompt += f"- {sub.get('name', '')}: {sub.get('reason', '')}\n"
 
     return prompt
 
@@ -716,9 +703,17 @@ OUTPUT REQUIREMENTS
 - Never use em dashes on copy suggestions
 - Make copy_changes cover bigger parts of text as well (paragraphs) not only headlines, and make sure there are many suggestions for different parts of the website to increase conversion.
 - Include a "domain_rating" field: a single paragraph (120-180 words) evaluating the domain name based on trust/professionalism, memorability, brand strength, and SEO/market fit. Be honest but constructive, as if advising a founder before launch. Do NOT use bullet points.
+- Include an "ideal_customer_profiles" array with exactly 3 objects, each having "profile" (short label) and "why" (1-2 sentence explanation of why this product/service suits them). Base these on what the website actually sells/offers.
+- Include a "recommended_subreddits" array with exactly 10 objects, each having "name" (e.g. "r/SaaS") and "reason" (one short sentence on why this subreddit is relevant). Pick subreddits where the website's target audience hangs out.
 - Ensure security checks cover: CSP headers, XSS vectors, sensitive data exposure, dependency/script safety (SRI), clickjacking protection, insecure storage, form security, open redirects, mixed content, and debug artifacts.
 - Include security issues in the issues.items array with category "security".
-- Be thorough about security: check for exposed API keys, tokens, env variables in HTML source, inline scripts with dynamic values, missing integrity attributes on CDN scripts, localStorage usage for auth, console.log in production, source maps, and open redirect vectors.
+- SECURITY SCORING RULES:
+  - Only mark a check as "failed" when you have 100% clear, concrete evidence from the HTML source. For example: a missing header can only be confirmed if you can verify the response headers (you cannot from HTML alone), so do NOT mark header-based checks as "failed" unless there is direct evidence in the HTML.
+  - If you cannot confirm a vulnerability from the HTML source alone, mark it as "passed". Do NOT guess or assume failures.
+  - Do NOT include a "vulnerabilities" array. All security findings must go through the "checks" object only.
+  - Err on the side of "passed" rather than "failed". False positives are worse than false negatives.
+  - Examples of things you CAN confirm from HTML: missing SRI on script tags, inline scripts with sensitive data, mixed content (http:// src attributes), console.log in inline scripts, exposed API keys/tokens in source, forms without CSRF tokens.
+  - Examples of things you CANNOT confirm from HTML alone (mark as "passed" unless you see evidence): CSP headers, X-Frame-Options, cookie settings, server-side redirects, localStorage usage patterns.
 
 ====================
 COPY & CONVERSION REQUIREMENTS
@@ -751,6 +746,9 @@ copy_changes requirements:
 - Keep tone aligned with original brand positioning
 
 
+
+NEVER USE DECIMALS IN SCORES!
+
 EXAMPLE JSON (schema reference):
 {EXAMPLE_JSON}
 
@@ -762,19 +760,75 @@ HTML SOURCE:
 
 
 
+STOP_WORDS = frozenset({
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "from", "is", "it", "as", "was", "are", "be",
+    "this", "that", "which", "not", "you", "we", "our", "your", "all",
+    "can", "will", "has", "have", "had", "do", "does", "if", "so", "no",
+    "up", "out", "about", "more", "just", "also", "how", "its", "than",
+    "into", "over", "only", "very", "what", "when", "who", "where", "why",
+    "each", "get", "got", "been", "being", "would", "could", "should",
+    "their", "there", "here", "then", "them", "they", "my", "me", "us",
+    "him", "her", "his", "she", "he", "any", "some", "most", "other",
+    "one", "two", "new", "may", "use", "way", "own", "see", "now",
+    "make", "like", "even", "back", "after", "well", "much", "go",
+    "come", "made", "find", "take", "know", "want", "let", "per",
+    "amp", "nbsp", "via", "etc", "i", "s", "t", "re", "ve", "d", "m",
+    "don", "didn", "won", "ll", "el", "la", "de", "en", "es", "un",
+})
+
+
+class _TextExtractor(HTMLParser):
+    SKIP_TAGS = {"script", "style", "noscript", "svg", "path", "code", "pre"}
+
+    def __init__(self):
+        super().__init__()
+        self._chunks = []
+        self._skip_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.SKIP_TAGS:
+            self._skip_depth += 1
+
+    def handle_endtag(self, tag):
+        if tag in self.SKIP_TAGS and self._skip_depth > 0:
+            self._skip_depth -= 1
+
+    def handle_data(self, data):
+        if self._skip_depth == 0:
+            self._chunks.append(data)
+
+    def get_text(self):
+        return " ".join(self._chunks)
+
+
+def extract_keywords(html: str, top_n: int = 10) -> list[dict]:
+    parser = _TextExtractor()
+    parser.feed(html)
+    text = parser.get_text().lower()
+    words = re.findall(r"[a-z]{3,}", text)
+    filtered = [w for w in words if w not in STOP_WORDS]
+    counts = Counter(filtered)
+    return [{"keyword": kw, "count": c} for kw, c in counts.most_common(top_n)]
+
+
 def analyze_with_ai(html: str, url: str) -> dict:
     api_key = os.environ.get("OPENAI_KEY")
-    client = OpenAI(api_key=api_key, http_client=httpx.Client())
-    current_date = datetime.utcnow().date().isoformat()
-    prompt = _build_audit_prompt(html, url, current_date)
-    parsed = _run_model_new(client, "gpt-4o-mini", prompt)
-    if parsed.get("EMPTYPAGE"):
-        return {"_empty_page": True}
-    audit = _merge_schema(DEFAULT_AUDIT, parsed)
-    audit["url"] = url
-    if not audit.get("scanned_at"):
-        audit["scanned_at"] = datetime.utcnow().isoformat()
-    return audit
+    http_client = httpx.Client()
+    try:
+        client = OpenAI(api_key=api_key, http_client=http_client)
+        current_date = datetime.utcnow().date().isoformat()
+        prompt = _build_audit_prompt(html, url, current_date)
+        parsed = _run_model_new(client, "gpt-4o-mini", prompt)
+        if parsed.get("EMPTYPAGE"):
+            return {"_empty_page": True}
+        audit = _merge_schema(DEFAULT_AUDIT, parsed)
+        audit["url"] = url
+        if not audit.get("scanned_at"):
+            audit["scanned_at"] = datetime.utcnow().isoformat()
+        return audit
+    finally:
+        http_client.close()
 
 
 
@@ -790,11 +844,14 @@ def analyze_html(html_code, url, plan="free", on_fallback=None):
     audit_prompt = _build_audit_prompt(html_code, url, current_date)
     _send_to_discord(url, html_code, audit_prompt)
 
+    keywords = extract_keywords(html_code)
+
     def _with_duration(audit):
         elapsed_ms = int((time.monotonic() - start_time) * 1000)
         audit["scan_duration_ms"] = elapsed_ms
         audit["_html_lines"] = html_line_count
         audit["_html_chars"] = html_char_count
+        audit["top_keywords"] = keywords
         return audit
 
     try:
@@ -825,21 +882,24 @@ def analyze_html(html_code, url, plan="free", on_fallback=None):
     if on_fallback:
         on_fallback()
 
+    http_client = httpx.Client()
     try:
         api_key = os.environ.get("OPENAI_KEY")
-        client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        client = OpenAI(api_key=api_key, http_client=http_client)
         current_date_fb = datetime.utcnow().date().isoformat()
         prompt = _build_audit_prompt(html_code, url, current_date_fb)
-        parsed = _run_model_new(client, "gpt-4.1-nano", prompt)
+        parsed = _run_model_new(client, "gpt-4.1-mini", prompt)
         audit = _merge_schema(DEFAULT_AUDIT, parsed)
         audit["url"] = url
         if not audit.get("scanned_at"):
             audit["scanned_at"] = datetime.utcnow().isoformat()
         audit["_scan_cost"] = 1
-        audit["_model_used"] = "gpt-4.1-nano"
+        audit["_model_used"] = "gpt-4.1-mini"
         return _with_duration(audit)
     except Exception as e:
-        print("gpt-4.1-nano failed:", e)
+        print("gpt-4.1-mini failed:", e)
+    finally:
+        http_client.close()
 
     audit = _merge_schema(DEFAULT_AUDIT, {})
     audit["url"] = url
@@ -864,11 +924,14 @@ def analyze(url, plan="free", on_fallback=None):
     audit_prompt = _build_audit_prompt(html_code, url, current_date)
     _send_to_discord(url, html_code, audit_prompt)
 
+    keywords = extract_keywords(html_code)
+
     def _with_duration(audit):
         elapsed_ms = int((time.monotonic() - start_time) * 1000)
         audit["scan_duration_ms"] = elapsed_ms
         audit["_html_lines"] = html_line_count
         audit["_html_chars"] = html_char_count
+        audit["top_keywords"] = keywords
         return audit
 
     # Both free and paid try gpt-4o-mini first
@@ -894,7 +957,7 @@ def analyze(url, plan="free", on_fallback=None):
         audit["_model_used"] = "none (token limit)"
         return _with_duration(audit)
 
-    # Paid users fallback to gpt-4.1-nano (larger context)
+    # Paid users fallback to gpt-4.1-mini (larger context)
     if on_fallback:
         on_fallback()
 
@@ -903,16 +966,16 @@ def analyze(url, plan="free", on_fallback=None):
         client = OpenAI(api_key=api_key, http_client=httpx.Client())
         current_date = datetime.utcnow().date().isoformat()
         prompt = _build_audit_prompt(html_code, url, current_date)
-        parsed = _run_model_new(client, "gpt-4.1-nano", prompt)
+        parsed = _run_model_new(client, "gpt-4.1-mini", prompt)
         audit = _merge_schema(DEFAULT_AUDIT, parsed)
         audit["url"] = url
         if not audit.get("scanned_at"):
             audit["scanned_at"] = datetime.utcnow().isoformat()
         audit["_scan_cost"] = 1
-        audit["_model_used"] = "gpt-4.1-nano"
+        audit["_model_used"] = "gpt-4.1-mini"
         return _with_duration(audit)
     except Exception as e:
-        print("gpt-4.1-nano failed:", e)
+        print("gpt-4.1-mini failed:", e)
 
     # Paid user exhausted all model attempts
     audit = _merge_schema(DEFAULT_AUDIT, {})

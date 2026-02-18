@@ -60,8 +60,8 @@
 {% if domain.endswith('/') %}{% set domain = domain[:-1] %}{% endif %}
 {% set dur = (audit.scan_duration_ms / 1000) | round(1) %}
 {% set s = audit.scores %}
-{% set pw = audit.performance.page_weight %}
-{% set safe_total_kb = pw.total_kb if pw.total_kb else 1 %}
+{% set pw = (audit.get('performance', {}).get('page_weight', {}) if audit.get('performance') else {}) %}
+{% set safe_total_kb = pw.get('total_kb', 1) if pw else 1 %}
 {% set limited_view = limited_view | default(false) %}
 {% set force_blur = force_blur | default(false) %}
 {% set require_login = require_login | default(false) %}
@@ -110,7 +110,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (9.9 if obfuscate else dur) }}s scan</span>
-      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (3.7 if obfuscate else (pw.total_kb / 1024) | round(1)) }} MB</span>
+      <span class="bg-[#333] text-gray-400 px-3 py-1 fm text-[10px] border border-[#444]">{{ (3.7 if obfuscate else ((pw.get('total_kb', 0) / 1024) | round(1))) }} MB</span>
     </div>
   </div>
 </header>
@@ -186,7 +186,7 @@
 
   <!-- Category score grid -->
   <div class="score-box bg-[#2a2a2a] border-2 border-[#444] p-8 grid grid-cols-2 gap-4 fade-up fade-up-2">
-    {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('performance','Performance'),('accessibility','Accessibility'),('security','Security'),('domain','Domain')] %}
+    {% for cat, label in [('seo','SEO'),('conversion','Conversion'),('security','Security'),('domain','Domain')] %}
     {% set cat_stats = (s.get(cat) if s is mapping else None) or {} %}
     {% set missing_domain = (cat == 'domain' and not cat_stats) %}
     {% set cs = cat_stats.get('score', 0) %}
@@ -229,6 +229,80 @@
       {% else %}
       <p class="text-sm text-gray-300 leading-relaxed">{{ audit.domain_rating }}</p>
       {% endif %}
+    {% else %}
+    <div class="bg-[#1F1F1F] border border-[#444] p-4">
+      <p class="text-sm text-gray-500 italic">This scan was run before we introduced this feature.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Ideal Customer Profiles -->
+<section class="mb-10 fade-up fade-up-3">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8">
+    <div class="flex items-center gap-2 mb-4">
+  <div>
+    <h3 class="text-xl font-black text-white">Ideal Customer Profile</h3>
+    <h4 class="text-sm font-medium text-gray-400 mt-1">
+      People who need {{ domain }}
+    </h4>
+  </div>
+</div>
+    {% set icps = audit.get('ideal_customer_profiles', []) if audit.get('ideal_customer_profiles') else [] %}
+    {% if icps %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {% for icp in icps if icp is mapping %}
+      <div class="bg-[#1F1F1F] border border-[#444] p-4">
+        {% if limited_view and loop.index > 1 %}
+        <p class="text-sm font-bold text-white mb-2 blurred-text select-none">Lorem ipsum dolor</p>
+        <p class="text-xs text-gray-400 leading-relaxed blurred-text select-none">Consectetur adipiscing elit sed do eiusmod tempor incididunt.</p>
+        {% else %}
+        <p class="text-sm font-bold text-white mb-2">{{ icp.profile | default('') }}</p>
+        <p class="text-xs text-gray-400 leading-relaxed">{{ icp.why | default('') }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-[#1F1F1F] border border-[#444] p-4">
+      <p class="text-sm text-gray-500 italic">This scan was run before we introduced this feature.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Recommended Subreddits -->
+<section class="mb-10 fade-up fade-up-4">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8">
+    <div class="flex items-center gap-2 mb-4">
+<img 
+  src="https://redditinc.com/hs-fs/hubfs/Reddit%20Inc/Content/Brand%20Page/Reddit_Logo.png?width=200&height=200&name=Reddit_Logo.png" 
+  class="w-8 h-auto"
+/>
+
+  <div>
+    <h3 class="text-xl font-black text-white">Recommended Subreddits</h3>
+    <h4 class="text-sm font-medium text-gray-400 mt-1">
+      Best Subreddits to market <span>{{ domain }}</span>
+    </h4>
+  </div>
+</div>
+
+    {% set subreddits = audit.get('recommended_subreddits', []) if audit.get('recommended_subreddits') else [] %}
+    {% if subreddits %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {% for sub in subreddits if sub is mapping %}
+      <div class="bg-[#1F1F1F] border border-[#444] p-3 flex items-start gap-3">
+        {% if limited_view and loop.index > 2 %}
+        <span class="fm text-xs text-[#fca5a5] font-bold whitespace-nowrap mt-0.5 blurred-text select-none">r/LoremIpsum</span>
+        <p class="text-xs text-gray-400 blurred-text select-none">Consectetur adipiscing elit tempor incididunt.</p>
+        {% else %}
+        <span class="fm text-xs text-[#fca5a5] font-bold whitespace-nowrap mt-0.5">{{ sub.name | default('') }}</span>
+        <p class="text-xs text-gray-400">{{ sub.reason | default('') }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
     {% else %}
     <div class="bg-[#1F1F1F] border border-[#444] p-4">
       <p class="text-sm text-gray-500 italic">This scan was run before we introduced this feature.</p>
@@ -281,15 +355,12 @@
 </section>
 
 <!-- Quick Stats -->
-<section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
   {% set cta = audit.conversion.cta_analysis if audit.conversion and audit.conversion.cta_analysis else {} %}
-  {% set a11y = audit.accessibility if audit.accessibility else {} %}
   {% set stats = [
     ('Issues Found', ns.total, ns.critical ~ ' critical'),
     ('Scan Speed', dur ~ 's', 'Time to process audit'),
-    ('Page Size', (pw.total_kb / 1024) | round(1) ~ ' MB', (pw.images_kb | default(0)) ~ ' KB images'),
-    ('CTA Count', cta.total_ctas | default(0), cta.overall_effectiveness | default('N/A')),
-    ('A11y Score', (a11y.compliance_percentage | default(0)) ~ '%', a11y.summary | default('N/A'))
+    ('CTA Count', cta.total_ctas | default(0), cta.overall_effectiveness | default('N/A'))
   ] %}
   {% for label, val, sub in stats %}
   <div class="fade-up bg-[#2a2a2a] border-2 border-[#444] p-4" style="animation-delay:{{ loop.index * 0.05 }}s">
@@ -300,6 +371,42 @@
   {% endfor %}
 </section>
 
+<!-- Top Keywords -->
+<section class="mb-10 fade-up">
+  <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 md:p-8">
+    <div class="flex items-center gap-2 mb-4">
+      <i data-lucide="hash" class="w-5 h-5 text-[#fca5a5]"></i>
+      <h3 class="text-xl font-black text-white">Top Keywords</h3>
+    </div>
+    <p class="text-sm text-gray-400 mb-5">Most frequent keywords found in the visible page content.</p>
+    {% set kw_list = audit.top_keywords if audit.top_keywords is defined and audit.top_keywords else [] %}
+    {% if not kw_list %}
+    <div class="bg-[#1F1F1F] border border-[#444] p-4">
+      <p class="text-sm text-gray-500 italic">This scan was run before we introduced this feature.</p>
+    </div>
+    {% else %}
+    {% set max_count = kw_list[0].count if kw_list else 1 %}
+    {% set kw_total = kw_list | length %}
+    <div class="space-y-3">
+      {% for kw in kw_list %}
+      {% set kw_visible = not limited_view or loop.index == 1 or loop.index == kw_total %}
+      <div class="flex items-center gap-4">
+        {% if kw_visible %}
+        <span class="fm text-sm text-gray-300 w-28 truncate">{{ kw.keyword }}</span>
+        {% else %}
+        <span class="fm text-sm text-gray-300 w-28 truncate blurred-text select-none">loremipsum</span>
+        {% endif %}
+        <div class="flex-1 h-6 bg-[#1F1F1F] border border-[#444] overflow-hidden relative">
+          <div class="h-full bg-[#fca5a5]/20 bar" style="width:{{ (kw.count / max_count * 100) | round(1) }}%"></div>
+        </div>
+        <span class="fm text-xs text-gray-400 w-10 text-right">{{ kw.count }}×</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
 <!-- Issue distribution + severity pies -->
 <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
   <!-- Pie chart -->
@@ -307,7 +414,7 @@
     <h3 class="fm text-[10px] uppercase text-gray-500 mb-5">Issues by Category</h3>
     {% set cats = ns.cats %}
     {% set total = safe_total %}
-    {% set colors = {'seo':'#fca5a5','conversion':'#f59e0b','performance':'#3b82f6','accessibility':'#22c55e','other':'#9ca3af'} %}
+    {% set colors = {'seo':'#fca5a5','conversion':'#f59e0b','security':'#ef4444','other':'#9ca3af'} %}
     <div class="flex items-center justify-center">
       <div class="relative w-40 h-40">
         <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
@@ -437,127 +544,6 @@
   </div>
 </section>
 
-<!-- Performance -->
-<section class="mb-10">
-  <div id="tab-performance" class="tab-c active">
-    <h3 class="text-xl font-black text-white mb-1">Performance Audit</h3>
-    <p class="text-sm text-gray-400 mb-6">{{ audit.performance.summary if audit.performance else 'N/A' }}</p>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Resource breakdown -->
-      <div class="bg-[#2a2a2a] border-2 border-[#444]">
-        <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Resource Breakdown</span></div>
-        <div class="p-5 space-y-4">
-          {% set resources = [('Images', pw.images_kb, '#fca5a5'), ('JavaScript', pw.js_kb, '#3b82f6'), ('CSS', pw.css_kb, '#a855f7'), ('Fonts', pw.fonts_kb, '#f59e0b'), ('HTML', pw.html_kb, '#22c55e')] %}
-          {% for name, kb, color in resources %}
-          <div>
-            <div class="flex justify-between mb-1">
-              <span class="text-sm text-gray-300">{{ name }}</span>
-              <span class="fm text-xs text-gray-500">{{ kb }} KB ({{ (kb / safe_total_kb * 100) | int }}%)</span>
-            </div>
-            <div class="w-full h-3 bg-[#333] rounded-full overflow-hidden"><div class="bar h-full rounded-full" style="width:{{ (kb / safe_total_kb * 100) | int }}%;background:{{ color }}"></div></div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- Performance issues -->
-      <div class="bg-[#2a2a2a] border-2 border-[#444]">
-        <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Performance Issues</span></div>
-        <div class="divide-y divide-[#333]">
-          {% set perf_issues = audit.issues['items'] | selectattr('category', 'equalto', 'performance') | list if audit.issues['items'] else [] %}
-          {% if not perf_issues %}
-          <div class="px-5 py-6 text-center">
-            <i data-lucide="check-circle" class="w-6 h-6 text-green-400 mx-auto mb-2"></i>
-            <p class="text-sm text-gray-400">No performance issues detected.</p>
-          </div>
-          {% else %}
-          {% for item in perf_issues if item is mapping %}
-          <div class="issue-row px-5 py-4 flex items-start gap-4">
-            <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
-            <div>
-              <p class="text-sm font-medium text-white">{{ item.name }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ item.description }}</p>
-              {% if item.code_example %}
-              {% if limited_view %}
-              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap blurred-text">/* Lorem ipsum dolor sit amet */</code></div>
-              {% else %}
-              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap">{{ item.code_example }}</code></div>
-              {% endif %}
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Accessibility -->
-<section class="mb-10">
-  <div id="tab-accessibility" class="tab-c active">
-    <h3 class="text-xl font-black text-white mb-1">Accessibility Audit</h3>
-    <p class="text-sm text-gray-400 mb-6">{{ (audit.accessibility.summary if audit.accessibility else 'N/A') }} &middot; {{ (audit.accessibility.compliance_percentage if audit.accessibility else 0) }}% compliant</p>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-      {% for area, label in [('keyboard_navigation','Keyboard Nav'),('screen_reader','Screen Reader'),('color_contrast','Color Contrast')] %}
-      {% set a = audit.accessibility[area] if audit.accessibility and audit.accessibility[area] else {'status': 'unknown', 'score': 0, 'issues': []} %}
-      {% if a.status == 'passed' %}{% set ac = '#22c55e' %}{% elif a.status == 'needs_improvement' %}{% set ac = '#f59e0b' %}{% else %}{% set ac = '#ef4444' %}{% endif %}
-      <div class="bg-[#2a2a2a] border-2 border-[#444] p-5">
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-sm text-gray-300 font-medium">{{ label }}</span>
-          <span class="fm text-xs font-bold" style="color:{{ ac }}">{{ a.score }}/100</span>
-        </div>
-        <div class="w-full h-2 bg-[#333] rounded-full overflow-hidden mb-3"><div class="bar h-full rounded-full" style="width:{{ a.score }}%;background:{{ ac }}"></div></div>
-        {% for issue in a.issues %}
-        <p class="text-xs text-gray-500 flex items-center gap-2 mt-1"><span class="w-1.5 h-1.5 rounded-full" style="background:{{ ac }}"></span>{{ issue }}</p>
-        {% endfor %}
-        {% if not a.issues %}<p class="text-xs text-green-400">All checks passed</p>{% endif %}
-      </div>
-      {% endfor %}
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-[#2a2a2a] border-2 border-[#444]">
-        <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Accessibility Issues</span></div>
-        <div class="divide-y divide-[#333]">
-          {% set a11y_issues = audit.issues['items'] | selectattr('category', 'equalto', 'accessibility') | list if audit.issues['items'] else [] %}
-          {% if not a11y_issues %}
-          <div class="px-5 py-6 text-center">
-            <i data-lucide="check-circle" class="w-6 h-6 text-green-400 mx-auto mb-2"></i>
-            <p class="text-sm text-gray-400">No accessibility issues detected.</p>
-          </div>
-          {% else %}
-          {% for item in a11y_issues if item is mapping %}
-          <div class="issue-row px-5 py-4 flex items-start gap-4">
-            <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
-            <div>
-              <p class="text-sm font-medium text-white">{{ item.name }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ item.impact }}</p>
-              {% if limited_view %}
-              <p class="text-xs text-gray-400 mt-2 blurred-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              {% else %}
-              <p class="text-xs text-gray-400 mt-2">{{ item.solution }}</p>
-              {% endif %}
-              {% if item.code_example %}
-              {% if limited_view %}
-              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap blurred-text">/* Lorem ipsum dolor sit amet */</code></div>
-              {% else %}
-              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap">{{ item.code_example }}</code></div>
-              {% endif %}
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- Security -->
 <section class="mb-10">
   <div id="tab-security" class="tab-c active">
@@ -598,75 +584,7 @@
       {% endif %}
     </div>
 
-    {% if sec.vulnerabilities %}
-    <div class="bg-[#2a2a2a] border-2 border-[#444]">
-      <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Vulnerabilities Found</span></div>
-      <div class="divide-y divide-[#333]">
-        {% for vuln in sec.vulnerabilities %}
-        <div class="px-5 py-4 flex items-start gap-4">
-          <span class="w-2.5 h-2.5 rounded-full dot-{{ vuln.severity }} mt-1.5 flex-shrink-0"></span>
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <p class="text-sm font-medium text-white">{{ vuln.type | upper }}</p>
-              <span class="fm text-[10px] sev-{{ vuln.severity }} uppercase font-bold">{{ vuln.severity }}</span>
-            </div>
-            <p class="text-xs text-gray-500">{{ vuln.location }}</p>
-            <p class="text-xs text-gray-400 mt-1">{{ vuln.description }}</p>
-            {% if vuln.proof %}
-            <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded">
-              <code class="fm text-[11px] text-yellow-400 whitespace-pre-wrap">{{ vuln.proof }}</code>
-            </div>
-            {% endif %}
-            {% if vuln.fix %}
-            {% if limited_view %}
-            <p class="text-xs text-[#fca5a5] mt-2 blurred-text">Lorem ipsum dolor sit amet, consectetur.</p>
-            {% else %}
-            <p class="text-xs text-[#fca5a5] mt-2">{{ vuln.fix }}</p>
-            {% endif %}
-            {% endif %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-      <div class="bg-[#2a2a2a] border-2 border-[#444]">
-        <div class="px-5 py-3 border-b border-[#444]"><span class="fm text-xs uppercase text-gray-400">Security Issues</span></div>
-        <div class="divide-y divide-[#333]">
-          {% set sec_issues = audit.issues['items'] | selectattr('category', 'equalto', 'security') | list if audit.issues['items'] else [] %}
-          {% if not sec_issues %}
-          <div class="px-5 py-6 text-center">
-            <i data-lucide="shield-check" class="w-6 h-6 text-green-400 mx-auto mb-2"></i>
-            <p class="text-sm text-gray-400">No security issues detected.</p>
-          </div>
-          {% else %}
-          {% for item in sec_issues if item is mapping %}
-          <div class="issue-row px-5 py-4 flex items-start gap-4">
-            <span class="w-2.5 h-2.5 rounded-full dot-{{ item.severity }} mt-1.5 flex-shrink-0"></span>
-            <div>
-              <p class="text-sm font-medium text-white">{{ item.name }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ item.description }}</p>
-              {% if limited_view %}
-              <p class="text-xs text-gray-400 mt-2 blurred-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              {% else %}
-              <p class="text-xs text-gray-400 mt-2">{{ item.solution }}</p>
-              {% endif %}
-              {% if item.code_example %}
-              {% if limited_view %}
-              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap blurred-text">/* Lorem ipsum dolor sit amet */</code></div>
-              {% else %}
-              <div class="mt-2 bg-[#1F1F1F] border border-[#444] p-2 rounded"><code class="fm text-[11px] text-[#fca5a5] whitespace-pre-wrap">{{ item.code_example }}</code></div>
-              {% endif %}
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-          {% endif %}
-        </div>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -833,8 +751,8 @@
             <li class="text-red-400">&#10003; 15 audits per month</li>
             <li class="text-red-400">&#10003; Conversion analysis</li>
             <li class="text-red-400">&#10003; SEO scoring & recommendations</li>
-            <li class="text-red-400">&#10003; Performance & Core Web Vitals</li>
-            <li class="text-red-400">&#10003; Accessibility compliance</li>
+            <li class="text-red-400">&#10003; Ideal customer profiles</li>
+            <li class="text-red-400">&#10003; Recommended subreddits</li>
             <li class="text-red-400">&#10003; Priority 24/7 support</li>
             <li class="text-red-400">&#10003; Faster & Smarter AI Model</li>
             <li class="text-red-400">&#10003; Scan larger websites</li>

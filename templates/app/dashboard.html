@@ -226,6 +226,19 @@
       </div>
     </div>
 
+    <script>
+  // Get current month name
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const now = new Date();
+  const currentMonth = monthNames[now.getMonth()];
+
+  // Update the span text
+  document.getElementById("scans-label").textContent = `${currentMonth} Scans`;
+</script>
+
     <!-- User Info -->
     <a href="/account">
       <div class="p-4 border-t border-[#333] flex items-center gap-3 hover:bg-[#333] transition-colors">
