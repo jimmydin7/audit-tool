@@ -499,6 +499,72 @@
           </a>
           {% endif %}
         </div>
+
+        <!-- Billing Cycle -->
+        {% if plan == 'paid' and subscription %}
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 mt-6">
+          <h3 class="font-mono text-xs uppercase text-gray-500 mb-4">Billing Cycle</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-400">Status</span>
+              <span class="font-mono text-sm {% if subscription.status == 'active' %}text-green-400{% elif subscription.status == 'past_due' %}text-yellow-400{% else %}text-gray-300{% endif %}">{{ subscription.status | capitalize }}</span>
+            </div>
+            {% if subscription.current_period_end %}
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-400">Next renewal</span>
+              <span class="font-mono text-sm text-white">{{ subscription.current_period_end[:10] }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Invoice History -->
+        {% if invoices %}
+        <div class="bg-[#2a2a2a] border-2 border-[#444] p-6 mt-6">
+          <h3 class="font-mono text-xs uppercase text-gray-500 mb-4">Invoice History</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-[#444]">
+                  <th class="text-left text-gray-500 font-mono text-xs uppercase py-2 pr-4">Date</th>
+                  <th class="text-left text-gray-500 font-mono text-xs uppercase py-2 pr-4">Invoice</th>
+                  <th class="text-left text-gray-500 font-mono text-xs uppercase py-2 pr-4">Amount</th>
+                  <th class="text-left text-gray-500 font-mono text-xs uppercase py-2 pr-4">Status</th>
+                  <th class="text-right text-gray-500 font-mono text-xs uppercase py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for inv in invoices %}
+                <tr class="border-b border-[#333] last:border-0">
+                  <td class="py-3 pr-4 text-gray-300">{{ inv.date }}</td>
+                  <td class="py-3 pr-4 font-mono text-gray-400">{{ inv.number }}</td>
+                  <td class="py-3 pr-4 text-white font-bold">{{ inv.amount }}</td>
+                  <td class="py-3 pr-4">
+                    {% if inv.status == 'paid' %}
+                    <span class="bg-green-900/40 text-green-400 px-2 py-0.5 font-mono text-[10px] font-bold">PAID</span>
+                    {% elif inv.status == 'open' %}
+                    <span class="bg-yellow-900/40 text-yellow-400 px-2 py-0.5 font-mono text-[10px] font-bold">OPEN</span>
+                    {% elif inv.status == 'draft' %}
+                    <span class="bg-gray-700 text-gray-300 px-2 py-0.5 font-mono text-[10px] font-bold">DRAFT</span>
+                    {% else %}
+                    <span class="bg-[#333] text-gray-400 px-2 py-0.5 font-mono text-[10px] font-bold">{{ inv.status | upper }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="py-3 text-right">
+                    {% if inv.pdf %}
+                    <a href="{{ inv.pdf }}" target="_blank" class="text-[#fca5a5] hover:text-white text-xs font-bold transition-colors">
+                      <i data-lucide="download" class="w-3.5 h-3.5 inline-block"></i> PDF
+                    </a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
 

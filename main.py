@@ -894,10 +894,25 @@ def dashboard():
         audits = resp.data or []
     except Exception as e:
         print("Failed to load audits:", e)
+    invoices = []
     try:
-        sub_resp = supabase.table("subscriptions").select("status,current_period_end").eq("user_id", user["id"]).limit(1).execute()
+        sub_resp = supabase.table("subscriptions").select("status,current_period_end,stripe_customer_id").eq("user_id", user["id"]).limit(1).execute()
         if sub_resp.data:
             subscription = sub_resp.data[0]
+            customer_id = subscription.get("stripe_customer_id")
+            if customer_id and STRIPE_SECRET:
+                try:
+                    inv_resp = stripe.Invoice.list(customer=customer_id, limit=24)
+                    for inv in inv_resp.data:
+                        invoices.append({
+                            "date": datetime.fromtimestamp(inv.created, tz=timezone.utc).strftime("%b %d, %Y"),
+                            "amount": f"${inv.amount_paid / 100:.2f}",
+                            "status": inv.status or "unknown",
+                            "pdf": inv.invoice_pdf,
+                            "number": inv.number or "—",
+                        })
+                except Exception as e:
+                    print("Failed to load invoices:", e)
     except Exception as e:
         print("Failed to load subscription:", e)
 
@@ -967,6 +982,7 @@ def dashboard():
         scan_limit=scan_limit,
         active_tab=active_tab,
         subscription=subscription,
+        invoices=invoices,
         shared_audit_id=shared_id
     )
 
