@@ -579,6 +579,9 @@ def privacy():
 
 @app.route('/')
 def index():
+    ref = request.args.get("ref")
+    if ref:
+        session["referrer_id"] = ref
     user = session.get('user')
     plan = "free"
     if user:
@@ -666,11 +669,15 @@ def auth_callback():
             is_new_user = not existing.data
         except Exception:
             pass
+        profile_data = {
+            "id": user.id,
+            "email": user.email
+        }
+        referrer_id = session.pop("referrer_id", None)
+        if is_new_user and referrer_id and referrer_id != str(user.id):
+            profile_data["referred_by"] = referrer_id
         try:
-            supabase.table("profiles").upsert({
-                "id": user.id,
-                "email": user.email
-            }, on_conflict="id").execute()
+            supabase.table("profiles").upsert(profile_data, on_conflict="id").execute()
         except Exception as e:
             print("Profile upsert failed:", e)
 
@@ -943,6 +950,20 @@ def normalize_url(raw_url: str):
     if not parsed.netloc:
         return None
     return url
+
+
+@app.route('/app/referral')
+def referral():
+    user = session.get("user")
+    if not user:
+        return redirect('/login')
+    referrals = []
+    try:
+        resp = supabase.table("profiles").select("email,created_at").eq("referred_by", user["id"]).order("created_at", desc=True).execute()
+        referrals = resp.data or []
+    except Exception:
+        pass
+    return render_template("app/referral.html", user_id=user["id"], referrals=referrals)
 
 
 @app.route('/app/dashboard')
