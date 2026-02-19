@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome | FixMyLanding</title>
+  <meta name="robots" content="noindex,nofollow">
+  <script defer data-website-id="dfid_5CENfXdlBU0wZKBoKOxd4" data-domain="fixmyland.ing" src="https://datafa.st/js/script.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}">
+</head>
+<body class="relative flex items-center justify-center min-h-screen bg-[#1F1F1F] text-white" style="font-family:'Bricolage Grotesque',sans-serif">
+  <div class="paper-grid"></div>
+  <div class="noise-overlay"></div>
+
+  <div class="w-[90%] max-w-md">
+    <div class="text-center mb-8">
+      <a href="/" class="text-2xl font-black tracking-tighter text-white">fixmy<span class="text-[#fca5a5]">land<span class="text-white">.</span>ing</span></a>
+    </div>
+
+    <div class="bg-[#2a2a2a] border-2 border-[#444] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8">
+      <p class="font-mono text-[10px] uppercase text-gray-500 mb-2">One quick question</p>
+      <h1 class="text-xl font-black text-white mb-2">How did you hear about FixMyLanding?</h1>
+      <p class="text-sm text-gray-400 mb-6">This helps us improve.</p>
+
+      <div id="ref-buttons" class="flex flex-col gap-3">
+        <button onclick="submitRef('Google Search')" class="ref-btn w-full flex items-center gap-3 text-left px-4 py-3 bg-[#1F1F1F] border-2 border-[#444] text-gray-300 text-sm font-bold hover:border-[#fca5a5] hover:text-white transition-all">
+          <i data-lucide="search" class="w-4 h-4 text-[#fca5a5]"></i> Google Search
+        </button>
+        <button onclick="showInputFor('x')" class="ref-btn w-full flex items-center gap-3 text-left px-4 py-3 bg-[#1F1F1F] border-2 border-[#444] text-gray-300 text-sm font-bold hover:border-[#fca5a5] hover:text-white transition-all">
+          <i data-lucide="twitter" class="w-4 h-4 text-[#fca5a5]"></i> X (Twitter)
+        </button>
+        <button onclick="submitRef('AI (ChatGPT, etc.)')" class="ref-btn w-full flex items-center gap-3 text-left px-4 py-3 bg-[#1F1F1F] border-2 border-[#444] text-gray-300 text-sm font-bold hover:border-[#fca5a5] hover:text-white transition-all">
+          <i data-lucide="bot" class="w-4 h-4 text-[#fca5a5]"></i> AI (ChatGPT, etc.)
+        </button>
+        <button onclick="showInputFor('other')" class="ref-btn w-full flex items-center gap-3 text-left px-4 py-3 bg-[#1F1F1F] border-2 border-[#444] text-gray-300 text-sm font-bold hover:border-[#fca5a5] hover:text-white transition-all">
+          <i data-lucide="message-circle" class="w-4 h-4 text-[#fca5a5]"></i> Other
+        </button>
+      </div>
+
+      <!-- Detail input (X / Other) -->
+      <div id="ref-input-section" class="hidden mt-4">
+        <label id="ref-input-label" class="font-mono text-[10px] uppercase text-gray-500 mb-2 block">Who referred you?</label>
+        <input id="ref-input" type="text" placeholder="@username or name" class="w-full bg-[#1F1F1F] border-2 border-[#444] text-white text-sm p-3 placeholder-gray-500 outline-none focus:border-[#fca5a5] transition-colors mb-3">
+        <button onclick="submitDetailRef()" class="w-full bg-[#fca5a5] text-black py-2.5 font-bold text-sm border-2 border-[#444] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+          Continue
+        </button>
+      </div>
+
+      <div id="ref-msg" class="text-sm mt-4 hidden"></div>
+
+      <a href="/app/dashboard" class="block text-center mt-6 text-xs text-gray-500 hover:text-gray-300 transition-colors font-mono">Skip →</a>
+    </div>
+  </div>
+
+  <footer class="absolute bottom-4 left-0 right-0 text-center">
+    <div class="flex flex-col md:flex-row items-center justify-center gap-3 font-mono text-[10px] text-gray-500 uppercase">
+      <div class="flex items-center gap-3">
+        <a href="/terms" class="hover:text-white transition-colors">Terms</a>
+        <span class="text-gray-700">•</span>
+        <a href="/privacy" class="hover:text-white transition-colors">Privacy</a>
+        <span class="text-gray-700">•</span>
+        <a href="/contact" class="hover:text-white transition-colors">Contact</a>
+      </div>
+      <span class="text-gray-600">&copy; 2026 FixMyLanding</span>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    let _inputMode = '';
+
+    function showInputFor(mode) {
+      _inputMode = mode;
+      document.getElementById('ref-buttons').classList.add('hidden');
+      document.getElementById('ref-input-section').classList.remove('hidden');
+      const label = document.getElementById('ref-input-label');
+      const input = document.getElementById('ref-input');
+      if (mode === 'x') {
+        label.textContent = 'Who referred you?';
+        input.placeholder = '@username or name';
+      } else {
+        label.textContent = 'Tell us more';
+        input.placeholder = 'e.g. a friend, blog post, podcast...';
+      }
+      input.value = '';
+      input.focus();
+    }
+
+    function submitDetailRef() {
+      const detail = document.getElementById('ref-input').value.trim();
+      if (_inputMode === 'x') {
+        submitRef('X (Twitter)' + (detail ? ': ' + detail : ''));
+      } else {
+        submitRef('Other' + (detail ? ': ' + detail : ''));
+      }
+    }
+
+    function submitRef(source) {
+      const btns = document.querySelectorAll('.ref-btn');
+      btns.forEach(b => { b.disabled = true; b.classList.add('opacity-60', 'cursor-not-allowed'); });
+
+      const msg = document.getElementById('ref-msg');
+      msg.textContent = '';
+      msg.classList.add('hidden');
+
+      fetch('/api/referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: source })
+      }).then(r => r.json()).then(data => {
+        if (data.success) {
+          window.location.href = data.redirect || '/app/dashboard';
+        } else {
+          msg.textContent = data.error || 'Something went wrong.';
+          msg.className = 'text-sm mt-4 text-red-400';
+          btns.forEach(b => { b.disabled = false; b.classList.remove('opacity-60', 'cursor-not-allowed'); });
+        }
+      }).catch(() => {
+        window.location.href = '/app/dashboard';
+      });
+    }
+  </script>
+</body>
+</html>

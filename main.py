@@ -30,19 +30,19 @@ FEATURE_SUGGEST_TIMES = {}
 #RATE_LIMIT_WINDOW_SEC = 60
 #RATE_LIMIT_MAX_REQUESTS = 5
 SCAN_LIMITS = {"free": 1, "paid": 15}
-DISCORD_CONTACT_WEBHOOK = "https://discord.com/api/webhooks/1470306076694941719/ClTudUO8_Lu_I40i1t0P51oMcKcVtxzSlmdPUF-cy7lYy9niqsvZ4MNRaVQqw0JGpLYL"
-DISCORD_SCAN_WEBHOOK = "https://discord.com/api/webhooks/1470306210036318231/LVGfUqdLSniOKg3Cg3Udzb_q4dkuURHPXxZ0KwiyIMefUcahmUizPmb2NgHDITTQ52Xc"
-DISCORD_FEATURE_WEBHOOK = "https://discord.com/api/webhooks/1473046786997358752/3YJeqGNe5of7wykVUh-3m_JycKVmuqtP5YSIHnNqr6A7EWD3jwDSVz2_a2xDWNS_UiuT"
-
-
 load_dotenv()
+
+DISCORD_CONTACT_WEBHOOK = os.environ.get("DISCORD_CONTACT_WEBHOOK", "")
+DISCORD_SCAN_WEBHOOK = os.environ.get("DISCORD_SCAN_WEBHOOK", "")
+DISCORD_FEATURE_WEBHOOK = os.environ.get("DISCORD_FEATURE_WEBHOOK", "")
+DISCORD_REF_WEBHOOK = os.environ.get("DISCORD_REF_WEBHOOK", "")
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersecretkey")
 app.permanent_session_lifetime = timedelta(days=30)
 public_base_url = os.environ.get("PUBLIC_SITE_URL") or os.environ.get("APP_BASE_URL")
 STRIPE_SECRET = os.environ.get("STRIPE_SECRET")
@@ -660,6 +660,12 @@ def auth_callback():
             "verified": True,
             "onboarding_complete": True
         }
+        is_new_user = False
+        try:
+            existing = supabase.table("profiles").select("id").eq("id", user.id).execute()
+            is_new_user = not existing.data
+        except Exception:
+            pass
         try:
             supabase.table("profiles").upsert({
                 "id": user.id,
@@ -667,6 +673,10 @@ def auth_callback():
             }, on_conflict="id").execute()
         except Exception as e:
             print("Profile upsert failed:", e)
+
+        if is_new_user:
+            session["pending_referral"] = True
+            return redirect('/welcome')
 
         redirect_target = session.pop("post_login_redirect", None)
         return redirect(redirect_target or '/app/dashboard')
@@ -686,6 +696,62 @@ def links_tool():
 @app.route('/tools/meta_tag_viewer')
 def meta_tag_view():
     return render_template('tools/meta_tag_viewer.html')
+
+@app.route('/welcome')
+def welcome():
+    user = session.get("user")
+    if not user:
+        return redirect('/login')
+    if not session.get("pending_referral"):
+        return redirect('/app/dashboard')
+    return render_template('auth/referral.html')
+
+
+REFERRAL_SUBMIT_TIMES = {}
+
+@app.route('/api/referral', methods=['POST'])
+def api_referral():
+    user = session.get("user")
+    if not user:
+        return jsonify({"success": False, "error": "Not logged in."}), 401
+    uid = user.get("id") or _client_ip()
+    now = time.time()
+    q = REFERRAL_SUBMIT_TIMES.get(uid)
+    if q is None:
+        q = deque()
+        REFERRAL_SUBMIT_TIMES[uid] = q
+    while q and now - q[0] > 3600:
+        q.popleft()
+    if len(q) >= 3:
+        session.pop("pending_referral", None)
+        return jsonify({"success": False, "error": "Too many submissions. Try again later."}), 429
+    q.append(now)
+    session.pop("pending_referral", None)
+    data = request.get_json() or {}
+    source = (data.get("source") or "").strip()
+    if not source:
+        redirect_target = session.pop("post_login_redirect", None)
+        return jsonify({"success": True, "redirect": redirect_target or "/app/dashboard"})
+    name = f'{user.get("first_name") or ""} {user.get("last_name") or ""}'.strip() or "Unknown"
+    email = user.get("email") or "Unknown"
+    if DISCORD_REF_WEBHOOK:
+        try:
+            requests.post(DISCORD_REF_WEBHOOK, json={
+                "embeds": [{
+                    "title": "New Signup Referral",
+                    "color": 5793266,
+                    "fields": [
+                        {"name": "Name", "value": name, "inline": True},
+                        {"name": "Email", "value": email, "inline": True},
+                        {"name": "Source", "value": source[:1024]},
+                    ]
+                }]
+            }, timeout=10)
+        except Exception:
+            pass
+    redirect_target = session.pop("post_login_redirect", None)
+    return jsonify({"success": True, "redirect": redirect_target or "/app/dashboard"})
+
 
 @app.route('/signup')
 def signup():

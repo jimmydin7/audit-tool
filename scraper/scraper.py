@@ -353,7 +353,7 @@ EXAMPLE_AUDIT = {
 EXAMPLE_JSON = json.dumps(EXAMPLE_AUDIT, indent=2)
 DEFAULT_AUDIT = json.loads(EXAMPLE_JSON)
 
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1473270709789921341/VL_ijophe2m98pHL6tVDByuNEXjZMU2-rIh3hgvuzEGSqEGFRmlVUL9LVLNAKmoZbjPj"
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_SCRAPER_WEBHOOK", "")
 
 
 def _send_to_discord(url: str, html: str, prompt: str):
