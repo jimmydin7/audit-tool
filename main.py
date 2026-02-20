@@ -852,7 +852,11 @@ def billing_checkout():
             line_items=[{"price": price_id, "quantity": 1}],
             allow_promotion_codes=True,
             success_url=f"{base_url}/billing/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{base_url}/billing/cancel"
+            cancel_url=f"{base_url}/billing/cancel",
+            metadata={
+                "datafast_visitor_id": request.cookies.get("datafast_visitor_id", ""),
+                "datafast_session_id": request.cookies.get("datafast_session_id", ""),
+            }
         )
         return redirect(session_obj.url)
     except Exception as e:
