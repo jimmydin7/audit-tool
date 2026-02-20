@@ -385,7 +385,7 @@
       <p class="text-sm text-gray-500 italic">This scan was run before we introduced this feature.</p>
     </div>
     {% else %}
-    {% set max_count = kw_list[0].count if kw_list else 1 %}
+    {% set max_count = kw_list[0].count if kw_list and kw_list[0].count else 1 %}
     {% set kw_total = kw_list | length %}
     <div class="space-y-3">
       {% for kw in kw_list %}
