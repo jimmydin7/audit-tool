@@ -5,6 +5,7 @@ import json
 import os
 from urllib.parse import urlparse
 from scraper.scraper import analyze, analyze_html, generate_llm_prompt, ScrapeError
+from openai import RateLimitError
 import threading
 import uuid
 import time
@@ -21,7 +22,7 @@ _JOB_CREATED = {}
 def _cleanup_old_jobs():
     now = time.time()
     stale = [jid for jid, ts in _JOB_CREATED.items()
-             if now - ts > 600 and AUDIT_JOBS.get(jid, {}).get("status") != "running"]
+             if now - ts > 240 and AUDIT_JOBS.get(jid, {}).get("status") != "running"]
     for jid in stale:
         AUDIT_JOBS.pop(jid, None)
         _JOB_CREATED.pop(jid, None)
@@ -310,6 +311,16 @@ def run_audit(job_id, url):
             plan=plan if 'plan' in dir() else None,
             user_name=AUDIT_JOBS[job_id].get("user_name")
         )
+    except RateLimitError as e:
+        AUDIT_JOBS[job_id]["status"] = "error"
+        AUDIT_JOBS[job_id]["error"] = "Our AI service is temporarily overloaded. Please try again in a minute."
+        _send_scan_webhook(
+            status="error",
+            reason=f"rate_limited: {str(e)[:180]}",
+            url=AUDIT_JOBS[job_id].get("url"),
+            user_id=AUDIT_JOBS[job_id].get("user_id"),
+            user_name=AUDIT_JOBS[job_id].get("user_name")
+        )
     except Exception as e:
         AUDIT_JOBS[job_id]["status"] = "error"
         AUDIT_JOBS[job_id]["error"] = str(e)
@@ -367,6 +378,9 @@ def run_audit_with_html(job_id, url, html_code):
             html_lines=html_lines,
             html_chars=html_chars
         )
+    except RateLimitError as e:
+        AUDIT_JOBS[job_id]["status"] = "error"
+        AUDIT_JOBS[job_id]["error"] = "Our AI service is temporarily overloaded. Please try again in a minute."
     except Exception as e:
         AUDIT_JOBS[job_id]["status"] = "error"
         AUDIT_JOBS[job_id]["error"] = str(e)

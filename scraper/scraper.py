@@ -5,7 +5,7 @@ import re
 from collections import Counter
 from html.parser import HTMLParser
 import httpx
-from openai import OpenAI
+from openai import OpenAI, RateLimitError, APIStatusError
 from datetime import datetime
 import requests
 
@@ -462,6 +462,7 @@ def _is_placeholder_result(data: dict) -> bool:
 
 
 def _run_model_new(client, model: str, prompt: str, max_retries: int = 2) -> dict:
+    import time as _time
     last_err = None
     for attempt in range(max_retries + 1):
         try:
@@ -483,16 +484,27 @@ def _run_model_new(client, model: str, prompt: str, max_retries: int = 2) -> dic
             if _is_placeholder_result(parsed):
                 print(f"Model returned placeholder/template data (attempt {attempt + 1}), retrying...")
                 last_err = ValueError("Model returned placeholder data instead of real analysis")
+                _time.sleep(2 ** attempt)
                 continue
 
             return parsed
         except json.JSONDecodeError as e:
             print(f"JSON parse error (attempt {attempt + 1}): {e}")
             last_err = e
+            _time.sleep(2 ** attempt)
+            continue
+        except RateLimitError as e:
+            print(f"Rate limited (attempt {attempt + 1}): {e}")
+            if attempt < max_retries:
+                wait = min(2 ** (attempt + 2), 30)
+                print(f"Waiting {wait}s before retry...")
+                _time.sleep(wait)
+            last_err = e
             continue
         except Exception as e:
             print(f"Model call error (attempt {attempt + 1}): {e}")
             last_err = e
+            _time.sleep(2 ** attempt)
             continue
 
     raise last_err or ValueError("Failed to get valid audit from model")
@@ -854,6 +866,11 @@ def analyze_html(html_code, url, plan="free", on_fallback=None):
         audit["top_keywords"] = keywords
         return audit
 
+    def _is_token_limit_error(err):
+        err_str = str(err).lower()
+        return "context_length_exceeded" in err_str or "maximum context length" in err_str or "token" in err_str
+
+    mini_error = None
     try:
         audit = analyze_with_ai(html_code, url)
         if audit.get("_empty_page"):
@@ -865,6 +882,11 @@ def analyze_html(html_code, url, plan="free", on_fallback=None):
         return _with_duration(audit)
     except Exception as e:
         print("gpt-4o-mini failed:", e)
+        mini_error = e
+
+    if isinstance(mini_error, RateLimitError) or not _is_token_limit_error(mini_error):
+        if plan != "paid":
+            raise mini_error
 
     if plan != "paid":
         audit = _merge_schema(DEFAULT_AUDIT, {})
@@ -896,6 +918,10 @@ def analyze_html(html_code, url, plan="free", on_fallback=None):
         audit["_scan_cost"] = 1
         audit["_model_used"] = "gpt-4.1-mini"
         return _with_duration(audit)
+    except RateLimitError as e:
+        print("gpt-4.1-mini rate limited:", e)
+        http_client.close()
+        raise
     except Exception as e:
         print("gpt-4.1-mini failed:", e)
     finally:
@@ -934,7 +960,12 @@ def analyze(url, plan="free", on_fallback=None):
         audit["top_keywords"] = keywords
         return audit
 
+    def _is_token_limit_error(err):
+        err_str = str(err).lower()
+        return "context_length_exceeded" in err_str or "maximum context length" in err_str or "token" in err_str
+
     # Both free and paid try gpt-4o-mini first
+    mini_error = None
     try:
         audit = analyze_with_ai(html_code, url)
         audit["_scan_cost"] = 1
@@ -942,8 +973,15 @@ def analyze(url, plan="free", on_fallback=None):
         return _with_duration(audit)
     except Exception as e:
         print("gpt-4o-mini failed:", e)
+        mini_error = e
 
-    # Free users can't fallback — show upgrade prompt
+    # If it's a rate limit or transient error (not a token/size issue), raise it
+    # so the user sees a real error instead of "too big for free tier"
+    if isinstance(mini_error, RateLimitError) or not _is_token_limit_error(mini_error):
+        if plan != "paid":
+            raise mini_error
+
+    # Free users can't fallback — show upgrade prompt (only for actual size issues)
     if plan != "paid":
         audit = _merge_schema(DEFAULT_AUDIT, {})
         audit["url"] = url
@@ -975,6 +1013,10 @@ def analyze(url, plan="free", on_fallback=None):
         audit["_scan_cost"] = 1
         audit["_model_used"] = "gpt-4.1-mini"
         return _with_duration(audit)
+    except RateLimitError as e:
+        print("gpt-4.1-mini rate limited:", e)
+        http_client.close()
+        raise
     except Exception as e:
         print("gpt-4.1-mini failed:", e)
     finally:
